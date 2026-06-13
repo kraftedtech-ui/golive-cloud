@@ -4,12 +4,13 @@ import { Lead } from '@/models/Lead'
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await connectDB()
     const body = await req.json()
-    const lead = await Lead.findByIdAndUpdate(params.id, body, { new: true })
+    const lead = await Lead.findByIdAndUpdate(id, body, { new: true })
     if (!lead) return NextResponse.json({ success: false, error: 'Lead not found' }, { status: 404 })
     return NextResponse.json({ success: true, lead })
   } catch (err) {
@@ -20,11 +21,12 @@ export async function PATCH(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await connectDB()
-    const lead = await Lead.findById(params.id)
+    const lead = await Lead.findById(id)
     if (!lead) return NextResponse.json({ success: false, error: 'Lead not found' }, { status: 404 })
     return NextResponse.json({ success: true, lead })
   } catch (err) {
