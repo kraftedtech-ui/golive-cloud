@@ -1,0 +1,38 @@
+name: Deploy to GoLive Cloud Server
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Hetzner via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: 65.108.124.35
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /www/wwwroot/golive-cloud
+
+            # Pull latest code
+            git pull origin main
+
+            # Install all dependencies (devDeps needed for Next.js build)
+            npm install
+
+            # Kill any stray dev servers before building
+            pkill -f "next dev" 2>/dev/null || true
+            pkill -f "next-development" 2>/dev/null || true
+
+            # Production build
+            NODE_ENV=production npm run build
+
+            # Restart PM2 cleanly
+            pm2 restart golive-cloud || pm2 start /www/wwwroot/golive-cloud/server.js --name golive-cloud --cwd /www/wwwroot/golive-cloud
+            pm2 save
+
+            echo "✅ GoLive Cloud deployed at $(date)"
