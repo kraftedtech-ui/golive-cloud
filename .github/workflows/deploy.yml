@@ -15,30 +15,25 @@ jobs:
           host: 65.108.124.35
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 10m
           script: |
             git config --global --add safe.directory /www/wwwroot/golive-cloud
 
             cd /www/wwwroot/golive-cloud
 
-            # Ensure remote is set
             git remote remove origin 2>/dev/null || true
             git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git
 
-            # Force reset to match GitHub exactly
             git fetch origin main
             git reset --hard origin/main
 
-            # Install dependencies
             npm install --legacy-peer-deps
 
-            # Kill stray dev servers
             pkill -f "next dev" 2>/dev/null || true
             pkill -f "next-development" 2>/dev/null || true
 
-            # Production build
             NODE_ENV=production npm run build
 
-            # Restart PM2
             pm2 restart golive-cloud || pm2 start /www/wwwroot/golive-cloud/server.js --name golive-cloud --cwd /www/wwwroot/golive-cloud
             pm2 save
 
