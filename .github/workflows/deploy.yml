@@ -25,19 +25,39 @@ jobs:
           cat > /tmp/deploy.sh << 'SCRIPT'
           #!/bin/bash
           set -e
-          git config --global --add safe.directory /www/wwwroot/golive-cloud
+          echo "=== GoLive Deploy ==="
           cd /www/wwwroot/golive-cloud
+          git config --global --add safe.directory /www/wwwroot/golive-cloud
           git remote remove origin 2>/dev/null || true
           git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git
           git fetch origin main
-          git reset --hard origin/main
+          echo "=== Pulling files from GitHub ==="
+          git show origin/main:golive-cloud/tsconfig.json > tsconfig.json
+          git show origin/main:golive-cloud/middleware.ts > middleware.ts
+          git show origin/main:golive-cloud/next.config.ts > next.config.ts
+          git show origin/main:golive-cloud/package.json > package.json
+          git show origin/main:golive-cloud/server.js > server.js
+          git show origin/main:golive-cloud/app/globals.css > app/globals.css
+          git show origin/main:golive-cloud/app/layout.tsx > app/layout.tsx
+          git show origin/main:golive-cloud/app/page.tsx > app/page.tsx
+          git show origin/main:golive-cloud/app/portal/login/page.tsx > app/portal/login/page.tsx
+          git show origin/main:golive-cloud/app/portal/page.tsx > app/portal/page.tsx
+          git show origin/main:golive-cloud/lib/mongodb.ts > lib/mongodb.ts
+          git show origin/main:golive-cloud/lib/email.ts > lib/email.ts
+          git show origin/main:golive-cloud/models/Lead.ts > models/Lead.ts
+          git show "origin/main:golive-cloud/app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
+          git show origin/main:golive-cloud/app/api/leads/route.ts > app/api/leads/route.ts
+          git show "origin/main:golive-cloud/app/api/leads/[id]/route.ts" > "app/api/leads/[id]/route.ts"
+          echo "=== Installing ==="
           npm install --legacy-peer-deps
+          echo "=== Building ==="
           pkill -f "next dev" 2>/dev/null || true
           export NODE_ENV=production
           npm run build
+          echo "=== Restarting PM2 ==="
           pm2 restart golive-cloud || pm2 start /www/wwwroot/golive-cloud/server.js --name golive-cloud --cwd /www/wwwroot/golive-cloud
           pm2 save
-          echo "Deployed at $(date)"
+          echo "=== Deployed at $(date) ==="
           SCRIPT
           chmod +x /tmp/deploy.sh
 
