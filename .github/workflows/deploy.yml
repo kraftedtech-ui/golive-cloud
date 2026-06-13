@@ -21,10 +21,14 @@ jobs:
 
             cd /www/wwwroot/golive-cloud
 
+            # Ensure git remote is set
+            git remote remove origin 2>/dev/null || true
+            git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git
+
             # Pull latest code
             git pull origin main
 
-            # Install with legacy peer deps to resolve nodemailer conflict
+            # Install with legacy peer deps
             npm install --legacy-peer-deps
 
             # Kill any stray dev servers
