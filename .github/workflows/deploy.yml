@@ -7,34 +7,33 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-      - name: Deploy to Hetzner via SSH
-        uses: appleboy/ssh-action@master
-        with:
-          host: 65.108.124.35
-          username: root
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          command_timeout: 10m
-          script: |
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 65.108.124.35 >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@65.108.124.35 << 'ENDSSH'
+            set -e
             git config --global --add safe.directory /www/wwwroot/golive-cloud
-
             cd /www/wwwroot/golive-cloud
-
             git remote remove origin 2>/dev/null || true
             git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git
-
             git fetch origin main
             git reset --hard origin/main
-
             npm install --legacy-peer-deps
-
             pkill -f "next dev" 2>/dev/null || true
-            pkill -f "next-development" 2>/dev/null || true
-
             NODE_ENV=production npm run build
-
             pm2 restart golive-cloud || pm2 start /www/wwwroot/golive-cloud/server.js --name golive-cloud --cwd /www/wwwroot/golive-cloud
             pm2 save
-
-            echo "✅ GoLive Cloud deployed at $(date)"
+            echo "✅ Deployed at $(date)"
+ENDSSH
