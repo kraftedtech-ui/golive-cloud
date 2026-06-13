@@ -31,23 +31,23 @@ jobs:
           git remote remove origin 2>/dev/null || true
           git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git
           git fetch origin main
-          echo "=== Pulling files from GitHub ==="
-          git show origin/main:golive-cloud/tsconfig.json > tsconfig.json
-          git show origin/main:golive-cloud/middleware.ts > middleware.ts
-          git show origin/main:golive-cloud/next.config.ts > next.config.ts
-          git show origin/main:golive-cloud/package.json > package.json
-          git show origin/main:golive-cloud/server.js > server.js
-          git show origin/main:golive-cloud/app/globals.css > app/globals.css
-          git show origin/main:golive-cloud/app/layout.tsx > app/layout.tsx
-          git show origin/main:golive-cloud/app/page.tsx > app/page.tsx
-          git show origin/main:golive-cloud/app/portal/login/page.tsx > app/portal/login/page.tsx
-          git show origin/main:golive-cloud/app/portal/page.tsx > app/portal/page.tsx
-          git show origin/main:golive-cloud/lib/mongodb.ts > lib/mongodb.ts
-          git show origin/main:golive-cloud/lib/email.ts > lib/email.ts
-          git show origin/main:golive-cloud/models/Lead.ts > models/Lead.ts
-          git show "origin/main:golive-cloud/app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
-          git show origin/main:golive-cloud/app/api/leads/route.ts > app/api/leads/route.ts
-          git show "origin/main:golive-cloud/app/api/leads/[id]/route.ts" > "app/api/leads/[id]/route.ts"
+          echo "=== Pulling files from GitHub root ==="
+          git show origin/main:tsconfig.json > tsconfig.json
+          git show origin/main:middleware.ts > middleware.ts
+          git show origin/main:next.config.ts > next.config.ts
+          git show origin/main:package.json > package.json
+          git show origin/main:server.js > server.js
+          git show origin/main:app/globals.css > app/globals.css
+          git show origin/main:app/layout.tsx > app/layout.tsx
+          git show origin/main:app/page.tsx > app/page.tsx
+          git show origin/main:app/portal/login/page.tsx > app/portal/login/page.tsx
+          git show origin/main:app/portal/page.tsx > app/portal/page.tsx
+          git show origin/main:lib/mongodb.ts > lib/mongodb.ts
+          git show origin/main:lib/email.ts > lib/email.ts
+          git show origin/main:models/Lead.ts > models/Lead.ts
+          git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
+          git show origin/main:app/api/leads/route.ts > app/api/leads/route.ts
+          git show "origin/main:app/api/leads/[id]/route.ts" > "app/api/leads/[id]/route.ts"
           echo "=== Installing ==="
           npm install --legacy-peer-deps
           echo "=== Building ==="
