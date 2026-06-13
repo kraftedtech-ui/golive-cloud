@@ -16,22 +16,25 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Fix git safe directory
+            git config --global --add safe.directory /www/wwwroot/golive-cloud
+
             cd /www/wwwroot/golive-cloud
 
             # Pull latest code
             git pull origin main
 
-            # Install all dependencies (devDeps needed for Next.js build)
-            npm install
+            # Install with legacy peer deps to resolve nodemailer conflict
+            npm install --legacy-peer-deps
 
-            # Kill any stray dev servers before building
+            # Kill any stray dev servers
             pkill -f "next dev" 2>/dev/null || true
             pkill -f "next-development" 2>/dev/null || true
 
             # Production build
             NODE_ENV=production npm run build
 
-            # Restart PM2 cleanly
+            # Restart PM2
             pm2 restart golive-cloud || pm2 start /www/wwwroot/golive-cloud/server.js --name golive-cloud --cwd /www/wwwroot/golive-cloud
             pm2 save
 
