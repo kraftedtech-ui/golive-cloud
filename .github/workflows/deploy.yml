@@ -16,22 +16,22 @@ jobs:
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Fix git safe directory
             git config --global --add safe.directory /www/wwwroot/golive-cloud
 
             cd /www/wwwroot/golive-cloud
 
-            # Ensure git remote is set
+            # Ensure remote is set
             git remote remove origin 2>/dev/null || true
             git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git
 
-            # Pull latest code
-            git pull origin main
+            # Force reset to match GitHub exactly
+            git fetch origin main
+            git reset --hard origin/main
 
-            # Install with legacy peer deps
+            # Install dependencies
             npm install --legacy-peer-deps
 
-            # Kill any stray dev servers
+            # Kill stray dev servers
             pkill -f "next dev" 2>/dev/null || true
             pkill -f "next-development" 2>/dev/null || true
 
