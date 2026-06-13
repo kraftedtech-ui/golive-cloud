@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup SSH
+      - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
@@ -22,18 +22,15 @@ jobs:
 
       - name: Deploy to server
         run: |
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@65.108.124.35 << 'ENDSSH'
-            set -e
-            git config --global --add safe.directory /www/wwwroot/golive-cloud
-            cd /www/wwwroot/golive-cloud
-            git remote remove origin 2>/dev/null || true
-            git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git
-            git fetch origin main
-            git reset --hard origin/main
-            npm install --legacy-peer-deps
-            pkill -f "next dev" 2>/dev/null || true
-            NODE_ENV=production npm run build
-            pm2 restart golive-cloud || pm2 start /www/wwwroot/golive-cloud/server.js --name golive-cloud --cwd /www/wwwroot/golive-cloud
-            pm2 save
-            echo "✅ Deployed at $(date)"
-ENDSSH
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@65.108.124.35 \
+            "git config --global --add safe.directory /www/wwwroot/golive-cloud && \
+            cd /www/wwwroot/golive-cloud && \
+            git remote remove origin 2>/dev/null; git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git && \
+            git fetch origin main && \
+            git reset --hard origin/main && \
+            npm install --legacy-peer-deps && \
+            pkill -f 'next dev' 2>/dev/null; \
+            NODE_ENV=production npm run build && \
+            pm2 restart golive-cloud || pm2 start /www/wwwroot/golive-cloud/server.js --name golive-cloud --cwd /www/wwwroot/golive-cloud && \
+            pm2 save && \
+            echo deployed"
