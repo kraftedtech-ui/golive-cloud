@@ -39,6 +39,7 @@ jobs:
           git show origin/main:server.js > server.js
           git show origin/main:app/globals.css > app/globals.css
           git show origin/main:app/layout.tsx > app/layout.tsx
+          git show origin/main:app/SessionWrapper.tsx > app/SessionWrapper.tsx
           git show origin/main:app/page.tsx > app/page.tsx
           git show origin/main:app/portal/login/page.tsx > app/portal/login/page.tsx
           git show origin/main:app/portal/page.tsx > app/portal/page.tsx
