@@ -13,7 +13,7 @@ const BORDER = '#c8e6f0'
 const MUTED = '#5a7a8a'
 const LIGHT = '#e8f4fb'
 
-type Page = 'dashboard' | 'leads' | 'pipeline' | 'proposal' | 'onboarding' | 'customers'
+type Page = 'dashboard' | 'leads' | 'pipeline' | 'proposal' | 'onboarding' | 'customers' | 'team'
 
 interface Lead {
   _id: string; ref: string; company: string; contact: string; email: string
@@ -74,6 +74,7 @@ function Sidebar({ page, setPage }: { page: Page; setPage: (p: Page) => void }) 
       {nav('onboarding','Onboarding checklist','✅')}
       <div style={{ fontSize:9, fontWeight:700, color:SB_MUTED, textTransform:'uppercase', letterSpacing:'1.1px', padding:'12px 14px 4px' }}>Admin</div>
       {nav('customers','Customer accounts','👥')}
+      {nav('team','Team & access','🔑')}
       {nav('dashboard','Dashboard','📊')}
       <div style={{ marginTop:'auto', padding:'12px 14px 14px', borderTop:`1px solid rgba(13,31,60,.12)` }}>
         <div style={{ fontSize:9, fontWeight:700, color:SB_MUTED, textTransform:'uppercase', letterSpacing:'.8px', marginBottom:5 }}>Distributor status</div>
@@ -1033,6 +1034,265 @@ function CustomerAccounts({ prefillLead, onClearPrefill }: { prefillLead?: Lead 
   )
 }
 
+// ─── TEAM MANAGEMENT ─────────────────────────────────────────────
+interface PortalUser {
+  _id: string; name: string; email: string; role: string
+  active: boolean; lastLogin?: string; createdAt: string; invitedBy?: string
+}
+
+const ROLE_CONFIG: Record<string, { label: string; desc: string; bg: string; color: string }> = {
+  admin:  { label: 'Admin',  desc: 'Full access — leads, customers, proposals, team management', bg:'#fce7f3', color:'#9d174d' },
+  sales:  { label: 'Sales',  desc: 'Access to leads, pipeline, proposals and customers', bg:'#dbeafe', color:'#1e40af' },
+  viewer: { label: 'Viewer', desc: 'Read-only access — can view but not edit anything', bg:'#f3f4f6', color:'#4b5563' },
+}
+
+function TeamManagement() {
+  const [users, setUsers] = useState<PortalUser[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showAdd, setShowAdd] = useState(false)
+  const [form, setForm] = useState({ name:'', email:'', password:'', role:'sales' })
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  const fetchUsers = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/users')
+      const data = await res.json()
+      if (data.success) setUsers(data.users)
+    } catch (e) { console.error(e) }
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchUsers() }, [])
+
+  const addUser = async () => {
+    if (!form.name || !form.email || !form.password) {
+      setError('Name, email and password are all required.')
+      return
+    }
+    if (form.password.length < 8) {
+      setError('Password must be at least 8 characters.')
+      return
+    }
+    setSaving(true)
+    setError('')
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, invitedBy: 'admin' })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setSuccess(`${form.name} has been added successfully. They can now log in at cloud.golivecompany.com/portal/login`)
+        setForm({ name:'', email:'', password:'', role:'sales' })
+        setShowAdd(false)
+        await fetchUsers()
+      } else {
+        setError(data.error || 'Failed to create user.')
+      }
+    } catch (e) { setError('Network error. Please try again.') }
+    setSaving(false)
+  }
+
+  const updateRole = async (id: string, role: string) => {
+    await fetch(`/api/users/${id}`, { method:'PATCH', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ role }) })
+    await fetchUsers()
+  }
+
+  const deactivate = async (id: string, name: string) => {
+    if (!confirm(`Deactivate ${name}? They will no longer be able to log in.`)) return
+    await fetch(`/api/users/${id}`, { method:'DELETE' })
+    await fetchUsers()
+  }
+
+  const reactivate = async (id: string) => {
+    await fetch(`/api/users/${id}`, { method:'PATCH', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ active: true }) })
+    await fetchUsers()
+  }
+
+  const inp: React.CSSProperties = { border:`1.5px solid ${BORDER}`, borderRadius:7, padding:'8px 11px', fontSize:12, color:NAVY, fontFamily:'inherit', outline:'none', width:'100%', background:'#fff' }
+  const lbl: React.CSSProperties = { fontSize:10, fontWeight:700, color:MUTED, textTransform:'uppercase' as const, letterSpacing:'.4px', display:'block', marginBottom:3 }
+
+  const active = users.filter(u => u.active)
+  const inactive = users.filter(u => !u.active)
+
+  return (
+    <div>
+      {/* Header stats */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:13, marginBottom:18 }}>
+        {[
+          ['Total staff', String(users.length), `${active.length} active`],
+          ['Admins', String(users.filter(u => u.role==='admin' && u.active).length), 'Full access'],
+          ['Sales staff', String(users.filter(u => u.role==='sales' && u.active).length), 'Sales access'],
+        ].map(([label, value, sub]) => (
+          <div key={label} style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, padding:'15px 17px', borderTop:`3px solid ${CY}` }}>
+            <div style={{ fontSize:10, color:MUTED, fontWeight:700, marginBottom:4, textTransform:'uppercase', letterSpacing:'.4px' }}>{label}</div>
+            <div style={{ fontSize:22, fontWeight:700, color:NAVY }}>{value}</div>
+            <div style={{ fontSize:10, color:MUTED, marginTop:3 }}>{sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Role legend */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:18 }}>
+        {Object.entries(ROLE_CONFIG).map(([role, cfg]) => (
+          <div key={role} style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:9, padding:'11px 14px', display:'flex', alignItems:'flex-start', gap:10 }}>
+            <span style={{ fontSize:10, fontWeight:700, padding:'3px 9px', borderRadius:20, background:cfg.bg, color:cfg.color, flexShrink:0, marginTop:1 }}>{cfg.label}</span>
+            <span style={{ fontSize:11, color:MUTED, lineHeight:1.5 }}>{cfg.desc}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Success message */}
+      {success && (
+        <div style={{ background:'#d1fae5', border:'1.5px solid #6ee7b7', borderRadius:8, padding:'11px 14px', marginBottom:14, fontSize:12, color:'#065f46', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+          <div>✓ {success}</div>
+          <button onClick={() => setSuccess('')} style={{ background:'none', border:'none', color:'#065f46', cursor:'pointer', fontSize:14, padding:0 }}>×</button>
+        </div>
+      )}
+
+      {/* Add user form */}
+      {showAdd ? (
+        <div style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, padding:20, marginBottom:18 }}>
+          <div style={{ fontSize:13, fontWeight:700, color:NAVY, marginBottom:14, paddingBottom:10, borderBottom:`1.5px solid ${BORDER}` }}>Add new staff member</div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:12 }}>
+            <div><label style={lbl}>Full name *</label><input style={inp} placeholder="e.g. Sarah Johnson" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} /></div>
+            <div><label style={lbl}>Email address *</label><input style={inp} type="email" placeholder="sarah@golivenaija.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
+            <div>
+              <label style={lbl}>Temporary password *</label>
+              <input style={inp} type="password" placeholder="Min 8 characters" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
+              <div style={{ fontSize:10, color:MUTED, marginTop:3 }}>Staff should change this after first login</div>
+            </div>
+            <div>
+              <label style={lbl}>Role</label>
+              <select style={inp} value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
+                <option value="sales">Sales — leads, pipeline, proposals</option>
+                <option value="viewer">Viewer — read only</option>
+                <option value="admin">Admin — full access</option>
+              </select>
+            </div>
+          </div>
+          {error && <div style={{ fontSize:11, color:'#dc2626', background:'#fee2e2', padding:'8px 11px', borderRadius:6, marginBottom:10 }}>{error}</div>}
+          <div style={{ display:'flex', gap:8, justifyContent:'flex-end' }}>
+            <button onClick={() => { setShowAdd(false); setError(''); setForm({ name:'', email:'', password:'', role:'sales' }) }}
+              style={{ background:'none', border:`1.5px solid ${BORDER}`, borderRadius:7, padding:'8px 18px', fontSize:12, color:MUTED, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+            <button onClick={addUser} disabled={saving}
+              style={{ background: saving ? MUTED : CY, color:'#fff', border:'none', borderRadius:7, padding:'8px 20px', fontSize:12, fontWeight:700, cursor: saving ? 'not-allowed' : 'pointer', fontFamily:'inherit' }}>
+              {saving ? 'Adding...' : 'Add staff member'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:12 }}>
+          <button onClick={() => setShowAdd(true)}
+            style={{ background:CY, color:'#fff', border:'none', borderRadius:7, padding:'8px 18px', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
+            + Add staff member
+          </button>
+        </div>
+      )}
+
+      {/* Active users table */}
+      <div style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, overflow:'hidden', marginBottom:16 }}>
+        <div style={{ padding:'12px 16px', borderBottom:`1.5px solid ${BORDER}`, fontSize:12, fontWeight:700, color:NAVY }}>
+          Active staff ({active.length})
+        </div>
+        {loading ? (
+          <div style={{ textAlign:'center', padding:32, color:MUTED }}>Loading...</div>
+        ) : active.length === 0 ? (
+          <div style={{ textAlign:'center', padding:32, color:MUTED, fontSize:12 }}>
+            No staff added yet. Add your first team member above.
+          </div>
+        ) : (
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+            <thead>
+              <tr style={{ background:'#f4fafd' }}>
+                {['Name','Email','Role','Last login','Added','Actions'].map(h => (
+                  <th key={h} style={{ textAlign:'left', padding:'9px 14px', fontSize:10, fontWeight:700, color:MUTED, textTransform:'uppercase', letterSpacing:'.5px', borderBottom:`1.5px solid ${BORDER}` }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {active.map(u => {
+                const rc = ROLE_CONFIG[u.role] || ROLE_CONFIG.viewer
+                return (
+                  <tr key={u._id} style={{ borderBottom:`1px solid #eef3f0` }}>
+                    <td style={{ padding:'11px 14px' }}>
+                      <div style={{ fontWeight:700, color:NAVY }}>{u.name}</div>
+                    </td>
+                    <td style={{ padding:'11px 14px', color:MUTED }}>{u.email}</td>
+                    <td style={{ padding:'11px 14px' }}>
+                      <select value={u.role} onChange={e => updateRole(u._id, e.target.value)}
+                        style={{ fontSize:10, fontWeight:700, padding:'3px 8px', borderRadius:20, border:'none', background:rc.bg, color:rc.color, cursor:'pointer', fontFamily:'inherit' }}>
+                        <option value="admin">Admin</option>
+                        <option value="sales">Sales</option>
+                        <option value="viewer">Viewer</option>
+                      </select>
+                    </td>
+                    <td style={{ padding:'11px 14px', fontSize:11, color:MUTED }}>
+                      {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}
+                    </td>
+                    <td style={{ padding:'11px 14px', fontSize:11, color:MUTED }}>
+                      {new Date(u.createdAt).toLocaleDateString()}
+                    </td>
+                    <td style={{ padding:'11px 14px' }}>
+                      <button onClick={() => deactivate(u._id, u.name)}
+                        style={{ background:'#fee2e2', color:'#991b1b', border:'1.5px solid #fca5a5', borderRadius:6, padding:'4px 10px', fontSize:10, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                        Deactivate
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Inactive users */}
+      {inactive.length > 0 && (
+        <div style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, overflow:'hidden' }}>
+          <div style={{ padding:'12px 16px', borderBottom:`1.5px solid ${BORDER}`, fontSize:12, fontWeight:700, color:MUTED }}>
+            Deactivated staff ({inactive.length})
+          </div>
+          <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+            <tbody>
+              {inactive.map(u => (
+                <tr key={u._id} style={{ borderBottom:`1px solid #eef3f0`, opacity:.6 }}>
+                  <td style={{ padding:'10px 14px', fontWeight:700, color:MUTED }}>{u.name}</td>
+                  <td style={{ padding:'10px 14px', color:MUTED }}>{u.email}</td>
+                  <td style={{ padding:'10px 14px' }}>
+                    <span style={{ fontSize:10, color:MUTED, fontStyle:'italic' }}>Deactivated</span>
+                  </td>
+                  <td style={{ padding:'10px 14px' }}>
+                    <button onClick={() => reactivate(u._id)}
+                      style={{ background:LIGHT, color:CY, border:`1.5px solid ${BORDER}`, borderRadius:6, padding:'4px 10px', fontSize:10, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                      Reactivate
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Login instructions box */}
+      <div style={{ background:'#0d2233', borderRadius:10, padding:'16px 18px', marginTop:16 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#00c8c8', marginBottom:8 }}>How staff log in</div>
+        <div style={{ fontSize:11, color:'rgba(255,255,255,.65)', lineHeight:1.9 }}>
+          Share these details with your staff:<br/>
+          🌐 Portal URL: <strong style={{ color:'#fff' }}>https://cloud.golivecompany.com/portal/login</strong><br/>
+          📧 Their email address and the temporary password you set<br/>
+          🔐 Ask them to use a strong password after first login
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── MAIN PORTAL ─────────────────────────────────────────────────
 export default function Portal() {
   const [page, setPage] = useState<Page>('dashboard')
@@ -1058,7 +1318,8 @@ export default function Portal() {
 
   const PAGE_TITLES: Record<Page, string> = {
     dashboard:'Dashboard', leads:'Cloud assessment leads', pipeline:'CRM pipeline',
-    proposal:'Proposal generator', onboarding:'Customer onboarding checklist', customers:'Customer accounts'
+    proposal:'Proposal generator', onboarding:'Customer onboarding checklist',
+    customers:'Customer accounts', team:'Team & access control'
   }
 
   return (
@@ -1089,6 +1350,7 @@ export default function Portal() {
           {!loading && page === 'onboarding' && <Onboarding />}
           {!loading && page === 'proposal' && <ProposalGenerator leads={leads} />}
           {!loading && page === 'customers' && <CustomerAccounts prefillLead={convertLead} onClearPrefill={() => setConvertLead(null)} />}
+          {!loading && page === 'team' && <TeamManagement />}
         </div>
       </main>
     </div>
