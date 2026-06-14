@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { signOut } from 'next-auth/react'
+import { signOut, useSession } from 'next-auth/react'
 
 const CY = '#0096c7'
 const TEAL = '#00c8c8'
@@ -47,7 +47,10 @@ const PACKAGES: Record<string, { name: string; price: string; features: string[]
   }
 }
 
-function Sidebar({ page, setPage }: { page: Page; setPage: (p: Page) => void }) {
+function Sidebar({ page, setPage, role, userName }: { page: Page; setPage: (p: Page) => void; role: string; userName: string }) {
+  const isAdmin = role === 'admin'
+  const isViewer = role === 'viewer'
+
   const nav = (id: Page, label: string, icon: string, badge?: number) => (
     <button key={id} onClick={() => setPage(id)}
       style={{ display:'flex', alignItems:'center', gap:9, padding:'8px 12px', margin:'1px 8px', borderRadius:8, cursor:'pointer', fontSize:12, color: page===id ? '#fff' : SB_TEXT, background: page===id ? CY : 'none', border:'none', width:'calc(100% - 16px)', textAlign:'left', fontFamily:'inherit', fontWeight:500 }}>
@@ -55,6 +58,14 @@ function Sidebar({ page, setPage }: { page: Page; setPage: (p: Page) => void }) 
       {badge ? <span style={{ marginLeft:'auto', background: page===id ? 'rgba(255,255,255,.3)' : 'rgba(13,31,60,.14)', color: page===id ? '#fff' : SB_TEXT, fontSize:9, fontWeight:700, padding:'2px 6px', borderRadius:10 }}>{badge}</span> : null}
     </button>
   )
+
+  const readOnlyNav = (id: Page, label: string, icon: string) => (
+    <div key={id} style={{ display:'flex', alignItems:'center', gap:9, padding:'8px 12px', margin:'1px 8px', borderRadius:8, fontSize:12, color:'rgba(13,31,60,.35)', width:'calc(100% - 16px)', cursor:'not-allowed' }}>
+      <span style={{ fontSize:15, minWidth:17 }}>{icon}</span> {label}
+      <span style={{ marginLeft:'auto', fontSize:8, fontWeight:700, background:'rgba(13,31,60,.08)', color:'rgba(13,31,60,.35)', padding:'1px 5px', borderRadius:8 }}>VIEW</span>
+    </div>
+  )
+
   return (
     <aside style={{ width:232, minWidth:232, background:SB, display:'flex', flexDirection:'column', height:'100vh', overflow:'auto', position:'sticky', top:0 }}>
       <div style={{ padding:'16px 16px 13px', borderBottom:`1px solid rgba(13,31,60,.12)` }}>
@@ -65,17 +76,26 @@ function Sidebar({ page, setPage }: { page: Page; setPage: (p: Page) => void }) 
             <div style={{ fontSize:9, color:SB_MUTED, letterSpacing:'.2px' }}>Microsoft Cloud · Africa</div>
           </div>
         </div>
+        {/* Show logged in user name and role */}
+        <div style={{ marginTop:10, background:'rgba(13,31,60,.07)', borderRadius:7, padding:'7px 10px' }}>
+          <div style={{ fontSize:11, fontWeight:700, color:SB_TEXT }}>{userName || 'Staff'}</div>
+          <div style={{ fontSize:9, color:SB_MUTED, marginTop:1, textTransform:'uppercase', letterSpacing:'.4px' }}>{role}</div>
+        </div>
       </div>
+
       <div style={{ fontSize:9, fontWeight:700, color:SB_MUTED, textTransform:'uppercase', letterSpacing:'1.1px', padding:'12px 14px 4px' }}>Sales</div>
       {nav('leads','Cloud assessments','📋')}
       {nav('pipeline','CRM pipeline','🔄')}
+
       <div style={{ fontSize:9, fontWeight:700, color:SB_MUTED, textTransform:'uppercase', letterSpacing:'1.1px', padding:'12px 14px 4px' }}>Tools</div>
-      {nav('proposal','Proposal generator','📄')}
+      {isViewer ? readOnlyNav('proposal','Proposal generator','📄') : nav('proposal','Proposal generator','📄')}
       {nav('onboarding','Onboarding checklist','✅')}
+
       <div style={{ fontSize:9, fontWeight:700, color:SB_MUTED, textTransform:'uppercase', letterSpacing:'1.1px', padding:'12px 14px 4px' }}>Admin</div>
-      {nav('customers','Customer accounts','👥')}
-      {nav('team','Team & access','🔑')}
-      {nav('dashboard','Dashboard','📊')}
+      {isViewer ? readOnlyNav('customers','Customer accounts','👥') : nav('customers','Customer accounts','👥')}
+      {isAdmin && nav('team','Team & access','🔑')}
+      {isAdmin && nav('dashboard','Dashboard','📊')}
+
       <div style={{ marginTop:'auto', padding:'12px 14px 14px', borderTop:`1px solid rgba(13,31,60,.12)` }}>
         <div style={{ fontSize:9, fontWeight:700, color:SB_MUTED, textTransform:'uppercase', letterSpacing:'.8px', marginBottom:5 }}>Distributor status</div>
         <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, color:SB_TEXT, fontWeight:500 }}>
@@ -1295,7 +1315,13 @@ function TeamManagement() {
 
 // ─── MAIN PORTAL ─────────────────────────────────────────────────
 export default function Portal() {
-  const [page, setPage] = useState<Page>('dashboard')
+  const { data: session } = useSession()
+  const role = (session?.user as { role?: string })?.role || 'sales'
+  const userName = session?.user?.name || session?.user?.email || 'Staff'
+  const isAdmin = role === 'admin'
+  const isViewer = role === 'viewer'
+
+  const [page, setPage] = useState<Page>('leads')
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
   const [convertLead, setConvertLead] = useState<Lead | null>(null)
@@ -1312,6 +1338,7 @@ export default function Portal() {
   useEffect(() => { fetchLeads() }, [])
 
   const handleConvert = (lead: Lead) => {
+    if (isViewer) return
     setConvertLead(lead)
     setPage('customers')
   }
@@ -1324,10 +1351,13 @@ export default function Portal() {
 
   return (
     <div style={{ display:'flex', minHeight:'100vh' }}>
-      <Sidebar page={page} setPage={setPage} />
+      <Sidebar page={page} setPage={setPage} role={role} userName={userName} />
       <main style={{ flex:1, overflow:'hidden', background:'#f0f7fb' }}>
         <div style={{ background:'#fff', borderBottom:`2px solid ${BORDER}`, padding:'11px 22px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:10 }}>
-          <div style={{ fontSize:14, fontWeight:700, color:NAVY }}>{PAGE_TITLES[page]}</div>
+          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+            <div style={{ fontSize:14, fontWeight:700, color:NAVY }}>{PAGE_TITLES[page]}</div>
+            {isViewer && <span style={{ fontSize:9, fontWeight:700, background:'#fef3c7', color:'#92400e', padding:'2px 8px', borderRadius:10, border:'1px solid #fde68a' }}>VIEW ONLY</span>}
+          </div>
           <div style={{ display:'flex', alignItems:'center', gap:9 }}>
             <span style={{ fontSize:10, color:MUTED }}>June 2026 · Africa Region</span>
             {(page === 'leads' || page === 'pipeline') && (
@@ -1344,13 +1374,13 @@ export default function Portal() {
         </div>
         <div style={{ padding:'18px 22px', overflowY:'auto', maxHeight:'calc(100vh - 56px)' }}>
           {loading && <div style={{ textAlign:'center', padding:40, color:MUTED }}>Loading...</div>}
-          {!loading && page === 'dashboard' && <Dashboard leads={leads} />}
-          {!loading && page === 'leads' && <LeadsTable leads={leads} onUpdate={fetchLeads} onConvert={handleConvert} />}
+          {!loading && page === 'dashboard' && (isAdmin ? <Dashboard leads={leads} /> : <div style={{ textAlign:'center', padding:40, color:MUTED }}>Access restricted to admins.</div>)}
+          {!loading && page === 'leads' && <LeadsTable leads={leads} onUpdate={fetchLeads} onConvert={isViewer ? () => {} : handleConvert} />}
           {!loading && page === 'pipeline' && <Pipeline leads={leads} onUpdate={fetchLeads} />}
           {!loading && page === 'onboarding' && <Onboarding />}
-          {!loading && page === 'proposal' && <ProposalGenerator leads={leads} />}
-          {!loading && page === 'customers' && <CustomerAccounts prefillLead={convertLead} onClearPrefill={() => setConvertLead(null)} />}
-          {!loading && page === 'team' && <TeamManagement />}
+          {!loading && page === 'proposal' && (isViewer ? <div style={{ textAlign:'center', padding:40, color:MUTED }}>Viewers cannot generate proposals.</div> : <ProposalGenerator leads={leads} />)}
+          {!loading && page === 'customers' && (isViewer ? <div style={{ textAlign:'center', padding:40, color:MUTED }}>Viewers have read-only access to customer accounts.</div> : <CustomerAccounts prefillLead={convertLead} onClearPrefill={() => setConvertLead(null)} />)}
+          {!loading && page === 'team' && (isAdmin ? <TeamManagement /> : <div style={{ textAlign:'center', padding:40, color:MUTED }}>Access restricted to admins.</div>)}
         </div>
       </main>
     </div>
