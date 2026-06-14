@@ -46,12 +46,16 @@ jobs:
           git show origin/main:lib/email.ts > lib/email.ts
           git show origin/main:models/Lead.ts > models/Lead.ts
           git show origin/main:models/Customer.ts > models/Customer.ts
+          git show origin/main:models/User.ts > models/User.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
           git show origin/main:app/api/leads/route.ts > app/api/leads/route.ts
           git show "origin/main:app/api/leads/[id]/route.ts" > "app/api/leads/[id]/route.ts"
           mkdir -p "app/api/customers/[id]"
           git show origin/main:app/api/customers/route.ts > app/api/customers/route.ts
           git show "origin/main:app/api/customers/[id]/route.ts" > "app/api/customers/[id]/route.ts"
+          mkdir -p "app/api/users/[id]"
+          git show origin/main:app/api/users/route.ts > app/api/users/route.ts
+          git show "origin/main:app/api/users/[id]/route.ts" > "app/api/users/[id]/route.ts"
           echo "=== Installing ==="
           npm install --legacy-peer-deps
           echo "=== Building ==="
