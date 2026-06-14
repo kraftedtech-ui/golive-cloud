@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 const CY = '#0096c7'
 const TEAL = '#00c8c8'
@@ -8,31 +9,83 @@ const NAVY = '#0d2233'
 const LIGHT = '#e8f4fb'
 const BORDER = '#c8e6f0'
 const MUTED = '#5a7a8a'
-
 const WA_NUMBER = process.env.NEXT_PUBLIC_WA_NUMBER || '2348083587801'
 
-function GoLiveLogo({ size = 36 }: { size?: number }) {
+// ─── CURRENCY SWAP ───────────────────────────────────────────────
+const CURRENCIES: Record<string, { symbol: string; name: string; flag: string }> = {
+  USD: { symbol: '$', name: 'US Dollar', flag: '🇺🇸' },
+  NGN: { symbol: '₦', name: 'Nigerian Naira', flag: '🇳🇬' },
+  GHS: { symbol: 'GH₵', name: 'Ghanaian Cedi', flag: '🇬🇭' },
+  KES: { symbol: 'KSh', name: 'Kenyan Shilling', flag: '🇰🇪' },
+  ZAR: { symbol: 'R', name: 'South African Rand', flag: '🇿🇦' },
+}
+
+const COUNTRY_CURRENCY: Record<string, string> = {
+  Nigeria: 'NGN', Ghana: 'GHS', Kenya: 'KES', 'South Africa': 'ZAR',
+  Rwanda: 'USD', Uganda: 'USD', Tanzania: 'USD', Cameroon: 'USD', Senegal: 'USD', Other: 'USD',
+}
+
+function useCurrency(selected: string) {
+  const [rates, setRates] = useState<Record<string, number>>({ USD: 1, NGN: 1580, GHS: 15.2, KES: 129, ZAR: 18.6 })
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    setLoading(true)
+    fetch('https://api.exchangerate-api.com/v4/latest/USD')
+      .then(r => r.json())
+      .then(data => {
+        if (data.rates) setRates({ USD: 1, NGN: data.rates.NGN, GHS: data.rates.GHS, KES: data.rates.KES, ZAR: data.rates.ZAR })
+      })
+      .catch(() => {}) // use fallback rates silently
+      .finally(() => setLoading(false))
+  }, [])
+
+  const convert = (usd: number) => {
+    const rate = rates[selected] || 1
+    const amount = usd * rate
+    const sym = CURRENCIES[selected]?.symbol || '$'
+    if (selected === 'USD') return `${sym}${usd}`
+    if (amount >= 1000) return `${sym}${Math.round(amount / 100) * 100}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    return `${sym}${Math.round(amount)}`
+  }
+
+  return { convert, loading, symbol: CURRENCIES[selected]?.symbol || '$' }
+}
+
+function CurrencySelector({ selected, onChange }: { selected: string; onChange: (c: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const curr = CURRENCIES[selected]
   return (
-    <svg width={size} height={size} viewBox="0 0 52 50" fill="none" aria-hidden="true">
-      <defs>
-        <linearGradient id="sw" x1="10" y1="38" x2="44" y2="6" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#00c8c8" />
-          <stop offset="100%" stopColor="#00b4d8" />
-        </linearGradient>
-        <radialGradient id="dot" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#00c8c8" />
-          <stop offset="80%" stopColor="#00b4d8" />
-        </radialGradient>
-      </defs>
-      <path d="M12 38 Q16 18 44 8" stroke="url(#sw)" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-      <circle cx="14" cy="34" r="5" fill="url(#dot)" />
-      <line x1="14" y1="34" x2="3" y2="40" stroke="#00b4d8" strokeWidth="1.8" strokeLinecap="round" />
-      <line x1="14" y1="34" x2="2" y2="32" stroke="#00b4d8" strokeWidth="1.8" strokeLinecap="round" />
-      <line x1="14" y1="34" x2="4" y2="24" stroke="#00b4d8" strokeWidth="1.8" strokeLinecap="round" />
-      <line x1="14" y1="34" x2="7" y2="43" stroke="#00c8c8" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <button onClick={() => setOpen(!open)}
+        style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.2)', color: '#fff', padding: '6px 12px', borderRadius: 7, cursor: 'pointer', fontSize: 12, fontWeight: 600, fontFamily: 'inherit' }}>
+        <span>{curr.flag}</span> {selected} <span style={{ fontSize: 9, opacity: .7 }}>▼</span>
+      </button>
+      {open && (
+        <div style={{ position: 'absolute', top: '110%', right: 0, background: '#fff', border: `1.5px solid ${BORDER}`, borderRadius: 9, overflow: 'hidden', zIndex: 100, minWidth: 180, boxShadow: '0 8px 24px rgba(0,0,0,.12)' }}>
+          {Object.entries(CURRENCIES).map(([code, info]) => (
+            <div key={code} onClick={() => { onChange(code); setOpen(false) }}
+              style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '9px 14px', cursor: 'pointer', background: code === selected ? LIGHT : '#fff', fontSize: 12, color: NAVY, borderBottom: `1px solid ${BORDER}` }}>
+              <span style={{ fontSize: 16 }}>{info.flag}</span>
+              <div><div style={{ fontWeight: 700 }}>{code}</div><div style={{ fontSize: 10, color: MUTED }}>{info.name}</div></div>
+              {code === selected && <span style={{ marginLeft: 'auto', color: CY, fontWeight: 700 }}>✓</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
+
+// ─── PACKAGES ────────────────────────────────────────────────────
+const PACKAGES = [
+  { id: 'starter', icon: '✉', name: 'Starter Cloud Office', target: 'Small business · 1–10 users', priceUSD: 6, priceNote: '/user/month + setup fee', featured: false,
+    includes: ['Microsoft 365 Business Basic', 'Professional domain email', 'Teams, OneDrive & SharePoint', 'DNS & mailbox setup', 'SPF / DKIM / DMARC', '30-day onboarding support'] },
+  { id: 'secure', icon: '🔒', name: 'Secure Business Cloud', target: 'Serious SME · 10–50 users', priceUSD: 22, priceNote: '/user/month + setup fee', featured: true,
+    includes: ['Microsoft 365 Business Premium', 'Microsoft Defender for Business', 'MFA & Conditional Access', 'SharePoint document library', 'Email security hardening', 'Security awareness training', 'Monthly managed support'] },
+  { id: 'ai', icon: '🤖', name: 'AI-Ready Enterprise Lite', target: 'Growing firms · 25+ users', priceUSD: 0, priceNote: 'Tailored to your organisation', featured: false,
+    includes: ['Microsoft 365 + Copilot pilot', 'Copilot Readiness Audit', 'SharePoint structure cleanup', 'Prompt engineering training', 'Power Automate workflows', 'Power BI reporting setup', 'Premium managed support'] },
+]
 
 const PILLARS = [
   { icon: '✉', name: 'Microsoft 365', desc: 'Email, Teams, OneDrive, SharePoint, and the full Office suite.', tags: ['Basic', 'Premium', 'Exchange'] },
@@ -40,39 +93,6 @@ const PILLARS = [
   { icon: '☁', name: 'Azure Cloud', desc: 'Virtual machines, Azure backup, SQL, app hosting and disaster recovery.', tags: ['VMs', 'Backup', 'Storage'] },
   { icon: '🔒', name: 'Microsoft Defender', desc: 'Endpoint protection, MFA, anti-phishing, DMARC/DKIM and security training.', tags: ['Defender', 'MFA', 'DMARC'] },
   { icon: '⚡', name: 'Power Platform', desc: 'Power Apps, Power Automate, Power BI, SharePoint workflows and approvals.', tags: ['Apps', 'Automate', 'BI'] },
-]
-
-const PACKAGES = [
-  {
-    id: 'starter',
-    icon: '✉',
-    name: 'Starter Cloud Office',
-    target: 'Small business · 1–10 users',
-    price: 'From $6',
-    priceNote: '/user/month + setup fee',
-    featured: false,
-    includes: ['Microsoft 365 Business Basic', 'Professional domain email', 'Teams, OneDrive & SharePoint', 'DNS & mailbox setup', 'SPF / DKIM / DMARC', '30-day onboarding support'],
-  },
-  {
-    id: 'secure',
-    icon: '🔒',
-    name: 'Secure Business Cloud',
-    target: 'Serious SME · 10–50 users',
-    price: 'From $22',
-    priceNote: '/user/month + setup fee',
-    featured: true,
-    includes: ['Microsoft 365 Business Premium', 'Microsoft Defender for Business', 'MFA & Conditional Access', 'SharePoint document library', 'Email security hardening', 'Security awareness training', 'Monthly managed support'],
-  },
-  {
-    id: 'ai',
-    icon: '🤖',
-    name: 'AI-Ready Enterprise Lite',
-    target: 'Growing firms · 25+ users',
-    price: 'Custom quote',
-    priceNote: 'Tailored to your organisation',
-    featured: false,
-    includes: ['Microsoft 365 + Copilot pilot', 'Copilot Readiness Audit', 'SharePoint structure cleanup', 'Prompt engineering training', 'Power Automate workflows', 'Power BI reporting setup', 'Premium managed support'],
-  },
 ]
 
 const VERTICALS = [
@@ -106,12 +126,16 @@ const INITIAL_FORM: FormData = {
   domain: '', notes: '', billing: 'Monthly', services: [],
 }
 
-function AssessmentForm({ compact = false }: { compact?: boolean }) {
+function AssessmentForm({ compact = false, onCountryChange }: { compact?: boolean; onCountryChange?: (c: string) => void }) {
   const [form, setForm] = useState<FormData>(INITIAL_FORM)
   const [loading, setLoading] = useState(false)
   const [ref, setRef] = useState('')
   const [error, setError] = useState('')
 
+  const setField = (key: keyof FormData, val: string) => {
+    setForm(f => ({ ...f, [key]: val }))
+    if (key === 'country' && onCountryChange) onCountryChange(val)
+  }
   const toggleService = (s: string) =>
     setForm(f => ({ ...f, services: f.services.includes(s) ? f.services.filter(x => x !== s) : [...f.services, s] }))
 
@@ -127,22 +151,18 @@ function AssessmentForm({ compact = false }: { compact?: boolean }) {
       const data = await res.json()
       if (data.success) setRef(data.ref)
       else setError(data.error || 'Something went wrong. Please try again.')
-    } catch {
-      setError('Network error. Please check your connection and try again.')
-    }
+    } catch { setError('Network error. Please try again.') }
     setLoading(false)
   }
 
   const inp: React.CSSProperties = { border: `1.5px solid ${BORDER}`, borderRadius: 7, padding: '8px 10px', fontSize: 12, color: NAVY, background: '#fff', outline: 'none', width: '100%', fontFamily: 'inherit' }
-  const lbl: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: MUTED, textTransform: 'uppercase', letterSpacing: '.4px', display: 'block', marginBottom: 3 }
+  const lbl: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: MUTED, textTransform: 'uppercase' as const, letterSpacing: '.4px', display: 'block', marginBottom: 3 }
 
   if (ref) return (
     <div style={{ textAlign: 'center', padding: '28px 16px' }}>
       <div style={{ fontSize: 40, color: TEAL, marginBottom: 10 }}>✓</div>
       <h3 style={{ fontSize: 17, fontWeight: 700, color: NAVY, marginBottom: 8 }}>Assessment submitted!</h3>
-      <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.7, marginBottom: 12 }}>
-        Your request has been logged. A GoLive cloud advisor will contact you within <strong>24 hours</strong> with a custom plan and local-currency pricing.
-      </p>
+      <p style={{ fontSize: 12, color: MUTED, lineHeight: 1.7, marginBottom: 12 }}>Your GoLive cloud advisor will contact you within <strong>24 hours</strong> with a custom plan and local-currency pricing.</p>
       <div style={{ display: 'inline-block', background: LIGHT, color: CY, padding: '5px 16px', borderRadius: 20, fontSize: 11, fontWeight: 700, marginBottom: 14 }}>{ref}</div>
       <br />
       <a href={`https://wa.me/${WA_NUMBER}?text=Hi GoLive, my ref is ${ref}`} target="_blank" rel="noopener noreferrer"
@@ -155,31 +175,29 @@ function AssessmentForm({ compact = false }: { compact?: boolean }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <div><label style={lbl}>Company name *</label><input style={inp} placeholder="Your company" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} /></div>
-        <div><label style={lbl}>Your name *</label><input style={inp} placeholder="Full name" value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} /></div>
-        <div><label style={lbl}>Email *</label><input style={inp} type="email" placeholder="name@company.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
-        <div><label style={lbl}>WhatsApp *</label><input style={inp} placeholder="+234 800 000 0000" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
-        <div><label style={lbl}>Country</label><select style={inp} value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))}>
+        <div><label style={lbl}>Company name *</label><input style={inp} placeholder="Your company" value={form.company} onChange={e => setField('company', e.target.value)} /></div>
+        <div><label style={lbl}>Your name *</label><input style={inp} placeholder="Full name" value={form.contact} onChange={e => setField('contact', e.target.value)} /></div>
+        <div><label style={lbl}>Email *</label><input style={inp} type="email" placeholder="name@company.com" value={form.email} onChange={e => setField('email', e.target.value)} /></div>
+        <div><label style={lbl}>WhatsApp *</label><input style={inp} placeholder="+234 800 000 0000" value={form.phone} onChange={e => setField('phone', e.target.value)} /></div>
+        <div><label style={lbl}>Country</label><select style={inp} value={form.country} onChange={e => setField('country', e.target.value)}>
           {['Nigeria','Ghana','Kenya','South Africa','Rwanda','Uganda','Tanzania','Cameroon','Senegal','Other'].map(c => <option key={c}>{c}</option>)}
         </select></div>
-        <div><label style={lbl}>Staff count</label><select style={inp} value={form.users} onChange={e => setForm(f => ({ ...f, users: e.target.value }))}>
+        <div><label style={lbl}>Staff count</label><select style={inp} value={form.users} onChange={e => setField('users', e.target.value)}>
           {['1–5','6–20','21–50','51–100','100+'].map(u => <option key={u}>{u}</option>)}
         </select></div>
       </div>
-
       {!compact && <>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <div><label style={lbl}>Industry</label><select style={inp} value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}>
+          <div><label style={lbl}>Industry</label><select style={inp} value={form.industry} onChange={e => setField('industry', e.target.value)}>
             {['General SME','Law firm','School / University','Church / Ministry','Clinic / Healthcare','NGO / Non-profit','Real estate','Logistics','Consulting','Financial services','Startup / Tech','Other'].map(i => <option key={i}>{i}</option>)}
           </select></div>
-          <div><label style={lbl}>Current email</label><select style={inp} value={form.currentEmail} onChange={e => setForm(f => ({ ...f, currentEmail: e.target.value }))}>
+          <div><label style={lbl}>Current email</label><select style={inp} value={form.currentEmail} onChange={e => setField('currentEmail', e.target.value)}>
             {['cPanel / Webmail','Gmail / Google Workspace','Zoho Mail','Yahoo Mail','No business email yet','Microsoft 365 already','Other'].map(e => <option key={e}>{e}</option>)}
           </select></div>
         </div>
-        <div><label style={lbl}>Business domain</label><input style={inp} placeholder="yourcompany.com" value={form.domain} onChange={e => setForm(f => ({ ...f, domain: e.target.value }))} /></div>
-        <div><label style={lbl}>Notes / pain points</label><textarea style={{ ...inp, minHeight: 60, resize: 'none' }} placeholder="Email issues, security concerns, cloud migration needs..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} /></div>
+        <div><label style={lbl}>Business domain</label><input style={inp} placeholder="yourcompany.com" value={form.domain} onChange={e => setField('domain', e.target.value)} /></div>
+        <div><label style={lbl}>Notes / pain points</label><textarea style={{ ...inp, minHeight: 60, resize: 'none' }} placeholder="Email issues, security concerns, cloud migration needs..." value={form.notes} onChange={e => setField('notes', e.target.value)} /></div>
       </>}
-
       <div>
         <label style={lbl}>Services interested in</label>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
@@ -190,9 +208,7 @@ function AssessmentForm({ compact = false }: { compact?: boolean }) {
           ))}
         </div>
       </div>
-
       {error && <p style={{ fontSize: 11, color: '#dc2626', background: '#fee2e2', padding: '8px 11px', borderRadius: 6 }}>{error}</p>}
-
       <button onClick={submit} disabled={loading}
         style={{ width: '100%', background: loading ? MUTED : CY, color: '#fff', border: 'none', borderRadius: 8, padding: '11px', fontSize: 13, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
         {loading ? 'Sending...' : '📤 Send my free assessment request'}
@@ -202,21 +218,25 @@ function AssessmentForm({ compact = false }: { compact?: boolean }) {
   )
 }
 
+// ─── MAIN PAGE ───────────────────────────────────────────────────
 export default function Home() {
+  const [currency, setCurrency] = useState('NGN')
+  const { convert } = useCurrency(currency)
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
   const openWA = () => window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent('Hello GoLive! I am interested in Microsoft cloud services.')}`, '_blank')
+
+  const handleCountryChange = (country: string) => {
+    const c = COUNTRY_CURRENCY[country]
+    if (c) setCurrency(c)
+  }
 
   return (
     <>
       {/* NAV */}
       <nav style={{ background: NAVY, position: 'sticky', top: 0, zIndex: 100, borderBottom: '2px solid rgba(0,180,216,.25)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 58 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <GoLiveLogo size={36} />
-            <div>
-              <div><span style={{ color: '#00b4d8', fontSize: 16, fontWeight: 700 }}>go</span><span style={{ color: TEAL, fontSize: 16, fontWeight: 700 }}>live</span></div>
-              <div style={{ fontSize: 9, color: 'rgba(255,255,255,.4)', letterSpacing: '.3px' }}>cloud.golivecompany.com</div>
-            </div>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 60 }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Image src="/images/logo-white.png" alt="GoLive Digital Solutions" width={140} height={44} style={{ objectFit: 'contain' }} priority />
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {['pillars','packages','verticals','how','markets'].map(id => (
@@ -224,6 +244,7 @@ export default function Home() {
                 {id.charAt(0).toUpperCase() + id.slice(1)}
               </button>
             ))}
+            <CurrencySelector selected={currency} onChange={setCurrency} />
           </div>
           <button onClick={() => scrollTo('assess')} style={{ background: CY, color: '#fff', fontSize: 11, fontWeight: 700, padding: '7px 16px', borderRadius: 7, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>
             Get free assessment
@@ -244,7 +265,7 @@ export default function Home() {
               <span style={{ color: TEAL }}>Azure & Defender</span>
             </h1>
             <p style={{ fontSize: 14, color: 'rgba(255,255,255,.6)', marginBottom: 22, lineHeight: 1.7, maxWidth: 440 }}>
-              Microsoft 365, Copilot, Azure, Defender, domains, hosting, and managed cloud services for African businesses. Professional setup, migration, security, training and monthly support — all in one place.
+              Microsoft 365, Copilot, Azure, Defender, domains, hosting, and managed cloud services for African businesses — setup, migration, security, training and monthly support.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 30 }}>
               {['✉ Business email','🤖 Copilot AI','🔒 Defender security','☁ Azure cloud','⚡ Power Platform','🎧 Managed support'].map(p => (
@@ -261,7 +282,7 @@ export default function Home() {
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: LIGHT, color: CY, fontSize: 9, fontWeight: 700, padding: '3px 9px', borderRadius: 20, marginBottom: 12, border: `1px solid ${BORDER}` }}>✦ Free · No commitment</div>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Get your free Microsoft Cloud assessment</h2>
             <p style={{ fontSize: 11, color: MUTED, marginBottom: 16 }}>Tell us about your business — we&apos;ll build a custom plan in 24 hours.</p>
-            <AssessmentForm compact />
+            <AssessmentForm compact onCountryChange={handleCountryChange} />
           </div>
         </div>
       </section>
@@ -297,9 +318,17 @@ export default function Home() {
       {/* PACKAGES */}
       <section id="packages" style={{ background: '#fff', padding: '56px 24px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: CY, textTransform: 'uppercase', letterSpacing: '1.1px', marginBottom: 6 }}>Simple, clear packages</div>
-          <h2 style={{ fontSize: 28, fontWeight: 700, color: NAVY, marginBottom: 8 }}>Pick the right plan</h2>
-          <p style={{ fontSize: 13, color: MUTED, maxWidth: 540, marginBottom: 32 }}>All plans include GoLive setup, migration, training, and support. License pricing confirmed in local currency after your free assessment.</p>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 32, flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: CY, textTransform: 'uppercase', letterSpacing: '1.1px', marginBottom: 6 }}>Simple, clear packages</div>
+              <h2 style={{ fontSize: 28, fontWeight: 700, color: NAVY, marginBottom: 8 }}>Pick the right plan</h2>
+              <p style={{ fontSize: 13, color: MUTED, maxWidth: 540 }}>All plans include GoLive setup, migration, training, and support. Pricing shown in your selected currency.</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: LIGHT, border: `1.5px solid ${BORDER}`, borderRadius: 9, padding: '8px 12px' }}>
+              <span style={{ fontSize: 11, color: MUTED, fontWeight: 600 }}>Show prices in:</span>
+              <CurrencySelector selected={currency} onChange={setCurrency} />
+            </div>
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 18 }}>
             {PACKAGES.map(pkg => (
               <div key={pkg.id} style={{ border: `2px solid ${pkg.featured ? CY : BORDER}`, borderRadius: 14, padding: 24, position: 'relative', background: pkg.featured ? '#f4fafd' : '#fff' }}>
@@ -307,8 +336,18 @@ export default function Home() {
                 <div style={{ width: 38, height: 38, background: LIGHT, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 11, fontSize: 20 }}>{pkg.icon}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 3 }}>{pkg.name}</div>
                 <div style={{ fontSize: 10, color: MUTED, marginBottom: 11, fontStyle: 'italic' }}>{pkg.target}</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: CY }}>{pkg.price}</div>
-                <div style={{ fontSize: 10, color: MUTED, marginBottom: 14 }}>{pkg.priceNote}</div>
+                {pkg.priceUSD > 0 ? (
+                  <>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: CY }}>From {convert(pkg.priceUSD)}</div>
+                    <div style={{ fontSize: 10, color: MUTED, marginBottom: 6 }}>{pkg.priceNote}</div>
+                    {currency !== 'USD' && <div style={{ fontSize: 10, color: TEAL, fontWeight: 600, marginBottom: 8 }}>≈ ${pkg.priceUSD} USD · live rate</div>}
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: CY }}>Custom quote</div>
+                    <div style={{ fontSize: 10, color: MUTED, marginBottom: 14 }}>{pkg.priceNote}</div>
+                  </>
+                )}
                 <div style={{ height: 1, background: BORDER, margin: '12px 0' }} />
                 <ul style={{ listStyle: 'none' }}>
                   {pkg.includes.map(item => (
@@ -324,7 +363,7 @@ export default function Home() {
             ))}
           </div>
           <div style={{ marginTop: 16, background: '#f4fafd', border: `1.5px solid ${BORDER}`, borderRadius: 9, padding: '11px 15px', fontSize: 11, color: MUTED, display: 'flex', alignItems: 'center', gap: 8 }}>
-            ℹ Pricing shown in USD (indicative). Final invoicing in NGN, GHS, KES, ZAR confirmed after your free assessment. Annual billing saves ~17%.
+            ℹ Prices are indicative based on live exchange rates. Final invoicing confirmed after your free assessment. Annual billing saves ~17%.
           </div>
         </div>
       </section>
@@ -358,11 +397,11 @@ export default function Home() {
           <p style={{ fontSize: 13, color: MUTED, marginBottom: 36 }}>GoLive handles everything. You stay focused on running your business.</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0, position: 'relative' }}>
             <div style={{ position: 'absolute', top: 27, left: '12%', right: '12%', height: 2, background: BORDER }} />
-            {[['1','Free assessment','Fill in our quick form. A GoLive advisor builds your custom Microsoft cloud plan.',false],['2','Custom proposal','We send clear pricing in your local currency with a migration timeline.',false],['3','Setup & migration','GoLive configures your M365, migrates email, sets up security, onboards your team.',true],['4','Ongoing support','Monthly managed support, renewals and a direct line to your GoLive advisor.',true]].map(([n, title, desc, done]) => (
-              <div key={n as string} style={{ textAlign: 'center', padding: '0 14px', position: 'relative', zIndex: 1 }}>
-                <div style={{ width: 54, height: 54, background: done ? TEAL : CY, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 18, fontWeight: 700, color: '#fff', border: '3px solid #f4fafd', boxShadow: `0 0 0 2px ${done ? TEAL : CY}` }}>{n}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 6 }}>{title as string}</div>
-                <div style={{ fontSize: 10, color: MUTED, lineHeight: 1.6 }}>{desc as string}</div>
+            {[['1','Free assessment','Fill in our quick form. A GoLive advisor builds your custom Microsoft cloud plan.'],['2','Custom proposal','We send clear pricing in your local currency with a migration timeline.'],['3','Setup & migration','GoLive configures your M365, migrates email, sets up security, onboards your team.'],['4','Ongoing support','Monthly managed support, renewals and a direct line to your GoLive advisor.']].map(([n, title, desc]) => (
+              <div key={n} style={{ textAlign: 'center', padding: '0 14px', position: 'relative', zIndex: 1 }}>
+                <div style={{ width: 54, height: 54, background: parseInt(n) > 2 ? TEAL : CY, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: 18, fontWeight: 700, color: '#fff', border: '3px solid #f4fafd' }}>{n}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: NAVY, marginBottom: 6 }}>{title}</div>
+                <div style={{ fontSize: 10, color: MUTED, lineHeight: 1.6 }}>{desc}</div>
               </div>
             ))}
           </div>
@@ -409,7 +448,7 @@ export default function Home() {
           <div style={{ background: '#fff', borderRadius: 13, padding: 26 }}>
             <h3 style={{ fontSize: 15, fontWeight: 700, color: NAVY, marginBottom: 4 }}>Microsoft Cloud Readiness Check</h3>
             <p style={{ fontSize: 10, color: MUTED, marginBottom: 16 }}>Takes 2 minutes. Your GoLive advisor responds within 24 hours.</p>
-            <AssessmentForm />
+            <AssessmentForm onCountryChange={handleCountryChange} />
           </div>
         </div>
       </section>
@@ -419,10 +458,9 @@ export default function Home() {
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 28, marginBottom: 32 }}>
             <div>
-              <div style={{ marginBottom: 4 }}><span style={{ color: '#00b4d8', fontSize: 17, fontWeight: 700 }}>go</span><span style={{ color: TEAL, fontSize: 17, fontWeight: 700 }}>live</span></div>
-              <div style={{ fontSize: 10, fontWeight: 700, color: '#fff' }}>Digital Solutions Company</div>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,.35)', margin: '10px 0 14px', lineHeight: 1.65, maxWidth: 220 }}>Africa-authorized Microsoft Cloud Solution Provider. Microsoft AI Cloud Partner Program member.</p>
-              {[['🌐 cloud.golivecompany.com','https://cloud.golivecompany.com'],['🌐 golivenaija.com','https://golivenaija.com'],['💬 WhatsApp: +234 808 358 7801',`https://wa.me/${WA_NUMBER}`],['📞 +234 808 358 7801','tel:+2348083587801']].map(([label, href]) => (
+              <Image src="/images/logo-white.png" alt="GoLive Digital Solutions" width={130} height={42} style={{ objectFit: 'contain', marginBottom: 10 }} />
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,.35)', margin: '8px 0 14px', lineHeight: 1.65, maxWidth: 220 }}>Africa-authorized Microsoft Cloud Solution Provider. Microsoft AI Cloud Partner Program member.</p>
+              {[['🌐 cloud.golivecompany.com','https://cloud.golivecompany.com'],['🌐 golivenaija.com','https://golivenaija.com'],['💬 WhatsApp: +234 808 358 7801',`https://wa.me/${WA_NUMBER}`]].map(([label, href]) => (
                 <a key={label as string} href={href as string} style={{ display: 'block', fontSize: 11, color: 'rgba(255,255,255,.45)', textDecoration: 'none', marginBottom: 5 }}>{label}</a>
               ))}
             </div>
@@ -434,7 +472,7 @@ export default function Home() {
             ))}
           </div>
           <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.25)' }}>© 2026 GoLive Digital Solutions Company Ltd. All rights reserved. Prices exclude VAT.</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.25)' }}>© 2026 GoLive Digital Solutions Company Ltd. All rights reserved.</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.09)', padding: '5px 10px', borderRadius: 7 }}>
               <svg width="16" height="16" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
               <span style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', fontWeight: 500 }}>Authorized Microsoft CSP · Africa</span>
