@@ -1,5 +1,4 @@
 'use client'
-export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { signOut, useSession } from 'next-auth/react'
@@ -396,7 +395,8 @@ function ProposalGenerator({ leads }: { leads: Lead[] }) {
 <div class="header">
   <div>
     <div class="logo-text"><span class="logo-go">go</span><span class="logo-live">live</span></div>
-    <div class="logo-sub">Digital Solutions Company · Authorized Microsoft CSP</div>
+    <div class="logo-sub">The GoLive Digital Solutions Company Ltd.</div>
+    <div class="logo-sub" style="margin-top:3px">RC1644767 · Microsoft CSP Partner ID: 6787357</div>
   </div>
   <div class="header-right">
     <strong>Microsoft Cloud Proposal</strong>
@@ -499,8 +499,8 @@ function ProposalGenerator({ leads }: { leads: Lead[] }) {
     </div>
     <div class="cta-contacts">
       <strong style="color:#00c8c8">GoLive Digital Solutions</strong><br>
-      info@golivenaija.com<br>
-      wa.me/2348083587801<br>
+      contact@golivecompany.com<br>
+      +234 808 358 7801<br>
       cloud.golivecompany.com
     </div>
   </div>
@@ -510,9 +510,10 @@ function ProposalGenerator({ leads }: { leads: Lead[] }) {
 <div class="footer">
   <div class="ms-badge">
     <svg width="14" height="14" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
-    Authorized Microsoft Cloud Solution Provider
+    Authorized Microsoft Indirect Reseller · CSP Partner ID: 6787357
   </div>
-  <p style="margin-top:10px">GoLive Digital Solutions Company Ltd · Ref: ${proposalRef} · This document is confidential and prepared exclusively for ${selectedLead.company}</p>
+  <p style="margin-top:10px">The GoLive Digital Solutions Company Ltd. · RC1644767 · Lagos, Nigeria</p>
+  <p style="margin-top:4px">Ref: ${proposalRef} · This document is confidential and prepared exclusively for ${selectedLead.company}</p>
 </div>
 
 </body>
