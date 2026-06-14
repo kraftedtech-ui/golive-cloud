@@ -31,7 +31,7 @@ jobs:
           git remote remove origin 2>/dev/null || true
           git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git
           git fetch origin main
-          echo "=== Pulling files from GitHub root ==="
+          echo "=== Pulling files from GitHub ==="
           git show origin/main:tsconfig.json > tsconfig.json
           git show origin/main:middleware.ts > middleware.ts
           git show origin/main:next.config.ts > next.config.ts
@@ -45,9 +45,13 @@ jobs:
           git show origin/main:lib/mongodb.ts > lib/mongodb.ts
           git show origin/main:lib/email.ts > lib/email.ts
           git show origin/main:models/Lead.ts > models/Lead.ts
+          git show origin/main:models/Customer.ts > models/Customer.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
           git show origin/main:app/api/leads/route.ts > app/api/leads/route.ts
           git show "origin/main:app/api/leads/[id]/route.ts" > "app/api/leads/[id]/route.ts"
+          mkdir -p "app/api/customers/[id]"
+          git show origin/main:app/api/customers/route.ts > app/api/customers/route.ts
+          git show "origin/main:app/api/customers/[id]/route.ts" > "app/api/customers/[id]/route.ts"
           echo "=== Installing ==="
           npm install --legacy-peer-deps
           echo "=== Building ==="
