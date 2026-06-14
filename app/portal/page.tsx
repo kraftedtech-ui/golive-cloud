@@ -135,7 +135,7 @@ function Dashboard({ leads }: { leads: Lead[] }) {
   )
 }
 
-function LeadsTable({ leads, onUpdate }: { leads: Lead[]; onUpdate: () => void }) {
+function LeadsTable({ leads, onUpdate, onConvert }: { leads: Lead[]; onUpdate: () => void; onConvert: (lead: Lead) => void }) {
   const updateStatus = async (id: string, status: string) => {
     await fetch(`/api/leads/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
     onUpdate()
@@ -166,11 +166,17 @@ function LeadsTable({ leads, onUpdate }: { leads: Lead[]; onUpdate: () => void }
                     <span style={{ fontSize:10, fontWeight:700, padding:'2px 8px', borderRadius:20, ...sc }}>{STATUS_LABELS[l.status]}</span>
                   </td>
                   <td style={{ padding:'10px 12px', fontSize:10, color:MUTED }}>{new Date(l.createdAt).toLocaleDateString()}</td>
-                  <td style={{ padding:'10px 12px' }}>
+                  <td style={{ padding:'10px 12px', display:'flex', gap:5, alignItems:'center' }}>
                     <select value={l.status} onChange={e => updateStatus(l._id, e.target.value)}
                       style={{ border:`1px solid ${BORDER}`, borderRadius:5, padding:'3px 6px', fontSize:10, color:NAVY, cursor:'pointer', fontFamily:'inherit' }}>
                       {STATUS_COLS.map(s => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
                     </select>
+                    {l.status === 'won' && (
+                      <button onClick={() => onConvert(l)}
+                        style={{ background:'#d1fae5', color:'#065f46', border:'1.5px solid #6ee7b7', borderRadius:5, padding:'3px 8px', fontSize:9, fontWeight:700, cursor:'pointer', fontFamily:'inherit', whiteSpace:'nowrap' }}>
+                        ✦ Convert
+                      </button>
+                    )}
                   </td>
                 </tr>
               )
@@ -688,7 +694,7 @@ function daysUntil(date: string) {
   return Math.ceil((new Date(date).getTime() - Date.now()) / 86400000)
 }
 
-function CustomerAccounts() {
+function CustomerAccounts({ prefillLead, onClearPrefill }: { prefillLead?: Lead | null; onClearPrefill?: () => void }) {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
   const [view, setView] = useState<'list' | 'add' | 'detail'>('list')
@@ -708,6 +714,30 @@ function CustomerAccounts() {
   }
 
   useEffect(() => { fetchCustomers() }, [])
+
+  // Auto-open add form when a lead is being converted
+  useEffect(() => {
+    if (prefillLead) {
+      const usersNum = parseInt(prefillLead.users?.split('–')[0] || prefillLead.users || '10') || 10
+      setForm({
+        ...EMPTY_CUSTOMER,
+        company: prefillLead.company || '',
+        contact: prefillLead.contact || '',
+        email: prefillLead.email || '',
+        phone: prefillLead.phone || '',
+        country: prefillLead.country || 'Nigeria',
+        industry: prefillLead.industry || 'General SME',
+        services: prefillLead.services || [],
+        users: usersNum,
+        mrr: usersNum * 22, // default Secure Business pricing
+        leadRef: prefillLead.ref || '',
+        tenantDomain: '',
+        adminEmail: prefillLead.email || '',
+      })
+      setSelected(null)
+      setView('add')
+    }
+  }, [prefillLead])
 
   const save = async () => {
     setSaving(true)
@@ -747,7 +777,7 @@ function CustomerAccounts() {
     return (
       <div>
         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
-          <button onClick={() => { setView('list'); setSelected(null); setForm({ ...EMPTY_CUSTOMER }) }}
+          <button onClick={() => { setView('list'); setSelected(null); setForm({ ...EMPTY_CUSTOMER }); if (onClearPrefill) onClearPrefill() }}
             style={{ background:'none', border:`1.5px solid ${BORDER}`, borderRadius:7, padding:'6px 12px', fontSize:11, color:MUTED, cursor:'pointer', fontFamily:'inherit' }}>← Back</button>
           <h2 style={{ fontSize:14, fontWeight:700, color:NAVY }}>{isEdit ? `Edit — ${selected!.company}` : 'Add new customer'}</h2>
           {isEdit && <button onClick={() => deleteCustomer(selected!._id)}
@@ -1008,6 +1038,7 @@ export default function Portal() {
   const [page, setPage] = useState<Page>('dashboard')
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
+  const [convertLead, setConvertLead] = useState<Lead | null>(null)
 
   const fetchLeads = async () => {
     try {
@@ -1019,6 +1050,11 @@ export default function Portal() {
   }
 
   useEffect(() => { fetchLeads() }, [])
+
+  const handleConvert = (lead: Lead) => {
+    setConvertLead(lead)
+    setPage('customers')
+  }
 
   const PAGE_TITLES: Record<Page, string> = {
     dashboard:'Dashboard', leads:'Cloud assessment leads', pipeline:'CRM pipeline',
@@ -1048,11 +1084,11 @@ export default function Portal() {
         <div style={{ padding:'18px 22px', overflowY:'auto', maxHeight:'calc(100vh - 56px)' }}>
           {loading && <div style={{ textAlign:'center', padding:40, color:MUTED }}>Loading...</div>}
           {!loading && page === 'dashboard' && <Dashboard leads={leads} />}
-          {!loading && page === 'leads' && <LeadsTable leads={leads} onUpdate={fetchLeads} />}
+          {!loading && page === 'leads' && <LeadsTable leads={leads} onUpdate={fetchLeads} onConvert={handleConvert} />}
           {!loading && page === 'pipeline' && <Pipeline leads={leads} onUpdate={fetchLeads} />}
           {!loading && page === 'onboarding' && <Onboarding />}
           {!loading && page === 'proposal' && <ProposalGenerator leads={leads} />}
-          {!loading && page === 'customers' && <CustomerAccounts />}
+          {!loading && page === 'customers' && <CustomerAccounts prefillLead={convertLead} onClearPrefill={() => setConvertLead(null)} />}
         </div>
       </main>
     </div>
