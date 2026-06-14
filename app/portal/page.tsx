@@ -654,6 +654,355 @@ function ProposalGenerator({ leads }: { leads: Lead[] }) {
   )
 }
 
+// ─── CUSTOMER ACCOUNTS ───────────────────────────────────────────
+interface Customer {
+  _id: string; company: string; contact: string; email: string; phone: string
+  country: string; industry: string; tenantId?: string; tenantDomain: string
+  adminEmail: string; package: string; users: number; services: string[]
+  billingCycle: string; mrr: number; arr: number; setupFee: number; currency: string
+  startDate: string; renewalDate: string; nextInvoiceDate: string
+  status: string; healthScore: string; notes?: string; leadRef?: string
+}
+
+const PKG_LABELS: Record<string, string> = { starter:'Starter Cloud', secure:'Secure Business', ai:'AI Enterprise', custom:'Custom' }
+const HEALTH_COLORS: Record<string, { bg: string; color: string; label: string }> = {
+  green: { bg:'#d1fae5', color:'#065f46', label:'Healthy' },
+  amber: { bg:'#fef3c7', color:'#92400e', label:'At risk' },
+  red:   { bg:'#fee2e2', color:'#991b1b', label:'Critical' },
+}
+const CUST_STATUS_COLORS: Record<string, { bg: string; color: string }> = {
+  active:    { bg:'#d1fae5', color:'#065f46' },
+  trial:     { bg:'#dbeafe', color:'#1e40af' },
+  suspended: { bg:'#fef3c7', color:'#92400e' },
+  churned:   { bg:'#f3f4f6', color:'#4b5563' },
+}
+
+const EMPTY_CUSTOMER = {
+  company:'', contact:'', email:'', phone:'', country:'Nigeria', industry:'General SME',
+  tenantDomain:'', adminEmail:'', package:'secure', users:10, billingCycle:'monthly',
+  mrr:220, setupFee:150, currency:'USD', startDate: new Date().toISOString().split('T')[0],
+  status:'active', healthScore:'green', services:[] as string[], notes:'', leadRef:'', tenantId:''
+}
+
+function daysUntil(date: string) {
+  return Math.ceil((new Date(date).getTime() - Date.now()) / 86400000)
+}
+
+function CustomerAccounts() {
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [view, setView] = useState<'list' | 'add' | 'detail'>('list')
+  const [selected, setSelected] = useState<Customer | null>(null)
+  const [form, setForm] = useState({ ...EMPTY_CUSTOMER })
+  const [saving, setSaving] = useState(false)
+  const [filterStatus, setFilterStatus] = useState('all')
+
+  const fetchCustomers = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/customers')
+      const data = await res.json()
+      if (data.success) setCustomers(data.customers)
+    } catch (e) { console.error(e) }
+    setLoading(false)
+  }
+
+  useEffect(() => { fetchCustomers() }, [])
+
+  const save = async () => {
+    setSaving(true)
+    try {
+      const url = selected ? `/api/customers/${selected._id}` : '/api/customers'
+      const method = selected ? 'PATCH' : 'POST'
+      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      const data = await res.json()
+      if (data.success) { await fetchCustomers(); setView('list'); setSelected(null); setForm({ ...EMPTY_CUSTOMER }) }
+    } catch (e) { console.error(e) }
+    setSaving(false)
+  }
+
+  const deleteCustomer = async (id: string) => {
+    if (!confirm('Remove this customer?')) return
+    await fetch(`/api/customers/${id}`, { method: 'DELETE' })
+    await fetchCustomers()
+    setView('list')
+    setSelected(null)
+  }
+
+  const updateHealth = async (id: string, healthScore: string) => {
+    await fetch(`/api/customers/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ healthScore }) })
+    await fetchCustomers()
+  }
+
+  const inp: React.CSSProperties = { border:`1.5px solid ${BORDER}`, borderRadius:7, padding:'7px 10px', fontSize:12, color:NAVY, fontFamily:'inherit', outline:'none', width:'100%', background:'#fff' }
+  const lbl: React.CSSProperties = { fontSize:10, fontWeight:700, color:MUTED, textTransform:'uppercase' as const, letterSpacing:'.4px', display:'block', marginBottom:3 }
+
+  const filtered = filterStatus === 'all' ? customers : customers.filter(c => c.status === filterStatus)
+  const totalMRR = customers.filter(c => c.status === 'active' || c.status === 'trial').reduce((a, c) => a + c.mrr, 0)
+  const totalARR = totalMRR * 12
+  const renewingSoon = customers.filter(c => daysUntil(c.renewalDate) <= 30 && daysUntil(c.renewalDate) > 0)
+
+  if (view === 'add' || (view === 'detail' && selected)) {
+    const isEdit = view === 'detail' && selected
+    return (
+      <div>
+        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+          <button onClick={() => { setView('list'); setSelected(null); setForm({ ...EMPTY_CUSTOMER }) }}
+            style={{ background:'none', border:`1.5px solid ${BORDER}`, borderRadius:7, padding:'6px 12px', fontSize:11, color:MUTED, cursor:'pointer', fontFamily:'inherit' }}>← Back</button>
+          <h2 style={{ fontSize:14, fontWeight:700, color:NAVY }}>{isEdit ? `Edit — ${selected!.company}` : 'Add new customer'}</h2>
+          {isEdit && <button onClick={() => deleteCustomer(selected!._id)}
+            style={{ marginLeft:'auto', background:'#fee2e2', border:'1.5px solid #fca5a5', color:'#991b1b', borderRadius:7, padding:'6px 12px', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>Delete customer</button>}
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:18 }}>
+          {/* LEFT — Company & Contact */}
+          <div style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, padding:18 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:NAVY, marginBottom:14, paddingBottom:8, borderBottom:`1.5px solid ${BORDER}` }}>Company & contact</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
+              <div><label style={lbl}>Company name *</label><input style={inp} value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} placeholder="Acme Ltd" /></div>
+              <div><label style={lbl}>Contact person *</label><input style={inp} value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} placeholder="John Smith" /></div>
+              <div><label style={lbl}>Email *</label><input style={inp} type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} placeholder="john@company.com" /></div>
+              <div><label style={lbl}>Phone / WhatsApp</label><input style={inp} value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="+234..." /></div>
+              <div><label style={lbl}>Country</label><select style={inp} value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))}>
+                {['Nigeria','Ghana','Kenya','South Africa','Rwanda','Uganda','Other'].map(c => <option key={c}>{c}</option>)}
+              </select></div>
+              <div><label style={lbl}>Industry</label><select style={inp} value={form.industry} onChange={e => setForm(f => ({ ...f, industry: e.target.value }))}>
+                {['General SME','Law firm','School','Church','Clinic','NGO','Real estate','Consulting','Financial','Startup','Other'].map(i => <option key={i}>{i}</option>)}
+              </select></div>
+            </div>
+          </div>
+
+          {/* RIGHT — Microsoft Tenant */}
+          <div style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, padding:18 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:NAVY, marginBottom:14, paddingBottom:8, borderBottom:`1.5px solid ${BORDER}` }}>Microsoft 365 tenant</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              <div><label style={lbl}>Tenant domain *</label><input style={inp} value={form.tenantDomain} onChange={e => setForm(f => ({ ...f, tenantDomain: e.target.value }))} placeholder="company.onmicrosoft.com" /></div>
+              <div><label style={lbl}>Admin email *</label><input style={inp} value={form.adminEmail} onChange={e => setForm(f => ({ ...f, adminEmail: e.target.value }))} placeholder="admin@company.com" /></div>
+              <div><label style={lbl}>Tenant ID</label><input style={inp} value={form.tenantId} onChange={e => setForm(f => ({ ...f, tenantId: e.target.value }))} placeholder="xxxxxxxx-xxxx-xxxx-xxxx" /></div>
+              <div><label style={lbl}>Lead ref</label><input style={inp} value={form.leadRef} onChange={e => setForm(f => ({ ...f, leadRef: e.target.value }))} placeholder="GL-2026-..." /></div>
+            </div>
+          </div>
+
+          {/* BOTTOM LEFT — Subscription */}
+          <div style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, padding:18 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:NAVY, marginBottom:14, paddingBottom:8, borderBottom:`1.5px solid ${BORDER}` }}>Subscription details</div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              <div><label style={lbl}>Package</label><select style={inp} value={form.package} onChange={e => setForm(f => ({ ...f, package: e.target.value }))}>
+                {Object.entries(PKG_LABELS).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
+              </select></div>
+              <div><label style={lbl}>No. of users</label><input style={inp} type="number" min="1" value={form.users} onChange={e => setForm(f => ({ ...f, users: parseInt(e.target.value)||1 }))} /></div>
+              <div><label style={lbl}>Billing cycle</label><select style={inp} value={form.billingCycle} onChange={e => setForm(f => ({ ...f, billingCycle: e.target.value }))}>
+                <option value="monthly">Monthly</option><option value="annual">Annual</option>
+              </select></div>
+              <div><label style={lbl}>Currency</label><select style={inp} value={form.currency} onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}>
+                {['USD','NGN','GHS','KES','ZAR'].map(c => <option key={c}>{c}</option>)}
+              </select></div>
+              <div><label style={lbl}>MRR ({form.currency})</label><input style={inp} type="number" min="0" value={form.mrr} onChange={e => setForm(f => ({ ...f, mrr: parseFloat(e.target.value)||0 }))} /></div>
+              <div><label style={lbl}>Setup fee ({form.currency})</label><input style={inp} type="number" min="0" value={form.setupFee} onChange={e => setForm(f => ({ ...f, setupFee: parseFloat(e.target.value)||0 }))} /></div>
+              <div><label style={lbl}>Start date</label><input style={inp} type="date" value={form.startDate} onChange={e => setForm(f => ({ ...f, startDate: e.target.value }))} /></div>
+              <div><label style={lbl}>Status</label><select style={inp} value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
+                <option value="active">Active</option><option value="trial">Trial</option><option value="suspended">Suspended</option><option value="churned">Churned</option>
+              </select></div>
+            </div>
+          </div>
+
+          {/* BOTTOM RIGHT — Health & Notes */}
+          <div style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, padding:18 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:NAVY, marginBottom:14, paddingBottom:8, borderBottom:`1.5px solid ${BORDER}` }}>Health & notes</div>
+            <div style={{ marginBottom:12 }}>
+              <label style={lbl}>Health score</label>
+              <div style={{ display:'flex', gap:8, marginTop:4 }}>
+                {['green','amber','red'].map(h => {
+                  const hc = HEALTH_COLORS[h]
+                  return (
+                    <button key={h} onClick={() => setForm(f => ({ ...f, healthScore: h }))}
+                      style={{ flex:1, padding:'8px', borderRadius:7, border:`2px solid ${form.healthScore === h ? hc.color : BORDER}`, background: form.healthScore === h ? hc.bg : '#fff', color: form.healthScore === h ? hc.color : MUTED, fontSize:11, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                      {hc.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div>
+              <label style={lbl}>Notes</label>
+              <textarea style={{ ...inp, minHeight:80, resize:'none' }} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Support notes, special terms, escalations..." />
+            </div>
+            <div style={{ marginTop:16 }}>
+              <div style={{ fontSize:11, color:MUTED, marginBottom:6 }}>Services included</div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:5 }}>
+                {['Microsoft 365','Defender','Azure','Copilot','Power Platform','Teams & SharePoint'].map(s => (
+                  <label key={s} onClick={() => setForm(f => ({ ...f, services: f.services.includes(s) ? f.services.filter(x => x !== s) : [...f.services, s] }))}
+                    style={{ display:'flex', alignItems:'center', gap:6, fontSize:11, padding:'5px 8px', border:`1.5px solid ${form.services.includes(s) ? CY : BORDER}`, borderRadius:6, cursor:'pointer', background: form.services.includes(s) ? LIGHT : '#fff', color:NAVY }}>
+                    <input type="checkbox" readOnly checked={form.services.includes(s)} style={{ accentColor:CY, width:12, height:12 }} /> {s}
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginTop:16, display:'flex', justifyContent:'flex-end', gap:10 }}>
+          <button onClick={() => { setView('list'); setSelected(null); setForm({ ...EMPTY_CUSTOMER }) }}
+            style={{ background:'none', border:`1.5px solid ${BORDER}`, borderRadius:7, padding:'9px 20px', fontSize:12, color:MUTED, cursor:'pointer', fontFamily:'inherit' }}>Cancel</button>
+          <button onClick={save} disabled={saving || !form.company || !form.tenantDomain}
+            style={{ background: saving || !form.company ? MUTED : CY, color:'#fff', border:'none', borderRadius:7, padding:'9px 24px', fontSize:12, fontWeight:700, cursor: saving ? 'not-allowed' : 'pointer', fontFamily:'inherit' }}>
+            {saving ? 'Saving...' : isEdit ? 'Save changes' : 'Add customer'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // LIST VIEW
+  return (
+    <div>
+      {/* Stats row */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:13, marginBottom:18 }}>
+        {[
+          ['Total MRR', `$${totalMRR.toLocaleString()}`, `$${totalARR.toLocaleString()} ARR`, true],
+          ['Active customers', String(customers.filter(c => c.status === 'active').length), `${customers.filter(c => c.status === 'trial').length} on trial`, true],
+          ['Renewing in 30 days', String(renewingSoon.length), renewingSoon.length > 0 ? 'Action needed' : 'All clear', renewingSoon.length === 0],
+          ['Avg MRR per customer', customers.length > 0 ? `$${Math.round(totalMRR / Math.max(customers.filter(c=>c.status==='active').length,1))}` : '$0', 'Per active account', true],
+        ].map(([label, value, sub, ok]) => (
+          <div key={label as string} style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, padding:'15px 17px', borderTop:`3px solid ${CY}` }}>
+            <div style={{ fontSize:10, color:MUTED, fontWeight:700, marginBottom:4, textTransform:'uppercase', letterSpacing:'.4px' }}>{label}</div>
+            <div style={{ fontSize:22, fontWeight:700, color:NAVY, lineHeight:1 }}>{value}</div>
+            <div style={{ fontSize:10, marginTop:3, color: ok ? '#00a07a' : '#d97706' }}>{sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Renewal alerts */}
+      {renewingSoon.length > 0 && (
+        <div style={{ background:'#fffbeb', border:'1.5px solid #fde68a', borderRadius:9, padding:'11px 15px', marginBottom:14, display:'flex', alignItems:'center', gap:10 }}>
+          <span style={{ fontSize:16 }}>⚠️</span>
+          <div style={{ fontSize:12, color:'#92400e' }}>
+            <strong>{renewingSoon.length} customer{renewingSoon.length>1?'s':''}</strong> renewing within 30 days:&nbsp;
+            {renewingSoon.map(c => `${c.company} (${daysUntil(c.renewalDate)}d)`).join(', ')}
+          </div>
+        </div>
+      )}
+
+      {/* Toolbar */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+        <div style={{ display:'flex', gap:6 }}>
+          {['all','active','trial','suspended','churned'].map(s => (
+            <button key={s} onClick={() => setFilterStatus(s)}
+              style={{ padding:'5px 12px', borderRadius:6, border:`1.5px solid ${filterStatus===s ? CY : BORDER}`, background: filterStatus===s ? LIGHT : '#fff', color: filterStatus===s ? CY : MUTED, fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+              {s.charAt(0).toUpperCase()+s.slice(1)} {s==='all' ? `(${customers.length})` : `(${customers.filter(c=>c.status===s).length})`}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => { setForm({ ...EMPTY_CUSTOMER }); setView('add') }}
+          style={{ background:CY, color:'#fff', border:'none', borderRadius:7, padding:'7px 16px', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', gap:6 }}>
+          + Add customer
+        </button>
+      </div>
+
+      {/* Customer table */}
+      <div style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, overflow:'hidden' }}>
+        {loading ? (
+          <div style={{ textAlign:'center', padding:40, color:MUTED }}>Loading...</div>
+        ) : filtered.length === 0 ? (
+          <div style={{ textAlign:'center', padding:'48px 20px', color:MUTED }}>
+            <div style={{ fontSize:32, marginBottom:10 }}>👥</div>
+            <div style={{ fontSize:14, fontWeight:600, color:NAVY, marginBottom:6 }}>No customers yet</div>
+            <div style={{ fontSize:12, marginBottom:16 }}>Add your first customer account to start tracking MRR and renewals.</div>
+            <button onClick={() => setView('add')} style={{ background:CY, color:'#fff', border:'none', borderRadius:7, padding:'8px 20px', fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>Add first customer</button>
+          </div>
+        ) : (
+          <div style={{ overflowX:'auto' }}>
+            <table style={{ width:'100%', borderCollapse:'collapse', fontSize:12 }}>
+              <thead>
+                <tr style={{ background:'#f4fafd' }}>
+                  {['Company','Package','Users','MRR','Renewal','Health','Status','Actions'].map(h => (
+                    <th key={h} style={{ textAlign:'left', padding:'9px 13px', fontSize:10, fontWeight:700, color:MUTED, textTransform:'uppercase', letterSpacing:'.5px', borderBottom:`1.5px solid ${BORDER}`, whiteSpace:'nowrap' }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(c => {
+                  const days = daysUntil(c.renewalDate)
+                  const hc = HEALTH_COLORS[c.healthScore] || HEALTH_COLORS.green
+                  const sc = CUST_STATUS_COLORS[c.status] || CUST_STATUS_COLORS.active
+                  return (
+                    <tr key={c._id} style={{ borderBottom:`1px solid #eef3f0` }}>
+                      <td style={{ padding:'11px 13px' }}>
+                        <div style={{ fontWeight:700, color:NAVY }}>{c.company}</div>
+                        <div style={{ fontSize:10, color:MUTED }}>{c.contact} · {c.country}</div>
+                        <div style={{ fontSize:10, color:MUTED, fontFamily:'monospace' }}>{c.tenantDomain}</div>
+                      </td>
+                      <td style={{ padding:'11px 13px' }}>
+                        <div style={{ fontSize:11, fontWeight:600, color:NAVY }}>{PKG_LABELS[c.package] || c.package}</div>
+                        <div style={{ fontSize:10, color:MUTED }}>{c.billingCycle}</div>
+                      </td>
+                      <td style={{ padding:'11px 13px', textAlign:'center', fontWeight:700 }}>{c.users}</td>
+                      <td style={{ padding:'11px 13px' }}>
+                        <div style={{ fontWeight:700, color:CY }}>${c.mrr.toLocaleString()}/mo</div>
+                        <div style={{ fontSize:10, color:MUTED }}>${(c.mrr*12).toLocaleString()}/yr</div>
+                      </td>
+                      <td style={{ padding:'11px 13px' }}>
+                        <div style={{ fontSize:11, fontWeight: days <= 30 ? 700 : 400, color: days <= 7 ? '#dc2626' : days <= 30 ? '#d97706' : NAVY }}>
+                          {days <= 0 ? 'Overdue' : `${days}d`}
+                        </div>
+                        <div style={{ fontSize:10, color:MUTED }}>{new Date(c.renewalDate).toLocaleDateString()}</div>
+                      </td>
+                      <td style={{ padding:'11px 13px' }}>
+                        <select value={c.healthScore} onChange={e => updateHealth(c._id, e.target.value)}
+                          style={{ fontSize:10, fontWeight:700, padding:'3px 7px', borderRadius:20, border:'none', background:hc.bg, color:hc.color, cursor:'pointer', fontFamily:'inherit' }}>
+                          <option value="green">● Healthy</option>
+                          <option value="amber">● At risk</option>
+                          <option value="red">● Critical</option>
+                        </select>
+                      </td>
+                      <td style={{ padding:'11px 13px' }}>
+                        <span style={{ fontSize:10, fontWeight:700, padding:'3px 9px', borderRadius:20, ...sc }}>{c.status.charAt(0).toUpperCase()+c.status.slice(1)}</span>
+                      </td>
+                      <td style={{ padding:'11px 13px' }}>
+                        <button onClick={() => { setSelected(c); setForm({ ...EMPTY_CUSTOMER, ...c, startDate: c.startDate?.split('T')[0] || '' }); setView('detail') }}
+                          style={{ background:LIGHT, color:CY, border:`1.5px solid ${BORDER}`, borderRadius:6, padding:'4px 10px', fontSize:10, fontWeight:700, cursor:'pointer', fontFamily:'inherit' }}>
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* MRR by country breakdown */}
+      {customers.length > 0 && (
+        <div style={{ marginTop:16, display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+          <div style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, padding:16 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:NAVY, marginBottom:12 }}>MRR by country</div>
+            {Object.entries(
+              customers.filter(c => c.status === 'active').reduce((acc, c) => ({ ...acc, [c.country]: (acc[c.country]||0) + c.mrr }), {} as Record<string,number>)
+            ).sort((a,b) => b[1]-a[1]).map(([country, mrr]) => (
+              <div key={country} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${BORDER}` }}>
+                <span style={{ fontSize:12, color:NAVY }}>{country}</span>
+                <span style={{ fontSize:12, fontWeight:700, color:CY }}>${mrr.toLocaleString()}/mo</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ background:'#fff', border:`1.5px solid ${BORDER}`, borderRadius:10, padding:16 }}>
+            <div style={{ fontSize:12, fontWeight:700, color:NAVY, marginBottom:12 }}>MRR by package</div>
+            {Object.entries(
+              customers.filter(c => c.status === 'active').reduce((acc, c) => ({ ...acc, [c.package]: (acc[c.package]||0) + c.mrr }), {} as Record<string,number>)
+            ).sort((a,b) => b[1]-a[1]).map(([pkg, mrr]) => (
+              <div key={pkg} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:`1px solid ${BORDER}` }}>
+                <span style={{ fontSize:12, color:NAVY }}>{PKG_LABELS[pkg]||pkg}</span>
+                <span style={{ fontSize:12, fontWeight:700, color:CY }}>${mrr.toLocaleString()}/mo</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── MAIN PORTAL ─────────────────────────────────────────────────
 export default function Portal() {
   const [page, setPage] = useState<Page>('dashboard')
@@ -689,6 +1038,11 @@ export default function Portal() {
                 ↻ Refresh
               </button>
             )}
+            {page === 'customers' && (
+              <button onClick={() => window.location.reload()} style={{ background:CY, color:'#fff', border:'none', borderRadius:6, padding:'6px 12px', fontSize:11, fontWeight:600, cursor:'pointer', fontFamily:'inherit' }}>
+                ↻ Refresh
+              </button>
+            )}
           </div>
         </div>
         <div style={{ padding:'18px 22px', overflowY:'auto', maxHeight:'calc(100vh - 56px)' }}>
@@ -698,13 +1052,7 @@ export default function Portal() {
           {!loading && page === 'pipeline' && <Pipeline leads={leads} onUpdate={fetchLeads} />}
           {!loading && page === 'onboarding' && <Onboarding />}
           {!loading && page === 'proposal' && <ProposalGenerator leads={leads} />}
-          {!loading && page === 'customers' && (
-            <div style={{ textAlign:'center', padding:'60px 20px', color:MUTED }}>
-              <div style={{ fontSize:32, marginBottom:12 }}>🚧</div>
-              <div style={{ fontSize:14, fontWeight:600, color:NAVY, marginBottom:8 }}>Customer accounts — coming next</div>
-              <div style={{ fontSize:12 }}>Track active Microsoft 365 tenants, renewal dates and MRR per customer.</div>
-            </div>
-          )}
+          {!loading && page === 'customers' && <CustomerAccounts />}
         </div>
       </main>
     </div>
