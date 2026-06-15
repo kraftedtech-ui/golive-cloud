@@ -268,7 +268,7 @@ export default function MigratePage() {
       <div style={{ background: NAVY, padding: '32px 48px', textAlign: 'center', marginTop: 48 }}>
         <div style={{ color: 'rgba(255,255,255,.5)', fontSize: 12 }}>
           The GoLive Digital Solutions Company Ltd. · RC1644767 · Lagos, Nigeria<br />
-          Microsoft CSP Partner ID: 6787357 · contact@golivecompany.com · +234 808 358 7801
+           contact@golivecompany.com · +234 808 358 7801
         </div>
       </div>
 
