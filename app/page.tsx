@@ -244,11 +244,17 @@ export default function Home() {
                 {id.charAt(0).toUpperCase() + id.slice(1)}
               </button>
             ))}
+            <a href="/migrate" style={{ color: TEAL, fontSize: 11, fontWeight: 600, padding: '6px 10px', borderRadius: 6, textDecoration: 'none', border: `1px solid rgba(0,200,200,.25)` }}>
+              🔄 Migrate
+            </a>
             <CurrencySelector selected={currency} onChange={setCurrency} />
           </div>
-          <button onClick={() => scrollTo('assess')} style={{ background: CY, color: '#fff', fontSize: 11, fontWeight: 700, padding: '7px 16px', borderRadius: 7, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>
-            Get free assessment
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <a href="/portal/login" style={{ color: 'rgba(255,255,255,.6)', fontSize: 11, fontWeight: 500, textDecoration: 'none' }}>Portal login</a>
+            <button onClick={() => scrollTo('assess')} style={{ background: CY, color: '#fff', fontSize: 11, fontWeight: 700, padding: '7px 16px', borderRadius: 7, cursor: 'pointer', border: 'none', fontFamily: 'inherit' }}>
+              Get free assessment
+            </button>
+          </div>
         </div>
       </nav>
 
@@ -453,6 +459,42 @@ export default function Home() {
         </div>
       </section>
 
+      {/* MIGRATE SECTION */}
+      <section style={{ background: '#f4fafd', padding: '60px 24px', borderTop: `2px solid ${BORDER}` }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: CY, textTransform: 'uppercase', letterSpacing: '1.1px', marginBottom: 6 }}>Already on Microsoft 365?</div>
+            <h2 style={{ fontSize: 28, fontWeight: 700, color: NAVY, marginBottom: 10 }}>Switch to GoLive in 48 hours</h2>
+            <p style={{ fontSize: 13, color: MUTED, maxWidth: 520, margin: '0 auto 0' }}>Unhappy with your current Microsoft CSP, on Google Workspace, or still running cPanel email? Moving to GoLive is fast, free and fully managed — no downtime, no data loss.</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16, marginBottom: 32 }}>
+            {[
+              { icon: '🔄', title: 'Switch Microsoft CSP', desc: 'Already on Microsoft 365 with another provider? Transfer to GoLive in 48 hours. Keep all your data, licenses and settings — only the billing and support relationship changes.', badge: 'No downtime', color: '#0078d4' },
+              { icon: '📧', title: 'Google Workspace → M365', desc: 'Move your team from Google Workspace to Microsoft 365. We migrate all emails, contacts and calendar events. Your team keeps working throughout the migration.', badge: 'All emails preserved', color: '#ea4335' },
+              { icon: '🌐', title: 'cPanel / Webmail Upgrade', desc: 'Running your business on cPanel, Zoho or basic webmail? Upgrade to enterprise Microsoft 365 with professional email, Teams for video calls, and 1TB OneDrive storage per user.', badge: 'Free migration', color: '#ff6600' },
+            ].map(item => (
+              <div key={item.title} style={{ background: '#fff', border: `1.5px solid ${BORDER}`, borderRadius: 12, padding: '24px', borderTop: `3px solid ${item.color}` }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>{item.icon}</div>
+                <div style={{ display: 'inline-block', fontSize: 9, fontWeight: 700, background: LIGHT, color: CY, padding: '2px 8px', borderRadius: 10, border: `1px solid ${BORDER}`, marginBottom: 10 }}>{item.badge}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: NAVY, marginBottom: 8 }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.7, marginBottom: 16 }}>{item.desc}</div>
+                <a href="/migrate" style={{ display: 'inline-block', fontSize: 12, fontWeight: 700, color: CY, textDecoration: 'none' }}>Start transfer →</a>
+              </div>
+            ))}
+          </div>
+          <div style={{ background: NAVY, borderRadius: 12, padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Ready to switch? It starts with a free assessment.</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,.55)' }}>No commitment · GoLive advisor responds within 4 hours · All migration costs included</div>
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <a href="/migrate" style={{ background: CY, color: '#fff', textDecoration: 'none', padding: '11px 24px', borderRadius: 8, fontSize: 13, fontWeight: 700 }}>Start migration →</a>
+              <button onClick={openWA} style={{ background: '#25d366', color: '#fff', border: 'none', padding: '11px 24px', borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>💬 WhatsApp us</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FOOTER */}
       <footer style={{ background: '#0a1a27', borderTop: '1px solid rgba(255,255,255,.07)', padding: '44px 24px 20px' }}>
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -464,10 +506,37 @@ export default function Home() {
                 <a key={label as string} href={href as string} style={{ display: 'block', fontSize: 11, color: 'rgba(255,255,255,.45)', textDecoration: 'none', marginBottom: 5 }}>{label}</a>
               ))}
             </div>
-            {[['Microsoft services',['Microsoft 365 Business','Copilot & AI','Azure Cloud','Microsoft Defender','Power Platform','Teams & SharePoint']],['Industry packages',['Legal Workspace','Cloud for Schools','Ministry Cloud','Secure Clinic Cloud','Business Automation','SME Email Migration']],['Company',['About GoLive','golivecompany.com','golivenaija.com','Portal login','Terms of service','Privacy policy']]].map(([title, links]) => (
+            {[['Microsoft services',[
+                ['Microsoft 365 Business','#packages'],
+                ['Copilot & AI','#pillars'],
+                ['Azure Cloud','#pillars'],
+                ['Microsoft Defender','#pillars'],
+                ['Power Platform','#pillars'],
+                ['Teams & SharePoint','#pillars'],
+              ]],['Migrate to GoLive',[
+                ['Switch CSP to GoLive','/migrate'],
+                ['Google Workspace migration','/migrate'],
+                ['cPanel email upgrade','/migrate'],
+                ['Migration guide','#how'],
+                ['Free assessment','#assess'],
+                ['Partner ID: 6787357','#assess'],
+              ]],['Company',[
+                ['About GoLive','https://golivenaija.com'],
+                ['golivenaija.com','https://golivenaija.com'],
+                ['Portal login','/portal/login'],
+                ['Transfer request','/migrate'],
+                ['Terms of service','#'],
+                ['Privacy policy','#'],
+              ]]].map(([title, links]) => (
               <div key={title as string}>
                 <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.28)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>{title}</div>
-                {(links as string[]).map(l => <div key={l} style={{ fontSize: 11, color: 'rgba(255,255,255,.45)', marginBottom: 6 }}>{l}</div>)}
+                {(links as [string, string][]).map(([label, href]) => (
+                  <a key={label} href={href} style={{ display: 'block', fontSize: 11, color: 'rgba(255,255,255,.45)', marginBottom: 6, textDecoration: 'none' }}
+                    onMouseEnter={e => (e.currentTarget.style.color = TEAL)}
+                    onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,.45)')}>
+                    {label}
+                  </a>
+                ))}
               </div>
             ))}
           </div>
