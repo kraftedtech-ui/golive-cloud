@@ -41,7 +41,7 @@ export function Navbar() {
     <header className={`sticky top-0 z-50 border-b transition-all duration-300 ${scrolled ? "border-[#c8e6f0] bg-white/85 shadow-sm backdrop-blur-xl" : "border-transparent bg-white/70 backdrop-blur-md"}`}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center">
-          <img src="/images/logo-white.png" alt="GoLive Digital Solutions" style={{ height: 40, width: 'auto' }} />
+          <img src="/images/logo-white.png" alt="GoLive Digital Solutions" style={{ height: 56, width: 'auto' }} />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

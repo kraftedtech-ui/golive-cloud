@@ -14,7 +14,7 @@ export function Footer() {
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-2 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
             <Link href="/">
-              <img src="/images/logo-white.png" alt="GoLive Digital Solutions" style={{ height: 44, width: 'auto' }} />
+              <img src="/images/logo-white.png" alt="GoLive Digital Solutions" style={{ height: 64, width: 'auto' }} />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">Authorized Microsoft CSP partner delivering cloud, security and productivity across Africa.</p>
           </div>
