@@ -540,11 +540,14 @@ export default function Home() {
               </div>
             ))}
           </div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.25)' }}>© 2026 GoLive Digital Solutions Company Ltd. All rights reserved.</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.09)', padding: '5px 10px', borderRadius: 7 }}>
-              <svg width="16" height="16" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
-              <span style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', fontWeight: 500 }}>Authorized Microsoft CSP · Africa</span>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,.07)', paddingTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.25)' }}>© 2026 The GoLive Digital Solutions Company Ltd. · RC1644767 · All rights reserved. &nbsp;·&nbsp; <a href="/terms" style={{ color: 'rgba(255,255,255,.4)', textDecoration: 'none' }}>Terms of Service</a> &nbsp;·&nbsp; <a href="/privacy" style={{ color: 'rgba(255,255,255,.4)', textDecoration: 'none' }}>Privacy Policy</a></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <img src="/images/ndpr-badge.png" alt="NDPR Compliance" style={{ height: 40, width: 'auto' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.09)', padding: '5px 10px', borderRadius: 7 }}>
+                <svg width="16" height="16" viewBox="0 0 23 23" fill="none"><rect x="1" y="1" width="10" height="10" fill="#f25022"/><rect x="12" y="1" width="10" height="10" fill="#7fba00"/><rect x="1" y="12" width="10" height="10" fill="#00a4ef"/><rect x="12" y="12" width="10" height="10" fill="#ffb900"/></svg>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,.4)', fontWeight: 500 }}>Authorized Microsoft CSP · Africa</span>
+              </div>
             </div>
           </div>
         </div>
