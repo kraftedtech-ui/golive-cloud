@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Cloud, ShieldCheck, BadgeCheck } from "lucide-react"
+import { ShieldCheck, BadgeCheck } from "lucide-react"
 
 const COLUMNS = [
   { title: "Solutions", links: [{ label: "Microsoft 365", href: "#pillars" },{ label: "Copilot AI", href: "#pillars" },{ label: "Azure", href: "#pillars" },{ label: "Defender security", href: "#pillars" }] },
@@ -13,12 +13,8 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-2 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-white/10"><Cloud className="size-5 text-[#00c8c8]" /></span>
-              <span className="flex flex-col leading-none">
-                <span className="text-base font-bold">GoLive</span>
-                <span className="text-[10px] font-medium uppercase tracking-wider text-white/60">Digital Solutions</span>
-              </span>
+            <Link href="/">
+              <img src="/images/logo-white.png" alt="GoLive Digital Solutions" style={{ height: 44, width: 'auto' }} />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">Authorized Microsoft CSP partner delivering cloud, security and productivity across Africa.</p>
           </div>

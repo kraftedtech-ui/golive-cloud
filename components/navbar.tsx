@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Cloud, ChevronDown, Menu, X } from "lucide-react"
+import { ChevronDown, Menu, X } from "lucide-react"
 import { CtaLink } from "@/components/cta-link"
 import { CURRENCIES, useCurrency, type CurrencyCode } from "@/components/currency-context"
 
@@ -40,14 +40,8 @@ export function Navbar() {
   return (
     <header className={`sticky top-0 z-50 border-b transition-all duration-300 ${scrolled ? "border-[#c8e6f0] bg-white/85 shadow-sm backdrop-blur-xl" : "border-transparent bg-white/70 backdrop-blur-md"}`}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex items-center gap-2.5">
-          <span className="flex size-9 items-center justify-center rounded-lg bg-[#0d2233] shadow-sm ring-1 ring-inset ring-white/10">
-            <Cloud className="size-5 text-[#00c8c8]" />
-          </span>
-          <span className="flex flex-col leading-none">
-            <span className="text-base font-bold tracking-tight text-[#0d2233]">GoLive</span>
-            <span className="text-[10px] font-medium uppercase tracking-[0.14em] text-[#5a7a8a]">Digital Solutions</span>
-          </span>
+        <Link href="/" className="flex items-center">
+          <img src="/images/logo-white.png" alt="GoLive Digital Solutions" style={{ height: 40, width: 'auto' }} />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
