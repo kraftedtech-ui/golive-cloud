@@ -45,6 +45,10 @@ jobs:
           git show origin/main:app/portal/page.tsx > app/portal/page.tsx
           mkdir -p app/migrate
           git show origin/main:app/migrate/page.tsx > app/migrate/page.tsx
+          mkdir -p app/terms
+          git show origin/main:app/terms/page.tsx > app/terms/page.tsx
+          mkdir -p app/privacy
+          git show origin/main:app/privacy/page.tsx > app/privacy/page.tsx
           git show origin/main:lib/mongodb.ts > lib/mongodb.ts
           git show origin/main:lib/email.ts > lib/email.ts
           git show origin/main:models/Lead.ts > models/Lead.ts
@@ -61,6 +65,7 @@ jobs:
           git show "origin/main:app/api/users/[id]/route.ts" > "app/api/users/[id]/route.ts"
           mkdir -p app/api/transfers
           git show origin/main:app/api/transfers/route.ts > app/api/transfers/route.ts
+          git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
           echo "=== Installing ==="
           npm install --legacy-peer-deps
           echo "=== Building ==="
