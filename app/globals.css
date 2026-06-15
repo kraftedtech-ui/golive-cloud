@@ -1,44 +1,99 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-mono: monospace;
+  --color-navy: var(--navy);
+  --color-navy-deep: var(--navy-deep);
+  --color-cyan: var(--cyan);
+  --color-teal: var(--teal);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
 
 :root {
-  --gl-cy: #0096c7;
-  --gl-cy2: #00b4d8;
-  --gl-teal: #00c8c8;
-  --gl-teal2: #00a07a;
-  --gl-navy: #0d2233;
-  --gl-navy2: #162d3d;
-  --gl-light: #e8f4fb;
-  --gl-lighter: #f4fafd;
-  --gl-border: #c8e6f0;
-  --gl-muted: #5a7a8a;
-  --gl-warn: #f59e0b;
-  --gl-green: #059669;
+  color-scheme: light;
+
+  /* GoLive Brand palette */
+  --navy: #0b1d2e;
+  --navy-deep: #06121e;
+  --cyan: #0096c7;
+  --teal: #00c8c8;
+  --lightblue: #eef6fc;
+
+  --background: #ffffff;
+  --foreground: #0b1d2e;
+  --card: #ffffff;
+  --card-foreground: #0b1d2e;
+  --popover: #ffffff;
+  --popover-foreground: #0b1d2e;
+  --primary: #0096c7;
+  --primary-foreground: #ffffff;
+  --secondary: #eef6fc;
+  --secondary-foreground: #0b1d2e;
+  --muted: #f4f7fa;
+  --muted-foreground: #5b7184;
+  --accent: #00c8c8;
+  --accent-foreground: #0b1d2e;
+  --destructive: #ef4444;
+  --border: #e4ecf3;
+  --input: #e4ecf3;
+  --ring: #0096c7;
+  --radius: 0.75rem;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3 {
+    letter-spacing: -0.02em;
+  }
 }
 
-html {
-  scroll-behavior: smooth;
+@layer utilities {
+  .shadow-elevated {
+    box-shadow:
+      0 1px 2px -1px rgb(11 29 46 / 0.08),
+      0 8px 24px -8px rgb(11 29 46 / 0.12),
+      0 24px 48px -24px rgb(11 29 46 / 0.16);
+  }
+  .shadow-elevated-lg {
+    box-shadow:
+      0 1px 2px -1px rgb(11 29 46 / 0.1),
+      0 12px 32px -8px rgb(11 29 46 / 0.16),
+      0 40px 72px -32px rgb(11 29 46 / 0.24);
+  }
+  .shadow-ring-soft {
+    box-shadow:
+      0 0 0 1px rgb(11 29 46 / 0.06),
+      0 2px 8px -2px rgb(11 29 46 / 0.08);
+  }
 }
-
-body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background: #fff;
-  color: var(--gl-navy);
-  line-height: 1.6;
-}
-
-::selection {
-  background: var(--gl-cy);
-  color: #fff;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--gl-lighter); }
-::-webkit-scrollbar-thumb { background: var(--gl-border); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--gl-cy); }
