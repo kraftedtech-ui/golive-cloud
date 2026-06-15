@@ -1,0 +1,152 @@
+"use client"
+
+import { useState } from "react"
+import { CheckCircle2 } from "lucide-react"
+
+const COUNTRIES = ["Nigeria","Ghana","Kenya","South Africa","Tanzania","Uganda","Rwanda","Egypt","Other"]
+const INDUSTRIES = ["Legal","Education / Schools","Religious / Churches","Healthcare / Clinics","Financial Services","Retail & E-commerce","Manufacturing","Government / NGO","Other"]
+
+const fieldClasses = "w-full rounded-md border border-[#c8e6f0] bg-white px-3 py-3 text-sm text-[#0d2233] outline-none transition-colors placeholder:text-[#5a7a8a] focus-visible:border-[#0096c7] focus-visible:ring-2 focus-visible:ring-[#0096c7]/30 sm:py-2.5"
+
+export function AssessmentForm({ variant = "card" }: { variant?: "card" | "section" }) {
+  const [submitted, setSubmitted] = useState(false)
+  const [ref, setRef] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+    const form = e.currentTarget
+    const data = new FormData(form)
+
+    const services: string[] = []
+    const currentEmail = data.get("currentEmail") as string
+    if (currentEmail) services.push(currentEmail)
+
+    const payload = {
+      company: data.get("company"),
+      contact: data.get("name"),
+      email: data.get("email"),
+      phone: data.get("whatsapp"),
+      country: data.get("country"),
+      industry: data.get("industry"),
+      users: data.get("users"),
+      currentEmail: currentEmail,
+      services,
+    }
+
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+      const result = await res.json()
+      if (result.success) {
+        setRef(result.lead?.ref || "GL-" + Date.now())
+        setSubmitted(true)
+      } else {
+        setError("Something went wrong. Please try again.")
+      }
+    } catch {
+      setError("Network error. Please try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="flex flex-col items-center gap-4 rounded-xl border border-[#c8e6f0] bg-white p-10 text-center">
+        <CheckCircle2 className="size-12 text-[#00c8c8]" />
+        <h3 className="text-xl font-bold text-[#0d2233]">Request received!</h3>
+        <p className="text-sm text-[#5a7a8a]">Reference: <strong className="text-[#0096c7]">{ref}</strong></p>
+        <p className="max-w-sm text-sm text-[#5a7a8a]">
+          A GoLive cloud specialist will reach out within one business day with your free Microsoft cloud assessment.
+        </p>
+        <a href={`https://wa.me/${process.env.NEXT_PUBLIC_WA_NUMBER || '2348083587801'}?text=Hi GoLive, I just submitted an assessment. My ref is ${ref}`}
+          className="inline-flex items-center gap-2 rounded-lg bg-[#25d366] px-5 py-2.5 text-sm font-semibold text-white">
+          💬 Chat on WhatsApp
+        </a>
+      </div>
+    )
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className={
+        variant === "card"
+          ? "relative overflow-hidden rounded-2xl border border-[#c8e6f0] bg-white p-5 shadow-lg sm:p-8"
+          : "relative overflow-hidden rounded-2xl border border-[#c8e6f0] bg-white p-5 shadow-md sm:p-10"
+      }
+    >
+      <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#0096c7] via-[#00c8c8] to-[#0096c7]" />
+      <div className="mb-5">
+        <h3 className="text-lg font-bold tracking-tight text-[#0d2233] sm:text-xl">Get your free cloud assessment</h3>
+        <p className="mt-1.5 text-sm leading-relaxed text-[#5a7a8a]">No obligation. Receive a tailored Microsoft licensing &amp; security plan.</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+        <div className="sm:col-span-2">
+          <label htmlFor="company" className="mb-1.5 block text-xs font-medium text-[#0d2233]">Company name</label>
+          <input id="company" name="company" required placeholder="Acme Ltd" className={fieldClasses} />
+        </div>
+        <div>
+          <label htmlFor="name" className="mb-1.5 block text-xs font-medium text-[#0d2233]">Full name</label>
+          <input id="name" name="name" required placeholder="Jane Doe" className={fieldClasses} />
+        </div>
+        <div>
+          <label htmlFor="email" className="mb-1.5 block text-xs font-medium text-[#0d2233]">Work email</label>
+          <input id="email" name="email" type="email" required placeholder="jane@acme.com" className={fieldClasses} />
+        </div>
+        <div>
+          <label htmlFor="whatsapp" className="mb-1.5 block text-xs font-medium text-[#0d2233]">WhatsApp number</label>
+          <input id="whatsapp" name="whatsapp" type="tel" placeholder="+234 800 000 0000" className={fieldClasses} />
+        </div>
+        <div>
+          <label htmlFor="country" className="mb-1.5 block text-xs font-medium text-[#0d2233]">Country</label>
+          <select id="country" name="country" required defaultValue="" className={fieldClasses}>
+            <option value="" disabled>Select country</option>
+            {COUNTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="industry" className="mb-1.5 block text-xs font-medium text-[#0d2233]">Industry</label>
+          <select id="industry" name="industry" required defaultValue="" className={fieldClasses}>
+            <option value="" disabled>Select industry</option>
+            {INDUSTRIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="users" className="mb-1.5 block text-xs font-medium text-[#0d2233]">Number of users</label>
+          <input id="users" name="users" type="number" min={1} required placeholder="25" className={fieldClasses} />
+        </div>
+        <div className="sm:col-span-2">
+          <label htmlFor="currentEmail" className="mb-1.5 block text-xs font-medium text-[#0d2233]">Current email provider</label>
+          <select id="currentEmail" name="currentEmail" defaultValue="" className={fieldClasses}>
+            <option value="" disabled>Select current provider</option>
+            <option>Google Workspace</option>
+            <option>cPanel / Webmail</option>
+            <option>Microsoft 365 (existing)</option>
+            <option>Zoho Mail</option>
+            <option>Other / None</option>
+          </select>
+        </div>
+      </div>
+
+      {error && <p className="mt-3 rounded-lg bg-red-50 p-3 text-center text-sm text-red-600">{error}</p>}
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="mt-6 w-full rounded-lg bg-[#0096c7] py-3 text-sm font-semibold tracking-tight text-white shadow-sm transition-all hover:bg-[#0096c7]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0096c7]/50 disabled:opacity-60"
+      >
+        {loading ? "Submitting..." : "Get free assessment"}
+      </button>
+      <p className="mt-3 text-center text-xs text-[#5a7a8a]">NDPR compliant. We never share your data.</p>
+    </form>
+  )
+}
