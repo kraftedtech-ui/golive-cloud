@@ -38,13 +38,13 @@ export function Navbar() {
   }, [])
 
   return (
-    <header className={`sticky top-0 z-50 border-b transition-all duration-300 ${scrolled ? "border-[#c8e6f0] bg-white/85 shadow-sm backdrop-blur-xl" : "border-transparent bg-white/70 backdrop-blur-md"}`}>
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <header className={`sticky top-0 z-50 border-b transition-all duration-300 ${scrolled ? "border-[#c8e6f0] bg-white shadow-sm" : "border-[#c8e6f0] bg-white"}`}>
+      <div className="mx-auto flex h-24 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center">
           <img 
             src="/images/logo-dark.png" 
             alt="GoLive Digital Solutions" 
-            style={{ height: 52, width: 'auto', mixBlendMode: 'screen' }} 
+            style={{ height: 120, width: 'auto' }} 
           />
         </Link>
 

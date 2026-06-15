@@ -17,7 +17,7 @@ export function Footer() {
               <img 
                 src="/images/logo-dark.png" 
                 alt="GoLive Digital Solutions" 
-                style={{ height: 60, width: 'auto', mixBlendMode: 'screen' }} 
+                style={{ height: 140, width: 'auto', mixBlendMode: 'screen' }} 
               />
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/60">Authorized Microsoft CSP partner delivering cloud, security and productivity across Africa.</p>
