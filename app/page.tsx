@@ -525,8 +525,8 @@ export default function Home() {
                 ['golivenaija.com','https://golivenaija.com'],
                 ['Portal login','/portal/login'],
                 ['Transfer request','/migrate'],
-                ['Terms of service','#'],
-                ['Privacy policy','#'],
+                ['Terms of service','/terms'],
+                ['Privacy policy','/privacy'],
               ]]].map(([title, links]) => (
               <div key={title as string}>
                 <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,.28)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 10 }}>{title}</div>
