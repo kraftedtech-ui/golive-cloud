@@ -51,6 +51,7 @@ jobs:
           git show origin/main:app/privacy/page.tsx > app/privacy/page.tsx
           git show origin/main:lib/mongodb.ts > lib/mongodb.ts
           git show origin/main:lib/email.ts > lib/email.ts
+          git show origin/main:lib/utils.ts > lib/utils.ts
           git show origin/main:models/Lead.ts > models/Lead.ts
           git show origin/main:models/Customer.ts > models/Customer.ts
           git show origin/main:models/User.ts > models/User.ts
@@ -66,6 +67,19 @@ jobs:
           mkdir -p app/api/transfers
           git show origin/main:app/api/transfers/route.ts > app/api/transfers/route.ts
           git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
+          mkdir -p components
+          git show origin/main:components/assessment-form.tsx > components/assessment-form.tsx
+          git show origin/main:components/assessment-section.tsx > components/assessment-section.tsx
+          git show origin/main:components/cta-link.tsx > components/cta-link.tsx
+          git show origin/main:components/currency-context.tsx > components/currency-context.tsx
+          git show origin/main:components/footer.tsx > components/footer.tsx
+          git show origin/main:components/hero.tsx > components/hero.tsx
+          git show origin/main:components/markets.tsx > components/markets.tsx
+          git show origin/main:components/migration.tsx > components/migration.tsx
+          git show origin/main:components/navbar.tsx > components/navbar.tsx
+          git show origin/main:components/packages.tsx > components/packages.tsx
+          git show origin/main:components/trust-bar.tsx > components/trust-bar.tsx
+          git show origin/main:components/verticals.tsx > components/verticals.tsx
           echo "=== Installing ==="
           npm install --legacy-peer-deps
           echo "=== Building ==="
