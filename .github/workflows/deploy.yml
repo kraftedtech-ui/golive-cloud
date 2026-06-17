@@ -71,6 +71,13 @@ jobs:
           mkdir -p public/images
           git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
           git show origin/main:public/images/logo-dark.png > public/images/logo-dark.png
+          git show origin/main:public/favicon.ico > public/favicon.ico
+          git show origin/main:public/favicon-16x16.png > public/favicon-16x16.png
+          git show origin/main:public/favicon-32x32.png > public/favicon-32x32.png
+          git show origin/main:public/apple-touch-icon.png > public/apple-touch-icon.png
+          git show origin/main:public/icon-192x192.png > public/icon-192x192.png
+          git show origin/main:public/icon-512x512.png > public/icon-512x512.png
+          git show origin/main:public/site.webmanifest > public/site.webmanifest
           mkdir -p components
           git show origin/main:components/assessment-form.tsx > components/assessment-form.tsx
           git show origin/main:components/assessment-section.tsx > components/assessment-section.tsx
