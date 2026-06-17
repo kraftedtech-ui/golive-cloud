@@ -1,166 +1,114 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Users, Hash } from "lucide-react"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { deals as initialDeals, STAGES, type Deal, type PipelineStage } from "@/lib/data"
 
-const stageDot: Record<PipelineStage, string> = {
-  "new-lead": "bg-[var(--color-chart-5)]",
-  "assessment-done": "bg-[var(--color-chart-4)]",
-  "quote-sent": "bg-[var(--color-chart-1)]",
-  negotiating: "bg-warning",
-  won: "bg-success",
+type PipelineStage = "New Lead" | "Assessment Done" | "Quote Sent" | "Negotiating" | "Won" | "Lost"
+
+const STAGES: { id: PipelineStage; label: string; dot: string }[] = [
+  { id: "New Lead", label: "New Lead", dot: "bg-[#b4cdf6]" },
+  { id: "Assessment Done", label: "Assessment Done", dot: "bg-[#6aa9e0]" },
+  { id: "Quote Sent", label: "Quote Sent", dot: "bg-[#0096c7]" },
+  { id: "Negotiating", label: "Negotiating", dot: "bg-[#e08a00]" },
+  { id: "Won", label: "Won", dot: "bg-[#0f9d6e]" },
+]
+
+const ownerColors = ["bg-[#0096c7]","bg-[#00c8c8]","bg-[#6aa9e0]","bg-[#0d2233]","bg-[#e08a00]"]
+
+function getInitials(name: string) {
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
-const ownerColor: Record<string, string> = {
-  AM: "bg-[var(--color-chart-1)]",
-  TK: "bg-[var(--color-chart-2)]",
-  NB: "bg-[var(--color-chart-4)]",
-}
-
-function DealCard({
-  deal,
-  onStageChange,
-}: {
-  deal: Deal
-  onStageChange: (id: string, stage: PipelineStage) => void
-}) {
+function DealCard({ lead, onStageChange }: { lead: any; onStageChange: (id: string, stage: string) => void }) {
+  const initials = getInitials(lead.contact || lead.company || 'U')
+  const colorIdx = lead.company?.charCodeAt(0) % ownerColors.length || 0
   return (
-    <div className="group rounded-xl border border-border bg-card p-3 shadow-xs ring-1 ring-transparent transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-primary/20">
+    <div className="group rounded-xl border border-[#e3e9f0] bg-white p-3 shadow-xs ring-1 ring-transparent transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-[#0096c7]/20">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-foreground">
-            {deal.company}
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {deal.flag} {deal.country}
-          </p>
+          <p className="truncate text-sm font-semibold text-[#0d2233]">{lead.company}</p>
+          <p className="mt-0.5 text-xs text-[#5c7184]">{lead.country}</p>
         </div>
-        <span
-          className={cn(
-            "flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2 ring-card",
-            ownerColor[deal.owner] ?? "bg-muted-foreground",
-          )}
-          title={`Owner: ${deal.owner}`}
-        >
-          {deal.owner}
+        <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white ring-2 ring-white", ownerColors[colorIdx])}>
+          {initials}
         </span>
       </div>
-
-      <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <Users className="size-3.5" />
-          {deal.users}
-        </span>
-        <span className="inline-flex items-center gap-1 font-mono text-[11px]">
-          <Hash className="size-3" />
-          {deal.ref}
-        </span>
-        <span className="ml-auto font-semibold text-foreground tabular-nums">
-          ${deal.value.toLocaleString()}
-          <span className="font-normal text-muted-foreground">/mo</span>
-        </span>
+      <div className="mt-3 flex items-center gap-3 text-xs text-[#5c7184]">
+        <span className="inline-flex items-center gap-1"><Users className="size-3.5" />{lead.users}</span>
+        <span className="inline-flex items-center gap-1 font-mono text-[11px]"><Hash className="size-3" />{lead.ref?.slice(-8)}</span>
       </div>
-
       <div className="mt-3">
-        <Select
-          value={deal.stage}
-          onValueChange={(v) => onStageChange(deal.id, v as PipelineStage)}
-        >
-          <SelectTrigger size="sm" className="h-8 w-full text-xs">
-            <span className="flex items-center gap-2">
-              <span className={cn("size-2 rounded-full", stageDot[deal.stage])} />
-              <SelectValue />
-            </span>
-          </SelectTrigger>
-          <SelectContent>
-            {STAGES.map((s) => (
-              <SelectItem key={s.id} value={s.id} className="text-xs">
-                {s.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <select value={lead.status} onChange={e => onStageChange(lead._id, e.target.value)}
+          className="w-full rounded-md border border-[#e3e9f0] bg-[#f4f7fb] px-2 py-1.5 text-xs text-[#0d2233] outline-none focus:border-[#0096c7] focus:ring-1 focus:ring-[#0096c7]/30">
+          {STAGES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+        </select>
       </div>
     </div>
   )
 }
 
 export function KanbanBoard() {
-  const [deals, setDeals] = useState<Deal[]>(initialDeals)
+  const [leads, setLeads] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const handleStageChange = (id: string, stage: PipelineStage) => {
-    setDeals((prev) => prev.map((d) => (d.id === id ? { ...d, stage } : d)))
+  const fetchLeads = () => {
+    fetch('/api/leads')
+      .then(r => r.json())
+      .then(d => { if (d.success) setLeads(d.leads || []); setLoading(false) })
+      .catch(() => setLoading(false))
   }
 
+  useEffect(() => { fetchLeads() }, [])
+
+  const handleStageChange = async (id: string, status: string) => {
+    setLeads(prev => prev.map(l => l._id === id ? { ...l, status } : l))
+    await fetch(`/api/leads/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
+  }
+
+  const activeLeads = leads.filter(l => l.status !== 'Lost')
+  const totalValue = activeLeads.length * 500 // estimated
+
   return (
-    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">
-            Pipeline
-          </p>
-          <h2 className="mt-0.5 text-base font-semibold tracking-tight text-foreground">
-            CRM Pipeline
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            {deals.length} active opportunities · update status inline
-          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#0096c7]">Pipeline</p>
+          <h2 className="mt-0.5 text-base font-semibold tracking-tight text-[#0d2233]">CRM Pipeline</h2>
+          <p className="text-xs text-[#5c7184]">{activeLeads.length} active opportunities · update status inline</p>
         </div>
-        <span className="hidden rounded-lg border border-border bg-secondary/60 px-3 py-1.5 text-xs font-medium text-muted-foreground sm:inline-flex">
-          ${deals.reduce((s, d) => s + d.value, 0).toLocaleString()}/mo total
+        <span className="hidden rounded-lg border border-[#e3e9f0] bg-[#eaf0f7] px-3 py-1.5 text-xs font-medium text-[#5c7184] sm:inline-flex">
+          {leads.length} total leads
         </span>
       </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {STAGES.map((stage) => {
-          const column = deals.filter((d) => d.stage === stage.id)
-          const total = column.reduce((sum, d) => sum + d.value, 0)
-          return (
-            <div
-              key={stage.id}
-              className="flex flex-col rounded-xl border border-border/60 bg-secondary/50 p-2.5"
-            >
-              <div className="mb-1 flex items-center justify-between px-1.5">
-                <div className="flex items-center gap-2">
-                  <span className={cn("size-2 rounded-full", stageDot[stage.id])} />
-                  <span className="text-xs font-semibold text-foreground">
-                    {stage.label}
-                  </span>
+      {loading ? (
+        <div className="py-12 text-center text-sm text-[#5c7184]">Loading pipeline...</div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {STAGES.map(stage => {
+            const column = leads.filter(l => l.status === stage.id)
+            return (
+              <div key={stage.id} className="flex flex-col rounded-xl border border-[#e3e9f0]/60 bg-[#eaf0f7]/50 p-2.5">
+                <div className="mb-1 flex items-center justify-between px-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className={cn("size-2 rounded-full", stage.dot)} />
+                    <span className="text-xs font-semibold text-[#0d2233]">{stage.label}</span>
+                  </div>
+                  <span className="flex size-5 items-center justify-center rounded-full bg-white text-[10px] font-semibold text-[#5c7184] ring-1 ring-[#e3e9f0]">{column.length}</span>
                 </div>
-                <span className="flex size-5 items-center justify-center rounded-full bg-card text-[10px] font-semibold text-muted-foreground ring-1 ring-border">
-                  {column.length}
-                </span>
+                <div className="flex flex-1 flex-col gap-2.5 mt-2">
+                  {column.map(lead => (
+                    <DealCard key={lead._id} lead={lead} onStageChange={handleStageChange} />
+                  ))}
+                  {column.length === 0 && (
+                    <p className="rounded-lg border border-dashed border-[#e3e9f0] px-2 py-6 text-center text-[11px] text-[#5c7184]">No leads</p>
+                  )}
+                </div>
               </div>
-              <p className="mb-2 px-1.5 text-[11px] font-medium text-muted-foreground tabular-nums">
-                ${total.toLocaleString()}/mo
-              </p>
-              <div className="flex flex-1 flex-col gap-2.5">
-                {column.map((deal) => (
-                  <DealCard
-                    key={deal.id}
-                    deal={deal}
-                    onStageChange={handleStageChange}
-                  />
-                ))}
-                {column.length === 0 && (
-                  <p className="rounded-lg border border-dashed border-border px-2 py-6 text-center text-[11px] text-muted-foreground">
-                    No deals
-                  </p>
-                )}
-              </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </section>
   )
 }

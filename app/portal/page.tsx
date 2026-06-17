@@ -85,7 +85,7 @@ export default function PortalPage() {
     <div className="min-h-screen bg-[#f4f7fb]">
       <Sidebar active={page} onNavigate={setPage} />
       <div className="lg:pl-64">
-        <Topbar />
+        <Topbar page={page} />
         <main className="mx-auto max-w-[1600px] space-y-6 px-5 py-6 md:px-8">
 
           {page === 'dashboard' && (
