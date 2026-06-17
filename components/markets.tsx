@@ -1,12 +1,12 @@
 const MARKETS = [
-  { country: "Nigeria",      code: "NG", currency: "NGN", flag: "🇳🇬" },
-  { country: "Ghana",        code: "GH", currency: "GHS", flag: "🇬🇭" },
-  { country: "Kenya",        code: "KE", currency: "KES", flag: "🇰🇪" },
-  { country: "South Africa", code: "ZA", currency: "ZAR", flag: "🇿🇦" },
-  { country: "Tanzania",     code: "TZ", currency: "TZS", flag: "🇹🇿" },
-  { country: "Uganda",       code: "UG", currency: "UGX", flag: "🇺🇬" },
-  { country: "Rwanda",       code: "RW", currency: "RWF", flag: "🇷🇼" },
-  { country: "Egypt",        code: "EG", currency: "EGP", flag: "🇪🇬" },
+  { country: "Nigeria",      code: "ng", currency: "NGN" },
+  { country: "Ghana",        code: "gh", currency: "GHS" },
+  { country: "Kenya",        code: "ke", currency: "KES" },
+  { country: "South Africa", code: "za", currency: "ZAR" },
+  { country: "Tanzania",     code: "tz", currency: "TZS" },
+  { country: "Uganda",       code: "ug", currency: "UGX" },
+  { country: "Rwanda",       code: "rw", currency: "RWF" },
+  { country: "Egypt",        code: "eg", currency: "EGP" },
 ]
 
 export function Markets() {
@@ -24,7 +24,15 @@ export function Markets() {
         <div className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {MARKETS.map((m) => (
             <div key={m.country} className="group flex items-center gap-3 rounded-xl border border-[#c8e6f0] bg-white px-4 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0096c7]/30 hover:shadow-md">
-              <span className="text-3xl leading-none">{m.flag}</span>
+              <img
+                src={`https://flagcdn.com/w40/${m.code}.png`}
+                srcSet={`https://flagcdn.com/w80/${m.code}.png 2x`}
+                width={32}
+                height={24}
+                alt={m.country}
+                className="rounded-sm object-cover shadow-sm"
+                style={{ width: 32, height: 24, objectFit: 'cover' }}
+              />
               <span className="flex min-w-0 flex-col">
                 <span className="truncate text-sm font-semibold tracking-tight text-[#0d2233]">{m.country}</span>
                 <span className="text-xs text-[#5a7a8a]">{m.currency}</span>

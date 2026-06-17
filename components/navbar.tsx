@@ -13,18 +13,51 @@ const NAV_LINKS = [
   { label: "Migrate", href: "/migrate" },
 ]
 
+const CURRENCY_FLAGS: Record<string, string> = {
+  USD: "us", NGN: "ng", GHS: "gh", KES: "ke", ZAR: "za"
+}
+
 function CurrencySelector() {
   const { currency, setCurrency } = useCurrency()
-  const flags: Record<string, string> = { USD: "🇺🇸", NGN: "🇳🇬", GHS: "🇬🇭", KES: "🇰🇪", ZAR: "🇿🇦" }
+  const [open, setOpen] = useState(false)
+
   return (
     <div className="relative">
-      <select value={currency} onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
-        className="w-full appearance-none rounded-md border border-[#c8e6f0] bg-white py-2 pl-3 pr-8 text-sm font-medium text-[#0d2233] outline-none transition-colors hover:border-[#0096c7] focus-visible:ring-2 focus-visible:ring-[#0096c7] md:w-auto">
-        {Object.values(CURRENCIES).map((c) => (
-          <option key={c.code} value={c.code}>{flags[c.code]} {c.code}</option>
-        ))}
-      </select>
-      <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-4 -translate-y-1/2 text-[#5a7a8a]" />
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex items-center gap-2 rounded-md border border-[#c8e6f0] bg-white px-3 py-2 text-sm font-medium text-[#0d2233] outline-none transition-colors hover:border-[#0096c7]"
+      >
+        <img
+          src={`https://flagcdn.com/w20/${CURRENCY_FLAGS[currency]}.png`}
+          width={16} height={12} alt={currency}
+          className="rounded-sm object-cover"
+          style={{ width: 16, height: 12 }}
+        />
+        <span>{currency}</span>
+        <ChevronDown className="size-3.5 text-[#5a7a8a]" />
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 min-w-[160px] rounded-lg border border-[#c8e6f0] bg-white shadow-lg">
+          {Object.values(CURRENCIES).map((c) => (
+            <button
+              key={c.code}
+              type="button"
+              onClick={() => { setCurrency(c.code as CurrencyCode); setOpen(false) }}
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-sm transition-colors hover:bg-[#f4f7fb] ${currency === c.code ? 'text-[#0096c7] font-semibold' : 'text-[#0d2233]'}`}
+            >
+              <img
+                src={`https://flagcdn.com/w20/${CURRENCY_FLAGS[c.code]}.png`}
+                width={16} height={12} alt={c.code}
+                className="rounded-sm object-cover"
+                style={{ width: 16, height: 12 }}
+              />
+              <span>{c.code}</span>
+              <span className="ml-auto text-xs text-[#5a7a8a]">{c.symbol}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

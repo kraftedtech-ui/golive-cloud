@@ -5,7 +5,7 @@ import { AssessmentForm } from "@/components/assessment-form"
 const STATS = [
   { value: "8+", label: "African markets served" },
   { value: "48hr", label: "Typical migration window" },
-  { value: "RC1644767", label: "Registered in Nigeria" },
+  { value: "Microsoft", label: "Authorized CSP Partner" },
 ]
 
 export function Hero() {
