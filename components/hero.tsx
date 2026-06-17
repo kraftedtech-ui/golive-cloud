@@ -5,7 +5,6 @@ import { AssessmentForm } from "@/components/assessment-form"
 const STATS = [
   { value: "8+", label: "African markets served" },
   { value: "48hr", label: "Typical migration window" },
-  { value: "ID 6787357", label: "Microsoft Partner" },
 ]
 
 export function Hero() {
@@ -35,7 +34,7 @@ export function Hero() {
               View packages
             </CtaLink>
           </div>
-          <dl className="mt-10 grid grid-cols-3 gap-y-4 border-t border-white/10 pt-7 sm:max-w-lg sm:divide-x sm:divide-white/10 sm:gap-y-0">
+          <dl className="mt-10 grid grid-cols-2 gap-y-4 border-t border-white/10 pt-7 sm:max-w-xs sm:divide-x sm:divide-white/10 sm:gap-y-0">
             {STATS.map((stat, i) => (
               <div key={stat.label} className={`${i > 0 ? "sm:px-4" : "sm:pr-4"} flex flex-col items-center sm:items-start`}>
                 <dt className="text-xl font-bold tracking-tight text-[#00c8c8] sm:text-2xl">{stat.value}</dt>
