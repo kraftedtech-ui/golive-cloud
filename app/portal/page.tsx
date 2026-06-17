@@ -355,6 +355,30 @@ export default function PortalPage() {
             </div>
           )}
 
+          {page === 'resources_cert' && (
+            <div className="rounded-2xl border border-border bg-white shadow-sm overflow-hidden">
+              <div className="flex items-center justify-between border-b border-border px-5 py-4">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Resources</p>
+                  <h2 className="mt-0.5 text-base font-semibold text-foreground">Microsoft Solutions Partner Certification Guide</h2>
+                  <p className="text-xs text-muted-foreground">Modern Work Designation — SMB Track · 2026 Edition</p>
+                </div>
+                <div className="flex gap-2">
+                  <a href="/certification-guide.html" target="_blank"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-medium text-foreground shadow-xs hover:bg-secondary">
+                    Open full page ↗
+                  </a>
+                </div>
+              </div>
+              <iframe
+                src="/certification-guide.html"
+                className="w-full border-0"
+                style={{ height: 'calc(100vh - 200px)', minHeight: 600 }}
+                title="Microsoft Certification Guide"
+              />
+            </div>
+          )}
+
         </main>
       </div>
     </div>

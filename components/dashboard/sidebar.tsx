@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react"
 import {
   ArrowLeftRight, KanbanSquare, FileText, ListChecks,
   Users, ShieldCheck, LayoutDashboard, LogOut, BadgeCheck,
+  BookOpen, Award, GraduationCap, ExternalLink, ChevronDown,
   type LucideIcon, Cloud,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -38,8 +39,33 @@ const sections: NavSection[] = [
   },
 ]
 
+const resources = [
+  {
+    label: "Certification Guide",
+    desc: "MS Solutions Partner path",
+    icon: GraduationCap,
+    key: "resources_cert",
+    badge: "NEW",
+  },
+  {
+    label: "Partner Resources",
+    desc: "Microsoft Partner Center",
+    icon: Award,
+    key: "resources_partner",
+    href: "https://partner.microsoft.com",
+  },
+  {
+    label: "Learn Platform",
+    desc: "Free exam study paths",
+    icon: BookOpen,
+    key: "resources_learn",
+    href: "https://learn.microsoft.com",
+  },
+]
+
 export function Sidebar({ active, onNavigate }: { active: string; onNavigate: (key: string) => void }) {
   const { data: session } = useSession()
+  const [resourcesOpen, setResourcesOpen] = useState(false)
   const name = session?.user?.name || "Admin"
   const role = (session?.user as any)?.role || "admin"
   const initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
@@ -97,6 +123,71 @@ export function Sidebar({ active, onNavigate }: { active: string; onNavigate: (k
             </ul>
           </div>
         ))}
+
+        {/* Resources Section */}
+        <div className="mb-5">
+          <button
+            type="button"
+            onClick={() => setResourcesOpen(v => !v)}
+            className="flex w-full items-center justify-between px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground/50 hover:text-sidebar-foreground/80 transition-colors"
+          >
+            <span>Resources</span>
+            <ChevronDown className={cn("size-3 transition-transform", resourcesOpen && "rotate-180")} />
+          </button>
+
+          {resourcesOpen && (
+            <ul className="space-y-1">
+              {resources.map((item) => {
+                const isActive = active === item.key
+                const Icon = item.icon
+                const isExternal = !!item.href
+
+                return (
+                  <li key={item.key}>
+                    {isExternal ? (
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-white"
+                      >
+                        <Icon className="size-4 shrink-0 text-sidebar-foreground/70" />
+                        <div className="min-w-0 flex-1">
+                          <span className="truncate block text-sm">{item.label}</span>
+                          <span className="text-[10px] text-sidebar-foreground/50 truncate block">{item.desc}</span>
+                        </div>
+                        <ExternalLink className="size-3 shrink-0 text-sidebar-foreground/40" />
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => onNavigate(item.key)}
+                        className={cn(
+                          "relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                          isActive
+                            ? "bg-sidebar-accent text-white shadow-sm ring-1 ring-inset ring-white/10"
+                            : "text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-white",
+                        )}
+                      >
+                        {isActive && <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-[var(--color-chart-2)]" />}
+                        <Icon className={cn("size-4 shrink-0", isActive ? "text-[var(--color-chart-2)]" : "text-sidebar-foreground/70")} />
+                        <div className="min-w-0 flex-1 text-left">
+                          <span className="truncate block text-sm">{item.label}</span>
+                          <span className="text-[10px] text-sidebar-foreground/50 truncate block">{item.desc}</span>
+                        </div>
+                        {item.badge && (
+                          <span className="shrink-0 rounded-full bg-[var(--color-chart-2)]/20 px-1.5 py-0.5 text-[9px] font-bold text-[var(--color-chart-2)]">
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          )}
+        </div>
       </nav>
 
       {/* Footer */}

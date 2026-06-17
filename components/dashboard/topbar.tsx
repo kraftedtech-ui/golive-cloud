@@ -10,7 +10,7 @@ const PAGE_LABELS: Record<string, { section: string; title: string }> = {
   proposals:    { section: "Tools",  title: "Proposal Generator" },
   onboarding:   { section: "Tools",  title: "Onboarding Checklist" },
   customers:    { section: "Admin",  title: "Customer Accounts" },
-  team:         { section: "Admin",  title: "Team & Access Control" },
+  resources_cert: { section: "Resources", title: "Certification Guide" },
 }
 
 export function Topbar({ page = "dashboard", onNavigate, onNewLead }: { page?: string; onNavigate?: (page: string) => void; onNewLead?: () => void }) {

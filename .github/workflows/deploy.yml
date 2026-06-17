@@ -78,6 +78,7 @@ jobs:
           git show origin/main:public/icon-192x192.png > public/icon-192x192.png
           git show origin/main:public/icon-512x512.png > public/icon-512x512.png
           git show origin/main:public/site.webmanifest > public/site.webmanifest
+          git show origin/main:public/certification-guide.html > public/certification-guide.html
           mkdir -p components
           git show origin/main:components/assessment-form.tsx > components/assessment-form.tsx
           git show origin/main:components/assessment-section.tsx > components/assessment-section.tsx

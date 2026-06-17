@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Microsoft Solutions Partner Certification Guide — GoLive</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #0d2233; --cyan: #0096c7; --teal: #00c8c8;
+    --light: #e8f4fb; --bg: #f4f7fb; --border: #c8e6f0;
+    --text: #0d2233; --muted: #5c7184;
+  }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.6; }
+  
+  /* Header */
+  .header { background: var(--navy); color: white; padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header-logo { font-size: 16px; font-weight: 700; color: white; }
+  .header-logo span { color: var(--teal); }
+  .header-badge { background: var(--cyan); color: white; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+  
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 240px 1fr; gap: 0; min-height: calc(100vh - 60px); }
+  
+  /* Sidebar TOC */
+  .toc { background: white; border-right: 1px solid var(--border); padding: 24px 16px; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+  .toc-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 12px; }
+  .toc a { display: block; padding: 6px 12px; font-size: 12px; color: var(--muted); text-decoration: none; border-left: 2px solid transparent; border-radius: 0 4px 4px 0; margin-bottom: 2px; transition: all 0.15s; }
+  .toc a:hover, .toc a.active { border-left-color: var(--cyan); color: var(--cyan); background: var(--light); font-weight: 600; }
+  
+  /* Content */
+  .content { padding: 32px 48px; max-width: 900px; }
+  
+  /* Hero */
+  .hero { background: var(--navy); color: white; border-radius: 12px; padding: 32px; margin-bottom: 32px; }
+  .hero-tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: var(--teal); margin-bottom: 8px; }
+  .hero h1 { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+  .hero p { color: rgba(255,255,255,0.7); font-size: 14px; }
+  .hero-meta { display: flex; gap: 24px; margin-top: 20px; }
+  .hero-stat { }
+  .hero-stat .val { font-size: 22px; font-weight: 800; color: var(--teal); }
+  .hero-stat .lbl { font-size: 11px; color: rgba(255,255,255,0.5); }
+  
+  /* Sections */
+  section { margin-bottom: 40px; }
+  h2 { font-size: 18px; font-weight: 700; color: var(--navy); border-bottom: 3px solid var(--cyan); padding-bottom: 8px; margin-bottom: 16px; scroll-margin-top: 80px; }
+  h3 { font-size: 15px; font-weight: 700; color: var(--cyan); margin: 20px 0 10px; }
+  p { color: #444; margin-bottom: 12px; }
+  
+  /* Info box */
+  .info-box { background: var(--light); border-left: 4px solid var(--cyan); border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+  .info-box strong { display: block; color: var(--navy); font-weight: 700; margin-bottom: 6px; }
+  .info-box p { margin: 0; font-size: 13px; color: #444; }
+  .info-box ul { margin: 6px 0 0 16px; font-size: 13px; color: #444; }
+  .info-box ul li { margin-bottom: 3px; }
+  
+  /* Warning box */
+  .warn-box { background: #fff8e1; border-left: 4px solid #e08a00; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; }
+  .warn-box strong { color: #7a4a00; }
+  
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin: 16px 0; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--navy); color: white; }
+  thead th { padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; }
+  tbody tr:nth-child(even) { background: var(--bg); }
+  tbody tr:hover { background: var(--light); }
+  td { padding: 10px 14px; color: #444; border-bottom: 1px solid var(--border); }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-blue { background: var(--light); color: var(--cyan); }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e08a00; }
+  .badge-gray { background: #f5f5f5; color: #666; }
+  
+  /* Bullet list */
+  .bullet-list { list-style: none; padding: 0; margin: 12px 0; }
+  .bullet-list li { padding: 6px 0 6px 20px; position: relative; color: #444; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+  .bullet-list li:last-child { border-bottom: none; }
+  .bullet-list li::before { content: "•"; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
+  .bullet-list li strong { color: var(--navy); }
+  
+  /* Progress bar */
+  .progress-section { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 16px 0; }
+  .progress-item { margin-bottom: 16px; }
+  .progress-item:last-child { margin-bottom: 0; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+  .progress-bar { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; }
+  .fill-cyan { background: var(--cyan); }
+  .fill-teal { background: var(--teal); }
+  .fill-gray { background: #ccc; }
+  
+  /* Action cards */
+  .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  .action-card { background: white; border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .action-card .step { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--cyan); margin-bottom: 6px; }
+  .action-card h4 { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+  .action-card p { font-size: 12px; color: var(--muted); margin: 0; }
+  .action-card .cost { margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--navy); }
+  .action-card .cost span { color: var(--cyan); }
+  
+  /* Links */
+  .link-list { list-style: none; padding: 0; }
+  .link-list li { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .link-list li:last-child { border-bottom: none; }
+  .link-list a { color: var(--cyan); text-decoration: none; font-size: 13px; }
+  .link-list a:hover { text-decoration: underline; }
+  .link-list .link-desc { font-size: 11px; color: var(--muted); display: block; }
+  
+  /* Footer */
+  .doc-footer { background: var(--navy); color: rgba(255,255,255,0.6); text-align: center; padding: 20px; font-size: 12px; margin-top: 40px; }
+  
+  @media print {
+    .header, .toc { display: none; }
+    .layout { display: block; }
+    .content { padding: 0; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">GoLive<span> Digital</span> Solutions — Internal Resource</div>
+  <span class="header-badge">CONFIDENTIAL · SALES TEAM</span>
+</div>
+
+<div class="layout">
+  <!-- Sidebar TOC -->
+  <nav class="toc">
+    <div class="toc-title">On this page</div>
+    <a href="#overview">Overview & Why It Matters</a>
+    <a href="#scoring">Scoring Requirements</a>
+    <a href="#certifications">Required Certifications</a>
+    <a href="#ab900">AB-900 — Start Here</a>
+    <a href="#ms102">MS-102 — Advanced</a>
+    <a href="#resources">Free Study Resources</a>
+    <a href="#timeline">Action Plan & Timeline</a>
+    <a href="#benefits">Benefits Unlocked</a>
+    <a href="#links">Key Links</a>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="content">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-tag">GoLive Internal · Sales & Operations</div>
+      <h1>Microsoft Solutions Partner<br>Certification Guide — 2026</h1>
+      <p>Modern Work Designation · SMB Track · Achievable within 6 months</p>
+      <div class="hero-meta">
+        <div class="hero-stat"><div class="val">70</div><div class="lbl">Points needed / 100</div></div>
+        <div class="hero-stat"><div class="val">2</div><div class="lbl">Exams required minimum</div></div>
+        <div class="hero-stat"><div class="val">~$264</div><div class="lbl">Total exam cost</div></div>
+        <div class="hero-stat"><div class="val">6 mo</div><div class="lbl">Realistic timeline</div></div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <section id="overview">
+      <h2>1. Overview & Why This Matters for GoLive</h2>
+      <p>Microsoft replaced its old Gold/Silver competency model with <strong>Solutions Partner designations</strong>. The relevant one for GoLive is <strong>Solutions Partner for Modern Work</strong> — awarded to partners who demonstrate proven skills in Microsoft 365 deployment, security hardening, and growing customer usage.</p>
+      
+      <div class="info-box">
+        <strong>What GoLive gains upon achieving this designation:</strong>
+        <ul>
+          <li>Public listing in the <strong>Microsoft Marketplace partner directory</strong> for Nigeria (marketplace.microsoft.com)</li>
+          <li>Official <strong>Solutions Partner badge</strong> for website, proposals, email signatures and LinkedIn</li>
+          <li>Up to <strong>$6,000/year Azure credits</strong> for internal use and demos</li>
+          <li>Up to <strong>25 free Microsoft 365 Business Premium licences</strong> for internal team</li>
+          <li><strong>Co-sell eligibility</strong> — GoLive deals can be referred by Microsoft's own sales team</li>
+          <li>Access to <strong>higher CSP incentive margins</strong> and Microsoft partner rebates</li>
+        </ul>
+      </div>
+
+      <div class="warn-box">
+        <strong>⚠️ Note on Marketplace Consulting Listings:</strong>
+        <p>Publishing a Consulting Service listing on Microsoft Marketplace currently requires a US, UK or Canadian seller ID. GoLive's Nigeria registration blocks this route directly. Achieving the Solutions Partner designation gives GoLive an automatic profile in the partner directory and positions GoLive for future listing via distributor arrangement.</p>
+      </div>
+    </section>
+
+    <!-- Scoring -->
+    <section id="scoring">
+      <h2>2. Scoring Requirements — 70 Points Needed</h2>
+      <p>Microsoft evaluates GoLive's <strong>Partner Capability Score (PCS)</strong> monthly via Partner Center. Points come from three categories. GoLive must score <strong>at least 1 point in every metric</strong> — not just hit 70 total.</p>
+
+      <div class="progress-section">
+        <div class="progress-item">
+          <div class="progress-label"><span>Performance — Net New M365 Customers</span><span>50 pts max</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-cyan" style="width:0%"></div></div>
+          <p style="font-size:12px;color:var(--muted);margin-top:4px">Sign 4+ net new qualifying M365 customers. Each new client GoLive onboards counts immediately via CSP association.</p>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>Skilling — Intermediate Certification</span><span>12.5 pts max</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-gray" style="width:0%"></div></div>
+          <p style="font-size:12px;color:var(--muted);margin-top:4px">At least 1 person with AB-900 or MS-900 certification. Required — cannot skip.</p>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>Skilling — Advanced Certification</span><span>12.5 pts max</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-gray" style="width:0%"></div></div>
+          <p style="font-size:12px;color:var(--muted);margin-top:4px">At least 1 person with MS-102 (Enterprise Administrator Expert). Required — cannot skip.</p>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>Customer Success — Usage Growth</span><span>12.5 pts max</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-teal" style="width:20%"></div></div>
+          <p style="font-size:12px;color:var(--muted);margin-top:4px">Grows automatically as customers use Teams, OneDrive, SharePoint. Activate workloads during onboarding.</p>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label"><span>Customer Success — Deployments</span><span>12.5 pts max</span></div>
+          <div class="progress-bar"><div class="progress-fill fill-teal" style="width:15%"></div></div>
+          <p style="font-size:12px;color:var(--muted);margin-top:4px">Measures expansion of M365 workloads across customer base. Grows with each customer onboarded.</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Category</th><th>Max Pts</th><th>GoLive Status</th><th>Action Required</th></tr></thead>
+          <tbody>
+            <tr><td>Performance — Net New M365 Customers</td><td>50</td><td><span class="badge badge-orange">In Progress</span></td><td>Sign 4+ qualifying customers</td></tr>
+            <tr><td>Skilling — Intermediate Certification</td><td>12.5</td><td><span class="badge badge-gray">Not started</span></td><td>1 person passes AB-900 or MS-900</td></tr>
+            <tr><td>Skilling — Advanced Certification</td><td>12.5</td><td><span class="badge badge-gray">Not started</span></td><td>1 person passes MS-102</td></tr>
+            <tr><td>Customer Success — Usage Growth</td><td>12.5</td><td><span class="badge badge-blue">Auto</span></td><td>Activate Teams, OneDrive per client</td></tr>
+            <tr><td>Customer Success — Deployments</td><td>12.5</td><td><span class="badge badge-blue">Auto</span></td><td>Expand M365 workloads per client</td></tr>
+            <tr style="font-weight:700;background:var(--light)"><td><strong>TOTAL NEEDED</strong></td><td><strong>70 / 100</strong></td><td colspan="2">Score tracked monthly in Partner Center</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Certifications -->
+    <section id="certifications">
+      <h2>3. Required Certifications — Full List</h2>
+      <p>Minimum required: <strong>one intermediate + one advanced</strong>. Both can be different people.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Exam</th><th>Level</th><th>Cost</th><th>Study Time</th><th>Priority</th></tr></thead>
+          <tbody>
+            <tr><td><strong>AB-900</strong> — M365 Copilot & Agent Admin Fundamentals</td><td>Intermediate</td><td>$99</td><td>1–2 weeks</td><td><span class="badge badge-green">START HERE</span></td></tr>
+            <tr><td><strong>MS-900</strong> — Microsoft 365 Fundamentals (legacy, still valid)</td><td>Intermediate</td><td>$99</td><td>1–2 weeks</td><td><span class="badge badge-blue">Alternative</span></td></tr>
+            <tr><td><strong>MS-102</strong> — Microsoft 365 Administrator Expert</td><td>Advanced</td><td>$165</td><td>6–12 weeks</td><td><span class="badge badge-green">REQUIRED</span></td></tr>
+            <tr><td><strong>MS-721</strong> — Teams Collaboration & Communications</td><td>Associate</td><td>$165</td><td>4–8 weeks</td><td><span class="badge badge-gray">Optional +</span></td></tr>
+            <tr><td><strong>SC-900</strong> — Security, Compliance & Identity Fundamentals</td><td>Intermediate</td><td>$99</td><td>1–2 weeks</td><td><span class="badge badge-gray">Optional</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- AB-900 -->
+    <section id="ab900">
+      <h2>4. AB-900 — Start Here (Week 1)</h2>
+      <p>This is GoLive's first and fastest certification to earn. Microsoft launched AB-900 in February 2026 as the replacement for MS-900, with a focus on managing Microsoft 365 Copilot, AI agents, and security administration.</p>
+      
+      <div class="action-grid">
+        <div class="action-card">
+          <div class="step">Exam Details</div>
+          <h4>AB-900 Fundamentals</h4>
+          <p>No prerequisites. Open to anyone. Conceptual knowledge — no hands-on lab required. Passing score: 700 / 1000. Duration: 45 minutes.</p>
+          <div class="cost">Cost: <span>$99 USD</span></div>
+        </div>
+        <div class="action-card">
+          <div class="step">Exam Topics</div>
+          <h4>What it covers</h4>
+          <p>Microsoft 365 Copilot fundamentals · AI agent administration · M365 security & compliance · Pricing and licensing concepts · Cloud fundamentals</p>
+          <div class="cost">Study time: <span>1–2 weeks</span></div>
+        </div>
+      </div>
+
+      <h3>How to Register & Study</h3>
+      <ul class="bullet-list">
+        <li><strong>Free study path:</strong> learn.microsoft.com → search "Microsoft 365 Copilot and Agent Administration Fundamentals"</li>
+        <li><strong>Free practice assessment:</strong> available on the AB-900 certification page at learn.microsoft.com (same team that writes the real exam)</li>
+        <li><strong>Register exam:</strong> pearsonvue.com/microsoft → search "AB-900" → book online proctored (no travel required)</li>
+        <li><strong>Equipment needed:</strong> Webcam, microphone, quiet room, stable internet</li>
+        <li><strong>Retake policy:</strong> Retake after 24 hours if failed. Full fee applies each attempt.</li>
+        <li><strong>Discount tip:</strong> Check Partner Center → Learning for exam vouchers (Microsoft sometimes provides partner vouchers)</li>
+      </ul>
+
+      <div class="info-box">
+        <strong>Note: MS-900 is still valid</strong>
+        <p>If any GoLive team member already holds MS-900, it counts immediately as the intermediate certification — no need to re-sit AB-900. Check partner.microsoft.com → your profile to confirm certifications linked.</p>
+      </div>
+    </section>
+
+    <!-- MS-102 -->
+    <section id="ms102">
+      <h2>5. MS-102 — Microsoft 365 Administrator Expert (Advanced)</h2>
+      <p>This is the key advanced certification for the Modern Work designation. It covers real-world Microsoft 365 tenant administration — exactly what GoLive's technical team does daily for clients.</p>
+
+      <div class="action-grid">
+        <div class="action-card">
+          <div class="step">Exam Details</div>
+          <h4>MS-102 Admin Expert</h4>
+          <p>No formal prerequisites but hands-on experience required. Scenario-based questions. Passing score: 700 / 1000. Duration: ~120 minutes. Renews annually via free online assessment.</p>
+          <div class="cost">Cost: <span>$165 USD</span></div>
+        </div>
+        <div class="action-card">
+          <div class="step">Exam Domains 2026</div>
+          <h4>What it covers</h4>
+          <p>Administer Microsoft 365 (40–45%) · Manage users & groups (35–40%) · Manage licences & service health (10–15%) · Plan hybrid & cloud deployments (5–10%)</p>
+          <div class="cost">Study time: <span>6–12 weeks</span></div>
+        </div>
+      </div>
+
+      <h3>How to Register & Study</h3>
+      <ul class="bullet-list">
+        <li><strong>Free learning path:</strong> learn.microsoft.com → search "Microsoft 365 Administrator" — multi-module path covering all exam domains</li>
+        <li><strong>Free sandbox tenant:</strong> developer.microsoft.com/en-us/microsoft-365/dev-program — 90-day Microsoft 365 E5 developer tenant (free, renewable). <em>Essential for hands-on practice.</em></li>
+        <li><strong>Hands-on practice areas:</strong> User creation, MFA configuration, conditional access policies, SPF/DKIM/DMARC, Exchange Online, SharePoint, Teams admin centre</li>
+        <li><strong>Free practice assessment:</strong> available on the MS-102 certification page at learn.microsoft.com</li>
+        <li><strong>Register exam:</strong> pearsonvue.com/microsoft → search "MS-102" → online proctored or nearest test centre</li>
+        <li><strong>Recommended study schedule:</strong> 1–2 hours per day for 8 weeks = ready to pass</li>
+      </ul>
+
+      <div class="info-box">
+        <strong>Practical advantage for GoLive:</strong>
+        <p>GoLive's technical team is already configuring M365 tenants, MFA, SPF/DKIM/DMARC and Exchange Online for clients daily. This hands-on experience is exactly what MS-102 tests. The exam is essentially GoLive's day-to-day work — the main gap is learning the exam format and specific Microsoft admin terminology.</p>
+      </div>
+    </section>
+
+    <!-- Resources -->
+    <section id="resources">
+      <h2>6. Free Study Resources</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Resource</th><th>What it provides</th><th>Cost</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Microsoft Learn</strong> — learn.microsoft.com</td><td>Official study paths for AB-900, MS-102 and all other exams. Written by Microsoft exam team.</td><td>Free</td></tr>
+            <tr><td><strong>Microsoft 365 Dev Tenant</strong></td><td>90-day M365 E5 sandbox for hands-on MS-102 practice. Renewable.</td><td>Free</td></tr>
+            <tr><td><strong>Official Practice Assessments</strong></td><td>Free practice questions on each certification page at learn.microsoft.com</td><td>Free</td></tr>
+            <tr><td><strong>Microsoft Virtual Training Days</strong></td><td>Free instructor-led prep sessions. Sometimes includes a free exam voucher.</td><td>Free</td></tr>
+            <tr><td><strong>Partner Center — Learning</strong></td><td>Check for partner exam vouchers and training benefits included with MAICPP enrollment</td><td>Check availability</td></tr>
+            <tr><td><strong>ESI (Enterprise Skills Initiative)</strong></td><td>Free Microsoft training for partner organizations — check Partner Center</td><td>Free if eligible</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Timeline -->
+    <section id="timeline">
+      <h2>7. GoLive Action Plan — 6 Month Timeline</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Month</th><th>Milestone</th><th>Action</th><th>Owner</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Month 1</strong></td><td>AB-900 exam passed</td><td>Register Pearson VUE, complete Microsoft Learn AB-900 path, sit exam</td><td>Sales / Admin Lead</td></tr>
+            <tr><td><strong>Month 1–3</strong></td><td>MS-102 study begins</td><td>Set up free dev tenant, complete Microsoft Learn M365 Admin path, daily lab practice</td><td>Technical Lead</td></tr>
+            <tr><td><strong>Month 2</strong></td><td>2 new M365 customers</td><td>Convert pipeline leads to M365 clients — associate via CSP in Partner Center</td><td>Sales Team</td></tr>
+            <tr><td><strong>Month 3</strong></td><td>MS-102 passed</td><td>Book Pearson VUE online proctored exam after completing practice assessments</td><td>Technical Lead</td></tr>
+            <tr><td><strong>Month 4</strong></td><td>4 net new customers</td><td>Continue onboarding pipeline, ensure all clients have Teams + OneDrive activated</td><td>Sales Team</td></tr>
+            <tr><td><strong>Month 4–5</strong></td><td>Submit designation application</td><td>Partner Center → Membership → Solutions Partner → Modern Work → Apply</td><td>Admin</td></tr>
+            <tr><td><strong>Month 5–6</strong></td><td>✅ Solutions Partner badge</td><td>Badge live, GoLive appears in Microsoft Marketplace partner directory for Nigeria</td><td>All</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="info-box">
+        <strong>Track GoLive's live score in Partner Center:</strong>
+        <p>Log into partner.microsoft.com → Membership → Solutions Partner designations → Modern Work. The score updates monthly. You can see exactly how many points are needed and which metrics are contributing.</p>
+      </div>
+    </section>
+
+    <!-- Benefits -->
+    <section id="benefits">
+      <h2>8. Benefits Unlocked After Designation</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Benefit</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Microsoft Marketplace listing</strong></td><td>GoLive appears in public partner search at marketplace.microsoft.com for Nigeria searches</td></tr>
+            <tr><td><strong>Solutions Partner badge</strong></td><td>Displayable on website, proposals, email signatures and LinkedIn company page</td></tr>
+            <tr><td><strong>Azure credits</strong></td><td>Up to $6,000 USD/year in Azure credits for internal use, demos and client proofs of concept</td></tr>
+            <tr><td><strong>Free M365 licences</strong></td><td>Up to 25 Microsoft 365 Business Premium licences for GoLive internal team use</td></tr>
+            <tr><td><strong>Co-sell eligibility</strong></td><td>GoLive deals can be co-sold alongside and referred by Microsoft's own sales team in Nigeria</td></tr>
+            <tr><td><strong>Higher CSP incentives</strong></td><td>Access to elevated margin incentives and Microsoft partner rebate programs</td></tr>
+            <tr><td><strong>Consulting listing (future)</strong></td><td>Designation strengthens case for Marketplace listing via distributor or future entity arrangement</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Links -->
+    <section id="links">
+      <h2>9. Key Links</h2>
+      <ul class="link-list">
+        <li>
+          <a href="https://partner.microsoft.com" target="_blank">partner.microsoft.com</a>
+          <span class="link-desc">Partner Center — track GoLive's live Partner Capability Score and apply for designation</span>
+        </li>
+        <li>
+          <a href="https://learn.microsoft.com/en-us/partner-center/membership/solutions-partner-modern-work" target="_blank">Solutions Partner for Modern Work — official requirements</a>
+          <span class="link-desc">learn.microsoft.com — full scoring criteria and eligibility documentation</span>
+        </li>
+        <li>
+          <a href="https://learn.microsoft.com" target="_blank">learn.microsoft.com</a>
+          <span class="link-desc">Free study paths for AB-900, MS-102 and all other certifications</span>
+        </li>
+        <li>
+          <a href="https://developer.microsoft.com/en-us/microsoft-365/dev-program" target="_blank">Microsoft 365 Developer Program — free E5 tenant</a>
+          <span class="link-desc">90-day free M365 E5 sandbox for MS-102 hands-on practice (renewable)</span>
+        </li>
+        <li>
+          <a href="https://home.pearsonvue.com/microsoft" target="_blank">pearsonvue.com/microsoft</a>
+          <span class="link-desc">Register for AB-900, MS-102 and all other Microsoft certification exams</span>
+        </li>
+        <li>
+          <a href="https://events.microsoft.com" target="_blank">events.microsoft.com</a>
+          <span class="link-desc">Microsoft Virtual Training Days — free instructor-led prep, sometimes includes exam voucher</span>
+        </li>
+        <li>
+          <a href="https://learn.microsoft.com/en-us/partner-center/enroll/regional-authorization-overview" target="_blank">CSP Africa regional authorization — GoLive can serve all 18 African countries</a>
+          <span class="link-desc">Official Microsoft documentation confirming Africa-region CSP cross-border policy</span>
+        </li>
+      </ul>
+    </section>
+
+  </main>
+</div>
+
+<div class="doc-footer">
+  The GoLive Digital Solutions Company Ltd. · RC1644767 · Microsoft CSP Partner ID: 6787357<br>
+  contact@golivecompany.com · +234 808 358 7801 · cloud.golivecompany.com<br>
+  <em>Internal document — Sales & Operations Team · 2026 Edition</em>
+</div>
+
+<script>
+  // Scroll spy for TOC
+  const sections = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('.toc a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.toc a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
