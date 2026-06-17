@@ -99,6 +99,8 @@ export default function PortalPage() {
   }
 
   const inp = "w-full rounded-lg border border-[#e3e9f0] bg-white px-3 py-2 text-sm text-[#0d2233] outline-none focus:border-[#0096c7] focus:ring-2 focus:ring-[#0096c7]/20"
+
+  const STATUS_COLORS: Record<string, string> = {
     'New Lead': 'bg-blue-50 text-blue-700',
     'Assessment Done': 'bg-purple-50 text-purple-700',
     'Quote Sent': 'bg-yellow-50 text-yellow-700',
