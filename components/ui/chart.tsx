@@ -31,7 +31,7 @@ interface ChartTooltipContentProps {
 }
 
 export function ChartTooltipContent({ formatter, hideLabel }: ChartTooltipContentProps) {
-  return ({ active, payload, label }: any) => {
+  const TooltipContent = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null
     return (
       <div className="rounded-lg border border-border bg-card p-2.5 shadow-xl">
@@ -47,4 +47,5 @@ export function ChartTooltipContent({ formatter, hideLabel }: ChartTooltipConten
       </div>
     )
   }
+  return <TooltipContent />
 }
