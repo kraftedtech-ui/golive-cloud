@@ -37,6 +37,7 @@ jobs:
           git show origin/main:next.config.ts > next.config.ts
           git show origin/main:package.json > package.json
           git show origin/main:server.js > server.js
+          git show origin/main:postcss.config.mjs > postcss.config.mjs
           git show origin/main:app/globals.css > app/globals.css
           git show origin/main:app/layout.tsx > app/layout.tsx
           git show origin/main:app/SessionWrapper.tsx > app/SessionWrapper.tsx
@@ -52,6 +53,7 @@ jobs:
           git show origin/main:lib/mongodb.ts > lib/mongodb.ts
           git show origin/main:lib/email.ts > lib/email.ts
           git show origin/main:lib/utils.ts > lib/utils.ts
+          git show origin/main:lib/data.ts > lib/data.ts
           git show origin/main:models/Lead.ts > models/Lead.ts
           git show origin/main:models/Customer.ts > models/Customer.ts
           git show origin/main:models/User.ts > models/User.ts
@@ -66,7 +68,9 @@ jobs:
           git show "origin/main:app/api/users/[id]/route.ts" > "app/api/users/[id]/route.ts"
           mkdir -p app/api/transfers
           git show origin/main:app/api/transfers/route.ts > app/api/transfers/route.ts
+          mkdir -p public/images
           git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
+          git show origin/main:public/images/logo-dark.png > public/images/logo-dark.png
           mkdir -p components
           git show origin/main:components/assessment-form.tsx > components/assessment-form.tsx
           git show origin/main:components/assessment-section.tsx > components/assessment-section.tsx
@@ -80,11 +84,23 @@ jobs:
           git show origin/main:components/packages.tsx > components/packages.tsx
           git show origin/main:components/trust-bar.tsx > components/trust-bar.tsx
           git show origin/main:components/verticals.tsx > components/verticals.tsx
+          mkdir -p components/dashboard
+          git show origin/main:components/dashboard/sidebar.tsx > components/dashboard/sidebar.tsx
+          git show origin/main:components/dashboard/topbar.tsx > components/dashboard/topbar.tsx
+          git show origin/main:components/dashboard/stat-cards.tsx > components/dashboard/stat-cards.tsx
+          git show origin/main:components/dashboard/kanban-board.tsx > components/dashboard/kanban-board.tsx
+          git show origin/main:components/dashboard/recent-leads.tsx > components/dashboard/recent-leads.tsx
+          git show origin/main:components/dashboard/mrr-charts.tsx > components/dashboard/mrr-charts.tsx
+          mkdir -p components/ui
+          git show origin/main:components/ui/card.tsx > components/ui/card.tsx
+          git show origin/main:components/ui/button.tsx > components/ui/button.tsx
+          git show origin/main:components/ui/table.tsx > components/ui/table.tsx
+          git show origin/main:components/ui/select.tsx > components/ui/select.tsx
+          git show origin/main:components/ui/chart.tsx > components/ui/chart.tsx
           echo "=== Installing ==="
           npm install --legacy-peer-deps
           echo "=== Building ==="
           pkill -f "next dev" 2>/dev/null || true
-          pkill -f "next-development" 2>/dev/null || true
           export NODE_ENV=production
           npm run build
           echo "=== Restarting server ==="
