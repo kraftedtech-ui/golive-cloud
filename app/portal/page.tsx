@@ -111,13 +111,13 @@ export default function PortalPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border bg-secondary/30">
-                    {['Ref','Company','Contact','Country','Users','Status','Date'].map(h => (
+                    {['Ref','Company','Contact','Country','Users','Status','Date','Action'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>
                     ))}
                   </tr></thead>
                   <tbody>
-                    {loading ? <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
-                    : leads.length === 0 ? <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">No leads yet</td></tr>
+                    {loading ? <tr><td colSpan={8} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
+                    : leads.length === 0 ? <tr><td colSpan={8} className="py-12 text-center text-sm text-muted-foreground">No leads yet</td></tr>
                     : leads.map(lead => (
                       <tr key={lead._id} className="border-b border-border/50 hover:bg-secondary/30">
                         <td className="px-4 py-3 font-mono text-[11px] text-primary">{lead.ref}</td>
@@ -134,6 +134,14 @@ export default function PortalPage() {
                           </select>
                         </td>
                         <td className="px-4 py-3 text-[11px] text-muted-foreground">{new Date(lead.createdAt).toLocaleDateString()}</td>
+                        <td className="px-4 py-3">
+                          {lead.status === 'Won' && (
+                            <button onClick={() => setPage('customers')}
+                              className="rounded-lg bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-700 hover:bg-green-100 ring-1 ring-green-200">
+                              ✦ Convert
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
