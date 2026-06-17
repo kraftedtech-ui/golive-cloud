@@ -305,18 +305,137 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
   const [users, setUsers] = useState('10')
   const [currency, setCurrency] = useState('USD')
   const [setup, setSetup] = useState('300')
+
   const prices: Record<string, Record<string, number>> = {
     'Starter Cloud Office': { USD: 6, NGN: 9600, GHS: 90, KES: 774, ZAR: 108 },
     'Secure Business Cloud': { USD: 22, NGN: 35200, GHS: 330, KES: 2838, ZAR: 396 },
     'AI-Ready Enterprise': { USD: 38, NGN: 60800, GHS: 570, KES: 4902, ZAR: 684 },
   }
   const symbols: Record<string, string> = { USD: '$', NGN: '₦', GHS: 'GH₵', KES: 'KSh', ZAR: 'R' }
+  const pkgFeatures: Record<string, string[]> = {
+    'Starter Cloud Office': ['Microsoft 365 Business Basic','Custom domain business email','1 TB OneDrive per user','Teams, Word, Excel & PowerPoint (web)','DNS setup & email migration','SPF / DKIM / DMARC configuration','30-day onboarding support'],
+    'Secure Business Cloud': ['Microsoft 365 Business Premium','Microsoft Defender for Business','Desktop Office apps + 1 TB storage','Multi-Factor Authentication (MFA)','Conditional Access & data loss prevention','Email security hardening','Monthly managed support'],
+    'AI-Ready Enterprise': ['Microsoft 365 + Copilot licensing','Azure cloud & infrastructure','Defender for Office, Endpoint & Cloud','Power Platform automation','Dedicated account manager','Architecture & compliance review','Premium managed support'],
+  }
   const pricePerUser = prices[pkg]?.[currency] || 0
   const userCount = parseInt(users) || 0
   const monthlyTotal = pricePerUser * userCount
   const annualTotal = monthlyTotal * 10
+  const setupFee = parseInt(setup || '0')
   const sym = symbols[currency]
   const lead = leads.find(l => l._id === selectedLead)
+  const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  const expiry = new Date(Date.now() + 14 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+  const proposalRef = `GL-PROP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
+
+  const printProposal = () => {
+    const printContent = document.getElementById('proposal-print')?.innerHTML
+    if (!printContent) return
+    const win = window.open('', '_blank')
+    if (!win) return
+    win.document.write(`
+      <!DOCTYPE html><html><head>
+      <title>GoLive Proposal — ${lead?.company || 'Client'}</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #0d2233; background: #fff; }
+        .page { max-width: 800px; margin: 0 auto; padding: 48px 48px; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px; border-bottom: 3px solid #0096c7; margin-bottom: 32px; }
+        .logo-area { display: flex; flex-direction: column; gap: 4px; }
+        .company-name { font-size: 24px; font-weight: 800; color: #0d2233; }
+        .company-sub { font-size: 11px; color: #5c7184; }
+        .ms-badge { display: flex; align-items: center; gap: 8px; background: #f0f8ff; border: 1px solid #c8e6f0; border-radius: 8px; padding: 8px 14px; }
+        .ms-logo { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; width: 20px; height: 20px; }
+        .ms-logo span { display: block; border-radius: 1px; }
+        .ms-badge-text { font-size: 10px; font-weight: 600; color: #0d2233; line-height: 1.3; }
+        .proposal-title { font-size: 20px; font-weight: 700; color: #0096c7; margin-bottom: 4px; }
+        .proposal-ref { font-size: 11px; color: #5c7184; margin-bottom: 24px; }
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+        .meta-card { background: #f4f7fb; border-radius: 8px; padding: 14px 16px; }
+        .meta-label { font-size: 10px; font-weight: 700; color: #5c7184; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .meta-value { font-size: 13px; font-weight: 600; color: #0d2233; }
+        .section-title { font-size: 13px; font-weight: 700; color: #0d2233; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e3e9f0; }
+        .pricing-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        .pricing-table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+        .pricing-table td:last-child { text-align: right; font-weight: 500; }
+        .pricing-table .total-row td { font-size: 16px; font-weight: 800; color: #0096c7; border-bottom: none; padding-top: 14px; }
+        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 32px; }
+        .feature { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: #333; }
+        .check { color: #00c8c8; font-weight: 700; flex-shrink: 0; }
+        .footer-box { background: #0d2233; color: #fff; border-radius: 10px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; margin-top: 32px; }
+        .footer-text { font-size: 11px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+        .validity { background: #e8f4fb; border-left: 3px solid #0096c7; border-radius: 0 6px 6px 0; padding: 12px 16px; margin-bottom: 24px; font-size: 12px; color: #0d2233; }
+        .ndpr { font-size: 10px; color: rgba(255,255,255,0.5); }
+      </style>
+      </head><body>
+      <div class="page">
+        <div class="header">
+          <div class="logo-area">
+            <img src="https://cloud.golivecompany.com/images/logo-dark.png" style="height:80px;width:auto;" alt="GoLive" onerror="this.style.display='none'" />
+            <div class="company-sub">RC1644767 · 7 Ibiyinka Olorunbe Close, Victoria Island, Lagos</div>
+            <div class="company-sub">contact@golivecompany.com · +234 808 358 7801</div>
+          </div>
+          <div class="ms-badge">
+            <div class="ms-logo">
+              <span style="background:#f25022"></span><span style="background:#7fba00"></span>
+              <span style="background:#00a4ef"></span><span style="background:#ffb900"></span>
+            </div>
+            <div class="ms-badge-text">Authorized Microsoft<br/>CSP Partner · ID 6787357</div>
+          </div>
+        </div>
+
+        <div class="proposal-title">Microsoft 365 Proposal</div>
+        <div class="proposal-ref">Ref: ${proposalRef} · Prepared: ${today} · Valid until: ${expiry}</div>
+
+        <div class="meta-grid">
+          <div class="meta-card">
+            <div class="meta-label">Prepared for</div>
+            <div class="meta-value">${lead?.company || '—'}</div>
+            <div style="font-size:12px;color:#5c7184;margin-top:2px">${lead?.contact || ''} · ${lead?.country || ''}</div>
+          </div>
+          <div class="meta-card">
+            <div class="meta-label">Package</div>
+            <div class="meta-value">${pkg}</div>
+            <div style="font-size:12px;color:#5c7184;margin-top:2px">${userCount} users · Billed in ${currency}</div>
+          </div>
+        </div>
+
+        <div class="section-title">Pricing Summary</div>
+        <table class="pricing-table">
+          <tr><td style="color:#5c7184">Package</td><td>${pkg}</td></tr>
+          <tr><td style="color:#5c7184">Number of users</td><td>${userCount}</td></tr>
+          <tr><td style="color:#5c7184">Price per user / month</td><td>${sym}${pricePerUser.toLocaleString()}</td></tr>
+          <tr><td style="color:#5c7184">Monthly subscription total</td><td>${sym}${monthlyTotal.toLocaleString()}</td></tr>
+          <tr><td style="color:#5c7184">Annual plan (10 months — 2 months free)</td><td>${sym}${annualTotal.toLocaleString()}</td></tr>
+          <tr><td style="color:#5c7184">One-time setup & migration fee</td><td>${sym}${setupFee.toLocaleString()}</td></tr>
+          <tr class="total-row"><td>Total first year investment</td><td>${sym}${(annualTotal + setupFee).toLocaleString()}</td></tr>
+        </table>
+
+        <div class="section-title">What's Included</div>
+        <div class="features">
+          ${(pkgFeatures[pkg] || []).map(f => `<div class="feature"><span class="check">✓</span><span>${f}</span></div>`).join('')}
+        </div>
+
+        <div class="validity">
+          ⏱ This proposal is valid for 14 days from ${today}. Annual plan discount (2 months free) applies when signed before ${expiry}.
+        </div>
+
+        <div class="footer-box">
+          <div class="footer-text">
+            <strong style="color:#fff">The GoLive Digital Solutions Company Ltd.</strong><br/>
+            RC1644767 · Microsoft CSP Partner ID: 6787357<br/>
+            cloud.golivecompany.com · contact@golivecompany.com
+          </div>
+          <div class="ndpr">NDPA 2023 Compliant<br/>Migration Included<br/>30-Day Support</div>
+        </div>
+      </div>
+      </body></html>
+    `)
+    win.document.close()
+    win.focus()
+    setTimeout(() => { win.print() }, 500)
+  }
+
   return (
     <div className="grid grid-cols-1 gap-6 p-5 lg:grid-cols-2">
       <div className="space-y-4">
@@ -349,24 +468,41 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
           <label className="mb-1.5 block text-xs font-medium text-foreground">Setup Fee ({sym})</label>
           <input type="number" value={setup} onChange={e => setSetup(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
         </div>
-        <button onClick={() => window.print()} className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">Generate & Print PDF</button>
+        <button onClick={printProposal} disabled={!selectedLead}
+          className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed">
+          🖨️ Generate & Print PDF
+        </button>
+        {!selectedLead && <p className="text-center text-xs text-muted-foreground">Select a lead to enable proposal generation</p>}
       </div>
-      <div className="rounded-xl border border-border bg-secondary/30 p-5">
-        <div className="mb-4 border-b border-border pb-4">
-          <div className="text-lg font-bold text-foreground">GoLive Digital Solutions</div>
-          <div className="text-xs text-muted-foreground">RC1644767 · CSP Partner ID: 6787357</div>
+
+      {/* Preview */}
+      <div id="proposal-print" className="rounded-xl border border-border bg-white p-5 text-sm">
+        <div className="flex items-start justify-between border-b border-border pb-4 mb-4">
+          <div>
+            <img src="/images/logo-dark.png" alt="GoLive" style={{ height: 60, width: 'auto' }} />
+            <div className="text-[10px] text-muted-foreground mt-1">RC1644767 · contact@golivecompany.com</div>
+          </div>
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-[#f0f8ff] px-3 py-2">
+            <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
+              <span className="block rounded-[1px] bg-[#f25022]"></span><span className="block rounded-[1px] bg-[#7fba00]"></span>
+              <span className="block rounded-[1px] bg-[#00a4ef]"></span><span className="block rounded-[1px] bg-[#ffb900]"></span>
+            </div>
+            <div className="text-[10px] font-semibold text-foreground leading-tight">Authorized Microsoft<br/>CSP · ID 6787357</div>
+          </div>
         </div>
-        <h3 className="mb-4 text-base font-semibold text-foreground">Microsoft 365 Proposal</h3>
-        {lead && <div className="mb-3 text-sm text-muted-foreground">For: <strong className="text-foreground">{lead.company}</strong> — {lead.contact}</div>}
-        <div className="space-y-2 text-sm">
-          <div className="flex justify-between"><span className="text-muted-foreground">Package</span><span className="font-medium">{pkg}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Users</span><span className="font-medium">{users}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Per user/month</span><span className="font-medium">{sym}{pricePerUser.toLocaleString()}</span></div>
-          <div className="flex justify-between border-t border-border pt-2"><span className="text-muted-foreground">Monthly total</span><span className="text-lg font-bold">{sym}{monthlyTotal.toLocaleString()}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Annual (10 months)</span><span className="font-semibold">{sym}{annualTotal.toLocaleString()}</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Setup fee</span><span className="font-medium">{sym}{parseInt(setup||'0').toLocaleString()}</span></div>
+        <div className="text-base font-bold text-foreground mb-1">Microsoft 365 Proposal</div>
+        <div className="text-[10px] text-muted-foreground mb-4">Ref: {proposalRef} · Valid 14 days from {today}</div>
+        {lead && <div className="mb-3 rounded-lg bg-secondary/50 px-3 py-2 text-xs"><span className="text-muted-foreground">Prepared for: </span><strong>{lead.company}</strong> — {lead.contact}</div>}
+        <div className="space-y-2 text-xs">
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Package</span><span className="font-medium">{pkg}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Users</span><span className="font-medium">{users}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Per user / month</span><span className="font-medium">{sym}{pricePerUser.toLocaleString()}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Monthly total</span><span className="font-semibold text-sm">{sym}{monthlyTotal.toLocaleString()}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Annual (10 months)</span><span className="font-semibold">{sym}{annualTotal.toLocaleString()}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Setup fee</span><span className="font-medium">{sym}{setupFee.toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">Total first year</span><span className="font-bold text-primary text-base">{sym}{(annualTotal + setupFee).toLocaleString()}</span></div>
         </div>
-        <div className="mt-4 rounded-lg bg-primary/10 p-3 text-xs text-primary">Valid 14 days · Migration included · NDPA 2023 compliant</div>
+        <div className="mt-3 rounded-lg bg-primary/10 p-2.5 text-[10px] text-primary">✓ Migration included &nbsp;·&nbsp; ✓ NDPA 2023 compliant &nbsp;·&nbsp; ✓ 30-day support</div>
       </div>
     </div>
   )
