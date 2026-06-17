@@ -727,87 +727,103 @@ const CHECKLIST = [
 
 function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: boolean; onUpdate: () => void }) {
   const [showAdd, setShowAdd] = useState(false)
+  const [editUser, setEditUser] = useState<User | null>(null)
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'sales' })
+  const [editForm, setEditForm] = useState({ name: '', email: '', role: '', password: '', active: true })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState<User | null>(null)
 
   const inp = "w-full rounded-lg border border-[#e3e9f0] bg-white px-3 py-2 text-sm text-[#0d2233] outline-none focus:border-[#0096c7] focus:ring-2 focus:ring-[#0096c7]/20"
 
+  const ROLE_LABELS: Record<string, { label: string; desc: string; color: string }> = {
+    admin:  { label: 'Admin',  desc: 'Full access — team management, all data', color: 'bg-purple-50 text-purple-700' },
+    sales:  { label: 'Sales',  desc: 'Leads, pipeline, proposals, transfers', color: 'bg-blue-50 text-blue-700' },
+    viewer: { label: 'Viewer', desc: 'Read-only — cannot edit any records', color: 'bg-gray-50 text-gray-600' },
+  }
+
+  const openEdit = (u: User) => {
+    setEditUser(u)
+    setEditForm({ name: u.name, email: u.email, role: u.role, password: '', active: u.active })
+    setError('')
+  }
+
   const addUser = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSaving(true); setError(''); setSuccess('')
+    setSaving(true); setError('')
     try {
-      const res = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
-      })
+      const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
       const data = await res.json()
       if (data.success) {
-        setSuccess(`${form.name} added successfully. They can now log in at /portal/login`)
+        setSuccess(`✓ ${form.name} added. They can log in at /portal/login.`)
         setForm({ name: '', email: '', password: '', role: 'sales' })
-        setShowAdd(false)
-        onUpdate()
-      } else {
-        setError(data.error || 'Failed to add user. Email may already exist.')
-      }
-    } catch { setError('Network error. Please try again.') }
+        setShowAdd(false); onUpdate()
+      } else setError(data.error || 'Failed to add. Email may already exist.')
+    } catch { setError('Network error.') }
     setSaving(false)
   }
 
-  const ROLE_LABELS: Record<string, { label: string; desc: string; color: string }> = {
-    admin:  { label: 'Admin',  desc: 'Full access — can add/remove team, view all data', color: 'bg-purple-50 text-purple-700' },
-    sales:  { label: 'Sales',  desc: 'Leads, pipeline, proposals, transfers, onboarding', color: 'bg-blue-50 text-blue-700' },
-    viewer: { label: 'Viewer', desc: 'Read-only — cannot edit or update any records', color: 'bg-gray-50 text-gray-600' },
+  const saveEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editUser) return
+    setSaving(true); setError('')
+    try {
+      const payload: any = { name: editForm.name, email: editForm.email, role: editForm.role, active: editForm.active }
+      if (editForm.password) payload.password = editForm.password
+      const res = await fetch(`/api/users/${editUser._id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+      const data = await res.json()
+      if (data.success) { setEditUser(null); onUpdate(); setSuccess(`✓ ${editForm.name} updated successfully.`) }
+      else setError(data.error || 'Failed to update.')
+    } catch { setError('Network error.') }
+    setSaving(false)
+  }
+
+  const deleteUser = async (u: User) => {
+    await fetch(`/api/users/${u._id}`, { method: 'DELETE' })
+    setConfirmDelete(null); onUpdate()
+    setSuccess(`✓ ${u.name} removed from the team.`)
   }
 
   return (
     <div className="space-y-4">
-      {/* Header */}
+      {success && <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-700">{success}</div>}
+
       <div className="rounded-2xl border border-border bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Admin</p>
             <h2 className="mt-0.5 text-base font-semibold text-foreground">Team & Access Control</h2>
-            <p className="text-xs text-muted-foreground">{users.length} team members · Roles control what each person can see and do</p>
+            <p className="text-xs text-muted-foreground">{users.length} team members · Click Edit to change details or reset password</p>
           </div>
-          <button onClick={() => { setShowAdd(true); setError(''); setSuccess('') }}
+          <button onClick={() => { setShowAdd(true); setError('') }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
             + Add Team Member
           </button>
         </div>
 
-        {success && (
-          <div className="mx-5 mt-4 rounded-lg bg-green-50 border border-green-200 px-4 py-3 text-sm text-green-700">{success}</div>
-        )}
-
-        {/* Roles legend */}
         <div className="grid grid-cols-3 gap-3 border-b border-border px-5 py-4">
           {Object.entries(ROLE_LABELS).map(([key, r]) => (
             <div key={key} className="rounded-lg border border-border bg-secondary/30 p-3">
-              <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold mb-1.5 ${r.color}`}>{r.label}</span>
+              <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold mb-1 ${r.color}`}>{r.label}</span>
               <p className="text-[11px] text-muted-foreground">{r.desc}</p>
             </div>
           ))}
         </div>
 
-        {/* Team table */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-secondary/30">
-                {['Name','Email','Role','Status','Last Login','Actions'].map(h => (
+                {['Member','Email','Role','Status','Last Login','Actions'].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {loading ? (
-                <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
-              ) : users.length === 0 ? (
-                <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">No team members yet — add your first team member above</td></tr>
-              ) : users.map(u => {
+              {loading ? <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
+              : users.length === 0 ? <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">No team members yet</td></tr>
+              : users.map(u => {
                 const roleInfo = ROLE_LABELS[u.role] || ROLE_LABELS.viewer
                 return (
                   <tr key={u._id} className="border-b border-border/50 hover:bg-secondary/30">
@@ -819,34 +835,15 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
                         <span className="font-medium text-foreground">{u.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{u.email}</td>
+                    <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${roleInfo.color}`}>{roleInfo.label}</span></td>
+                    <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${u.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{u.active ? '● Active' : '○ Inactive'}</span></td>
+                    <td className="px-4 py-3 text-[11px] text-muted-foreground">{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}</td>
                     <td className="px-4 py-3">
-                      <select value={u.role}
-                        onChange={async e => {
-                          await fetch(`/api/users/${u._id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ role: e.target.value }) })
-                          onUpdate()
-                        }}
-                        className={`rounded-full border-0 px-2.5 py-1 text-[11px] font-semibold outline-none cursor-pointer ${roleInfo.color}`}>
-                        <option value="admin">Admin</option>
-                        <option value="sales">Sales</option>
-                        <option value="viewer">Viewer</option>
-                      </select>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${u.active ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-                        {u.active ? '● Active' : '○ Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-[11px] text-muted-foreground">
-                      {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never logged in'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <button onClick={async () => {
-                        await fetch(`/api/users/${u._id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ active: !u.active }) })
-                        onUpdate()
-                      }} className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-colors ${u.active ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}>
-                        {u.active ? 'Deactivate' : 'Activate'}
-                      </button>
+                      <div className="flex gap-2">
+                        <button onClick={() => openEdit(u)} className="rounded-lg bg-[#e8f4fb] px-3 py-1.5 text-[11px] font-semibold text-[#0096c7] hover:bg-[#0096c7] hover:text-white transition-colors">Edit</button>
+                        <button onClick={() => setConfirmDelete(u)} className="rounded-lg bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-600 hover:bg-red-100 transition-colors">Remove</button>
+                      </div>
                     </td>
                   </tr>
                 )
@@ -856,47 +853,90 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
         </div>
       </div>
 
-      {/* Add Team Member Modal */}
+      {/* ADD MODAL */}
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(13,34,51,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#e3e9f0] px-6 py-4">
-              <div>
-                <h2 className="text-base font-semibold text-[#0d2233]">Add Team Member</h2>
-                <p className="text-xs text-[#5c7184]">They will receive login credentials for the portal</p>
-              </div>
+              <div><h2 className="text-base font-semibold text-[#0d2233]">Add Team Member</h2><p className="text-xs text-[#5c7184]">New member can log in immediately</p></div>
               <button onClick={() => setShowAdd(false)} className="flex size-8 items-center justify-center rounded-lg text-[#5c7184] hover:bg-[#f4f7fb] text-lg">×</button>
             </div>
             <form onSubmit={addUser} className="p-6 space-y-4">
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Full name *</label>
-                <input required className={inp} placeholder="e.g. Amara Okafor" value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Work email *</label>
-                <input required type="email" className={inp} placeholder="amara@golivecompany.com" value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))} />
-              </div>
+              <div><label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Full name *</label><input required className={inp} placeholder="e.g. Amara Okafor" value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} /></div>
+              <div><label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Work email *</label><input required type="email" className={inp} placeholder="amara@golivecompany.com" value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))} /></div>
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Temporary password *</label>
                 <input required type="password" minLength={8} className={inp} placeholder="Minimum 8 characters" value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))} />
-                <p className="mt-1 text-[11px] text-[#5c7184]">Share this with the team member — they should change it after first login</p>
+                <p className="mt-1 text-[11px] text-[#5c7184]">Share privately — admin can reset anytime from this page</p>
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Role *</label>
                 <select className={inp} value={form.role} onChange={e => setForm(f => ({...f, role: e.target.value}))}>
-                  <option value="sales">Sales — can manage leads, pipeline, proposals</option>
+                  <option value="sales">Sales — leads, pipeline, proposals</option>
                   <option value="admin">Admin — full access including team management</option>
-                  <option value="viewer">Viewer — read-only access</option>
+                  <option value="viewer">Viewer — read-only</option>
                 </select>
               </div>
               {error && <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>}
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowAdd(false)} className="flex-1 rounded-lg border border-[#e3e9f0] px-4 py-2.5 text-sm font-medium text-[#5c7184] hover:bg-[#f4f7fb]">Cancel</button>
-                <button type="submit" disabled={saving} className="flex-1 rounded-lg bg-[#0096c7] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0096c7]/90 disabled:opacity-60">
-                  {saving ? 'Adding...' : 'Add Team Member'}
-                </button>
+                <button type="submit" disabled={saving} className="flex-1 rounded-lg bg-[#0096c7] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0096c7]/90 disabled:opacity-60">{saving ? 'Adding...' : 'Add Team Member'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT MODAL */}
+      {editUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(13,34,51,0.6)', backdropFilter: 'blur(4px)' }}>
+          <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#e3e9f0] px-6 py-4">
+              <div><h2 className="text-base font-semibold text-[#0d2233]">Edit — {editUser.name}</h2><p className="text-xs text-[#5c7184]">Leave password blank to keep existing password</p></div>
+              <button onClick={() => setEditUser(null)} className="flex size-8 items-center justify-center rounded-lg text-[#5c7184] hover:bg-[#f4f7fb] text-lg">×</button>
+            </div>
+            <form onSubmit={saveEdit} className="p-6 space-y-4">
+              <div><label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Full name *</label><input required className={inp} value={editForm.name} onChange={e => setEditForm(f => ({...f, name: e.target.value}))} /></div>
+              <div><label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Email address *</label><input required type="email" className={inp} value={editForm.email} onChange={e => setEditForm(f => ({...f, email: e.target.value}))} /></div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Role</label>
+                <select className={inp} value={editForm.role} onChange={e => setEditForm(f => ({...f, role: e.target.value}))}>
+                  <option value="sales">Sales</option><option value="admin">Admin</option><option value="viewer">Viewer</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Account Status</label>
+                <select className={inp} value={editForm.active ? 'true' : 'false'} onChange={e => setEditForm(f => ({...f, active: e.target.value === 'true'}))}>
+                  <option value="true">Active — can log in</option><option value="false">Inactive — login blocked</option>
+                </select>
+              </div>
+              <div className="rounded-xl border border-[#e3e9f0] bg-[#f4f7fb] p-4">
+                <label className="mb-1.5 block text-xs font-semibold text-[#0d2233]">🔑 Reset Password</label>
+                <p className="mb-2 text-[11px] text-[#5c7184]">Leave blank to keep their current password unchanged</p>
+                <input type="password" minLength={8} className={inp} placeholder="New password (min 8 characters)" value={editForm.password} onChange={e => setEditForm(f => ({...f, password: e.target.value}))} />
+              </div>
+              {error && <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>}
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setEditUser(null)} className="flex-1 rounded-lg border border-[#e3e9f0] px-4 py-2.5 text-sm font-medium text-[#5c7184] hover:bg-[#f4f7fb]">Cancel</button>
+                <button type="submit" disabled={saving} className="flex-1 rounded-lg bg-[#0096c7] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0096c7]/90 disabled:opacity-60">{saving ? 'Saving...' : 'Save Changes'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* CONFIRM DELETE */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(13,34,51,0.6)', backdropFilter: 'blur(4px)' }}>
+          <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl p-6 text-center">
+            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-red-50 text-2xl">⚠️</div>
+            <h2 className="text-base font-semibold text-[#0d2233] mb-1">Remove Team Member?</h2>
+            <p className="text-sm text-[#5c7184] mb-1"><strong className="text-[#0d2233]">{confirmDelete.name}</strong> will be permanently removed.</p>
+            <p className="text-xs text-[#5c7184] mb-6">They will no longer be able to log in. This cannot be undone.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDelete(null)} className="flex-1 rounded-lg border border-[#e3e9f0] px-4 py-2.5 text-sm font-medium text-[#5c7184] hover:bg-[#f4f7fb]">Cancel</button>
+              <button onClick={() => deleteUser(confirmDelete)} className="flex-1 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600">Remove Permanently</button>
+            </div>
           </div>
         </div>
       )}
