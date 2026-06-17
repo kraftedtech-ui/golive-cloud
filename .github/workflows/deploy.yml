@@ -66,6 +66,8 @@ jobs:
           mkdir -p "app/api/users/[id]"
           git show origin/main:app/api/users/route.ts > app/api/users/route.ts
           git show "origin/main:app/api/users/[id]/route.ts" > "app/api/users/[id]/route.ts"
+          mkdir -p app/api/milestones
+          git show origin/main:app/api/milestones/route.ts > app/api/milestones/route.ts
           mkdir -p app/api/transfers
           git show origin/main:app/api/transfers/route.ts > app/api/transfers/route.ts
           mkdir -p public/images

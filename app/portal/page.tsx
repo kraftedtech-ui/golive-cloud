@@ -356,27 +356,7 @@ export default function PortalPage() {
           )}
 
           {page === 'resources_cert' && (
-            <div className="rounded-2xl border border-border bg-white shadow-sm overflow-hidden">
-              <div className="flex items-center justify-between border-b border-border px-5 py-4">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Resources</p>
-                  <h2 className="mt-0.5 text-base font-semibold text-foreground">Microsoft Solutions Partner Certification Guide</h2>
-                  <p className="text-xs text-muted-foreground">Modern Work Designation — SMB Track · 2026 Edition</p>
-                </div>
-                <div className="flex gap-2">
-                  <a href="/certification-guide.html" target="_blank"
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-medium text-foreground shadow-xs hover:bg-secondary">
-                    Open full page ↗
-                  </a>
-                </div>
-              </div>
-              <iframe
-                src="/certification-guide.html"
-                className="w-full border-0"
-                style={{ height: 'calc(100vh - 200px)', minHeight: 600 }}
-                title="Microsoft Certification Guide"
-              />
-            </div>
+            <CertificationPage role={role} />
           )}
 
         </main>
@@ -778,6 +758,247 @@ const CHECKLIST = [
   { phase: 'Security (Days 5-6)', items: ['Enable MFA for all users','Configure Conditional Access','Set up Microsoft Defender','Configure anti-phishing policies','Review Microsoft Secure Score'] },
   { phase: 'Training (Days 7-14)', items: ['Run staff Outlook training','Run Teams training session','Run OneDrive training','Admin training session','Hand over credentials and docs','Schedule 30-day check-in'] },
 ]
+
+const CERT_MILESTONES = [
+  {
+    id: 'ab900_study', phase: 'Month 1', category: 'Skilling',
+    title: 'AB-900 study started',
+    desc: 'Team member enrolled in Microsoft Learn AB-900 path',
+    link: 'https://learn.microsoft.com', linkLabel: 'Start on Microsoft Learn →'
+  },
+  {
+    id: 'ab900_passed', phase: 'Month 1', category: 'Skilling',
+    title: 'AB-900 exam passed ✦ Intermediate cert earned',
+    desc: 'Microsoft 365 Copilot & Agent Administration Fundamentals — $99 on Pearson VUE',
+    link: 'https://home.pearsonvue.com/microsoft', linkLabel: 'Register on Pearson VUE →'
+  },
+  {
+    id: 'ms102_study', phase: 'Month 1–3', category: 'Skilling',
+    title: 'MS-102 study started',
+    desc: 'Technical lead set up free M365 E5 dev tenant and began learning path',
+    link: 'https://developer.microsoft.com/en-us/microsoft-365/dev-program', linkLabel: 'Get free dev tenant →'
+  },
+  {
+    id: 'customer_2', phase: 'Month 2', category: 'Performance',
+    title: '2 net new M365 customers signed',
+    desc: 'Two businesses onboarded on Microsoft 365 via GoLive CSP — linked in Partner Center',
+    link: 'https://partner.microsoft.com', linkLabel: 'Check Partner Center score →'
+  },
+  {
+    id: 'ms102_passed', phase: 'Month 3', category: 'Skilling',
+    title: 'MS-102 exam passed ✦ Advanced cert earned',
+    desc: 'Microsoft 365 Administrator Expert — $165 on Pearson VUE. REQUIRED for designation.',
+    link: 'https://home.pearsonvue.com/microsoft', linkLabel: 'Register MS-102 →'
+  },
+  {
+    id: 'customer_4', phase: 'Month 4', category: 'Performance',
+    title: '4 net new M365 customers signed',
+    desc: 'Four qualifying businesses onboarded. Microsoft evaluates on SMB CSP track.',
+    link: 'https://partner.microsoft.com', linkLabel: 'Track in Partner Center →'
+  },
+  {
+    id: 'workloads', phase: 'Month 4', category: 'Customer Success',
+    title: 'Teams + OneDrive activated for all clients',
+    desc: 'Ensure every customer has Teams and OneDrive enabled — this builds usage growth score',
+    link: null, linkLabel: null
+  },
+  {
+    id: 'applied', phase: 'Month 4–5', category: 'Admin',
+    title: 'Applied for designation in Partner Center',
+    desc: 'Partner Center → Membership → Solutions Partner → Modern Work → Apply',
+    link: 'https://partner.microsoft.com', linkLabel: 'Go to Partner Center →'
+  },
+  {
+    id: 'badge_live', phase: 'Month 5–6', category: 'Complete',
+    title: '🎉 Solutions Partner badge awarded',
+    desc: 'GoLive listed in Microsoft Marketplace partner directory for Nigeria. Badge live.',
+    link: 'https://marketplace.microsoft.com', linkLabel: 'View Microsoft Marketplace →'
+  },
+]
+
+const CATEGORY_COLORS: Record<string, string> = {
+  'Skilling': 'bg-purple-50 text-purple-700',
+  'Performance': 'bg-blue-50 text-blue-700',
+  'Customer Success': 'bg-teal-50 text-teal-700',
+  'Admin': 'bg-orange-50 text-orange-700',
+  'Complete': 'bg-green-50 text-green-700',
+}
+
+function CertificationPage({ role }: { role: string }) {
+  const [milestones, setMilestones] = useState<Record<string, boolean>>({})
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const isAdmin = role === 'admin'
+
+  useEffect(() => {
+    fetch('/api/milestones').then(r => r.json()).then(d => {
+      if (d.success) setMilestones(d.milestones || {})
+    })
+  }, [])
+
+  const toggle = async (id: string) => {
+    if (!isAdmin) return
+    const next = { ...milestones, [id]: !milestones[id] }
+    setMilestones(next)
+    setSaving(true)
+    await fetch('/api/milestones', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ milestones: next }) })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  const completed = CERT_MILESTONES.filter(m => milestones[m.id]).length
+  const total = CERT_MILESTONES.length
+  const pct = Math.round((completed / total) * 100)
+
+  return (
+    <div className="space-y-4">
+      {/* Header card */}
+      <div className="rounded-2xl bg-[#0d2233] p-6 text-white">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#00c8c8]">Resources · Internal</p>
+            <h2 className="mt-1 text-xl font-bold">Microsoft Solutions Partner</h2>
+            <p className="text-sm text-white/70">Modern Work Designation — SMB Track · 2026</p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-[#00c8c8]">{completed}/{total}</div>
+            <div className="text-xs text-white/50">milestones complete</div>
+            {saving && <div className="text-[10px] text-white/40 mt-1">Saving...</div>}
+            {saved && <div className="text-[10px] text-[#00c8c8] mt-1">✓ Saved</div>}
+          </div>
+        </div>
+        {/* Progress bar */}
+        <div className="mt-4">
+          <div className="mb-1.5 flex justify-between text-xs text-white/50">
+            <span>Progress to Solutions Partner badge</span>
+            <span>{pct}%</span>
+          </div>
+          <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
+            <div className="h-2.5 rounded-full bg-[#00c8c8] transition-all duration-500" style={{ width: `${pct}%` }} />
+          </div>
+        </div>
+        {/* Stat pills */}
+        <div className="mt-4 flex flex-wrap gap-3">
+          {[
+            { label: 'Points needed', val: '70 / 100' },
+            { label: 'Min exams', val: '2' },
+            { label: 'Exam cost', val: '~$264' },
+            { label: 'Timeline', val: '6 months' },
+          ].map(s => (
+            <div key={s.label} className="rounded-lg bg-white/10 px-3 py-1.5 text-center">
+              <div className="text-sm font-bold text-[#00c8c8]">{s.val}</div>
+              <div className="text-[10px] text-white/50">{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Score breakdown */}
+      <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <h3 className="mb-3 text-sm font-semibold text-foreground">Scoring Breakdown — 70 points needed</h3>
+        <div className="space-y-3">
+          {[
+            { label: 'Performance — Net New M365 Customers', max: 50, note: 'Sign 4+ qualifying customers via CSP' },
+            { label: 'Skilling — Intermediate (AB-900 / MS-900)', max: 12.5, note: '1 person certified — MANDATORY' },
+            { label: 'Skilling — Advanced (MS-102)', max: 12.5, note: '1 person certified — MANDATORY' },
+            { label: 'Customer Success — Usage Growth', max: 12.5, note: 'Auto — activate Teams & OneDrive per client' },
+            { label: 'Customer Success — Deployments', max: 12.5, note: 'Auto — grows with client base' },
+          ].map((s, i) => (
+            <div key={i}>
+              <div className="flex justify-between text-xs mb-1">
+                <span className="font-medium text-foreground">{s.label}</span>
+                <span className="text-muted-foreground">{s.max} pts</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-[#eaf0f7]">
+                <div className="h-1.5 rounded-full bg-[#0096c7]" style={{ width: milestones['badge_live'] ? '100%' : '0%', transition: 'width 0.5s' }} />
+              </div>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">{s.note}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Milestones */}
+      <div className="rounded-2xl border border-border bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Action Plan & Milestones</h3>
+            <p className="text-xs text-muted-foreground">
+              {isAdmin ? 'Click any milestone to mark complete — visible to all team members' : 'Milestones updated by admin · read only'}
+            </p>
+          </div>
+          <a href="/certification-guide.html" target="_blank"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-medium text-foreground shadow-xs hover:bg-secondary">
+            Full guide ↗
+          </a>
+        </div>
+        <div className="divide-y divide-border">
+          {CERT_MILESTONES.map((m) => {
+            const done = !!milestones[m.id]
+            return (
+              <div
+                key={m.id}
+                onClick={() => toggle(m.id)}
+                className={`flex items-start gap-4 px-5 py-4 transition-colors ${isAdmin ? 'cursor-pointer hover:bg-[#f4f7fb]' : ''} ${done ? 'bg-green-50/40' : ''}`}
+              >
+                {/* Checkbox */}
+                <div className={`mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-all ${done ? 'border-green-500 bg-green-500' : 'border-[#c8e6f0] bg-white'}`}>
+                  {done && (
+                    <svg className="size-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                {/* Content */}
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${CATEGORY_COLORS[m.category]}`}>{m.category}</span>
+                    <span className="text-[10px] text-muted-foreground">{m.phase}</span>
+                    {done && <span className="text-[10px] font-semibold text-green-600">✓ Complete</span>}
+                  </div>
+                  <p className={`mt-1 text-sm font-semibold ${done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{m.title}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{m.desc}</p>
+                  {m.link && (
+                    <a href={m.link} target="_blank" rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      className="mt-1.5 inline-flex items-center text-[11px] font-medium text-[#0096c7] hover:underline">
+                      {m.linkLabel}
+                    </a>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Key links */}
+      <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
+        <h3 className="mb-3 text-sm font-semibold text-foreground">Key Links</h3>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {[
+            { label: 'Partner Center', desc: 'Track GoLive\'s live PCS score', href: 'https://partner.microsoft.com' },
+            { label: 'Microsoft Learn', desc: 'Free study paths for all exams', href: 'https://learn.microsoft.com' },
+            { label: 'Free M365 Dev Tenant', desc: '90-day E5 sandbox for MS-102 practice', href: 'https://developer.microsoft.com/en-us/microsoft-365/dev-program' },
+            { label: 'Pearson VUE — Register Exams', desc: 'Book AB-900 and MS-102 online', href: 'https://home.pearsonvue.com/microsoft' },
+            { label: 'Virtual Training Days', desc: 'Free prep — sometimes includes voucher', href: 'https://events.microsoft.com' },
+            { label: 'Modern Work Requirements', desc: 'Official Microsoft documentation', href: 'https://learn.microsoft.com/en-us/partner-center/membership/solutions-partner-modern-work' },
+          ].map(l => (
+            <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer"
+              className="flex items-start gap-3 rounded-lg border border-border p-3 text-sm transition-colors hover:border-[#0096c7]/30 hover:bg-[#e8f4fb]">
+              <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-[#e8f4fb] text-[#0096c7] text-xs">↗</span>
+              <div>
+                <div className="font-medium text-foreground">{l.label}</div>
+                <div className="text-xs text-muted-foreground">{l.desc}</div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function OnboardingChecklist() {
   const [checked, setChecked] = useState<Set<string>>(new Set())
