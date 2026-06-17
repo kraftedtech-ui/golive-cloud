@@ -25,75 +25,103 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
   --radius-2xl: calc(var(--radius) * 1.8);
+
+  /* Premium brand-tinted shadows */
+  --shadow-xs: 0 1px 2px 0 rgb(13 34 51 / 0.05);
+  --shadow-sm: 0 1px 2px -1px rgb(13 34 51 / 0.06), 0 1px 3px 0 rgb(13 34 51 / 0.05);
+  --shadow: 0 1px 2px -1px rgb(13 34 51 / 0.06), 0 2px 6px -1px rgb(13 34 51 / 0.06);
+  --shadow-md: 0 2px 4px -2px rgb(13 34 51 / 0.06), 0 6px 16px -4px rgb(13 34 51 / 0.1);
+  --shadow-lg: 0 4px 8px -4px rgb(13 34 51 / 0.08), 0 16px 32px -8px rgb(13 34 51 / 0.14);
 }
 
 :root {
   color-scheme: light;
 
-  /* GoLive Brand palette */
+  /* GoLive Brand */
   --navy: #0b1d2e;
   --navy-deep: #06121e;
   --cyan: #0096c7;
   --teal: #00c8c8;
   --lightblue: #eef6fc;
 
-  --background: #ffffff;
-  --foreground: #0b1d2e;
+  /* Portal / Dashboard tokens */
+  --background: #f4f7fb;
+  --foreground: #0d2233;
   --card: #ffffff;
-  --card-foreground: #0b1d2e;
+  --card-foreground: #0d2233;
   --popover: #ffffff;
-  --popover-foreground: #0b1d2e;
+  --popover-foreground: #0d2233;
   --primary: #0096c7;
   --primary-foreground: #ffffff;
-  --secondary: #eef6fc;
-  --secondary-foreground: #0b1d2e;
-  --muted: #f4f7fa;
-  --muted-foreground: #5b7184;
-  --accent: #00c8c8;
-  --accent-foreground: #0b1d2e;
-  --destructive: #ef4444;
-  --border: #e4ecf3;
-  --input: #e4ecf3;
+  --secondary: #eaf0f7;
+  --secondary-foreground: #0d2233;
+  --muted: #eef2f7;
+  --muted-foreground: #5c7184;
+  --accent: #e4f5fa;
+  --accent-foreground: #075066;
+  --destructive: #e5484d;
+  --success: #0f9d6e;
+  --warning: #e08a00;
+  --border: #e3e9f0;
+  --input: #e3e9f0;
   --ring: #0096c7;
+  --chart-1: #0096c7;
+  --chart-2: #00c8c8;
+  --chart-3: #0d2233;
+  --chart-4: #6aa9e0;
+  --chart-5: #b4cdf6;
   --radius: 0.75rem;
+
+  /* Sidebar */
+  --sidebar: #0d2233;
+  --sidebar-foreground: #b4cdf6;
+  --sidebar-primary: #0096c7;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #16344b;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1b3c56;
+  --sidebar-ring: #00c8c8;
 }
 
 @layer base {
-  * {
-    border-color: var(--border);
-  }
+  * { border-color: var(--border); }
   body {
     background-color: var(--background);
     color: var(--foreground);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  h1, h2, h3 {
-    letter-spacing: -0.02em;
-  }
+  h1, h2, h3 { letter-spacing: -0.02em; }
 }
 
 @layer utilities {
   .shadow-elevated {
-    box-shadow:
-      0 1px 2px -1px rgb(11 29 46 / 0.08),
-      0 8px 24px -8px rgb(11 29 46 / 0.12),
-      0 24px 48px -24px rgb(11 29 46 / 0.16);
+    box-shadow: 0 1px 2px -1px rgb(11 29 46 / 0.08), 0 8px 24px -8px rgb(11 29 46 / 0.12), 0 24px 48px -24px rgb(11 29 46 / 0.16);
   }
   .shadow-elevated-lg {
-    box-shadow:
-      0 1px 2px -1px rgb(11 29 46 / 0.1),
-      0 12px 32px -8px rgb(11 29 46 / 0.16),
-      0 40px 72px -32px rgb(11 29 46 / 0.24);
+    box-shadow: 0 1px 2px -1px rgb(11 29 46 / 0.1), 0 12px 32px -8px rgb(11 29 46 / 0.16), 0 40px 72px -32px rgb(11 29 46 / 0.24);
   }
   .shadow-ring-soft {
-    box-shadow:
-      0 0 0 1px rgb(11 29 46 / 0.06),
-      0 2px 8px -2px rgb(11 29 46 / 0.08);
+    box-shadow: 0 0 0 1px rgb(11 29 46 / 0.06), 0 2px 8px -2px rgb(11 29 46 / 0.08);
   }
 }
