@@ -91,6 +91,15 @@ jobs:
           git show origin/main:components/packages.tsx > components/packages.tsx
           git show origin/main:components/trust-bar.tsx > components/trust-bar.tsx
           git show origin/main:components/verticals.tsx > components/verticals.tsx
+          mkdir -p components/legal
+          git show origin/main:components/legal/navbar.tsx > components/legal/navbar.tsx
+          git show origin/main:components/legal/logo.tsx > components/legal/logo.tsx
+          git show origin/main:components/legal/footer.tsx > components/legal/footer.tsx
+          git show origin/main:components/legal/primitives.tsx > components/legal/primitives.tsx
+          git show origin/main:components/legal/rights-grid.tsx > components/legal/rights-grid.tsx
+          git show origin/main:components/legal/table-of-contents.tsx > components/legal/table-of-contents.tsx
+          git show origin/main:components/legal/privacy-content.tsx > components/legal/privacy-content.tsx
+          git show origin/main:components/legal/terms-content.tsx > components/legal/terms-content.tsx
           mkdir -p components/dashboard
           git show origin/main:components/dashboard/sidebar.tsx > components/dashboard/sidebar.tsx
           git show origin/main:components/dashboard/topbar.tsx > components/dashboard/topbar.tsx
