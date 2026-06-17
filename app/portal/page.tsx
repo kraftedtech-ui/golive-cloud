@@ -580,10 +580,12 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
             <div class="company-sub">contact@golivecompany.com · +234 808 358 7801</div>
           </div>
           <div class="ms-badge">
-            <div class="ms-logo">
-              <span style="background:#f25022"></span><span style="background:#7fba00"></span>
-              <span style="background:#00a4ef"></span><span style="background:#ffb900"></span>
-            </div>
+            <svg width="20" height="20" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+              <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+              <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+              <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+            </svg>
             <div class="ms-badge-text">Authorized Microsoft<br/>CSP Partner · ID 6787357</div>
           </div>
         </div>
@@ -687,10 +689,12 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
             <div className="text-[10px] text-muted-foreground mt-1">RC1644767 · contact@golivecompany.com</div>
           </div>
           <div className="flex items-center gap-2 rounded-lg border border-border bg-[#f0f8ff] px-3 py-2">
-            <div className="grid grid-cols-2 gap-0.5 w-4 h-4">
-              <span className="block rounded-[1px] bg-[#f25022]"></span><span className="block rounded-[1px] bg-[#7fba00]"></span>
-              <span className="block rounded-[1px] bg-[#00a4ef]"></span><span className="block rounded-[1px] bg-[#ffb900]"></span>
-            </div>
+            <svg width="20" height="20" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
+              <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
+              <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
+              <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
+            </svg>
             <div className="text-[10px] font-semibold text-foreground leading-tight">Authorized Microsoft<br/>CSP · ID 6787357</div>
           </div>
         </div>
