@@ -23,8 +23,8 @@ interface Customer {
 }
 interface Transfer {
   _id: string; ref: string; transferType: string; company: string
-  contact: string; email: string; domain: string; users: string
-  country: string; status: string; createdAt: string
+  contact: string; email: string; phone: string; domain: string; users: string
+  country: string; status: string; createdAt: string; currentProvider?: string; notes?: string
 }
 interface User {
   _id: string; name: string; email: string; role: string; active: boolean; lastLogin: string
@@ -350,7 +350,9 @@ function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]
               <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Contact</div>
               <div className="text-sm">{selected.contact}</div>
               <div className="text-xs text-primary">{selected.email}</div>
-              {selected.phone && <div className="text-xs text-muted-foreground">{selected.phone}</div>}
+            {selected.phone && (
+              <div className="text-xs text-muted-foreground">{selected.phone}</div>
+            )}
             </div>
             <div>
               <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Domain</div>
@@ -366,16 +368,16 @@ function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]
                 <div className="text-sm">{selected.country}</div>
               </div>
             </div>
-            {(selected as any).currentProvider && (
+            {selected.currentProvider && (
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Current Provider</div>
-                <div className="text-sm">{(selected as any).currentProvider}</div>
+                <div className="text-sm">{selected.currentProvider}</div>
               </div>
             )}
-            {(selected as any).notes && (
+            {selected.notes && (
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Notes</div>
-                <div className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3">{(selected as any).notes}</div>
+                <div className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3">{selected.notes}</div>
               </div>
             )}
             <div>
@@ -387,7 +389,7 @@ function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary/90">
                 ✉️ Send email response
               </a>
-              <a href={`https://wa.me/${(selected as any).phone?.replace(/\D/g,'') || ''}?text=Hi ${selected.contact}, this is GoLive Digital Solutions regarding your migration request (${selected.ref}). We'd like to discuss the next steps.`}
+              <a href={`https://wa.me/${selected.phone?.replace(/\D/g,'') || ''}?text=Hi ${selected.contact}, this is GoLive Digital Solutions regarding your migration request (${selected.ref}). We'd like to discuss the next steps.`}
                 target="_blank" rel="noopener noreferrer"
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25d366] px-3 py-2 text-xs font-semibold text-white hover:bg-[#25d366]/90">
                 💬 WhatsApp response
