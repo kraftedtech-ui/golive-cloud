@@ -85,7 +85,7 @@ export default function PortalPage() {
     <div className="min-h-screen bg-[#f4f7fb]">
       <Sidebar active={page} onNavigate={setPage} />
       <div className="lg:pl-64">
-        <Topbar page={page} />
+        <Topbar page={page} onNavigate={setPage} />
         <main className="mx-auto max-w-[1600px] space-y-6 px-5 py-6 md:px-8">
 
           {page === 'dashboard' && (
@@ -151,46 +151,7 @@ export default function PortalPage() {
           )}
 
           {page === 'transfers' && (
-            <div className="rounded-2xl border border-border bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-border px-5 py-4">
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Sales</p>
-                  <h2 className="mt-0.5 text-base font-semibold text-foreground">Transfer Requests</h2>
-                  <p className="text-xs text-muted-foreground">{transfers.length} total — <a href="/migrate" className="text-primary hover:underline">View /migrate page</a></p>
-                </div>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead><tr className="border-b border-border bg-secondary/30">
-                    {['Ref','Type','Company','Domain','Country','Status','Date'].map(h => (
-                      <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>
-                    ))}
-                  </tr></thead>
-                  <tbody>
-                    {loading ? <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
-                    : transfers.length === 0 ? <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">No transfer requests yet</td></tr>
-                    : transfers.map(t => (
-                      <tr key={t._id} className="border-b border-border/50 hover:bg-secondary/30">
-                        <td className="px-4 py-3 font-mono text-[11px] text-primary">{t.ref}</td>
-                        <td className="px-4 py-3"><span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium">{{csp:'CSP',google:'Google→M365',cpanel:'cPanel'}[t.transferType] || t.transferType}</span></td>
-                        <td className="px-4 py-3 font-medium text-foreground">{t.company}<div className="text-[11px] text-muted-foreground">{t.contact}</div></td>
-                        <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">{t.domain}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{t.country}</td>
-                        <td className="px-4 py-3">
-                          <select value={t.status} onChange={async e => {
-                            await fetch('/api/transfers', { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id: t._id, status: e.target.value }) })
-                            fetchData()
-                          }} className="rounded-full bg-blue-50 text-blue-700 px-2.5 py-1 text-[11px] font-semibold border-0 outline-none cursor-pointer">
-                            {[['new','New'],['contacted','Contacted'],['in_progress','In Progress'],['completed','Completed'],['lost','Lost']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
-                          </select>
-                        </td>
-                        <td className="px-4 py-3 text-[11px] text-muted-foreground">{new Date(t.createdAt).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <TransfersView transfers={transfers} loading={loading} onUpdate={fetchData} />
           )}
 
           {page === 'customers' && (
@@ -295,6 +256,146 @@ export default function PortalPage() {
 
         </main>
       </div>
+    </div>
+  )
+}
+
+function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]; loading: boolean; onUpdate: () => void }) {
+  const [selected, setSelected] = useState<Transfer | null>(null)
+
+  const TYPE_LABELS: Record<string, { label: string; color: string }> = {
+    csp:    { label: 'CSP Transfer',   color: 'bg-blue-50 text-blue-700' },
+    google: { label: 'Google → M365', color: 'bg-red-50 text-red-700' },
+    cpanel: { label: 'cPanel Upgrade', color: 'bg-orange-50 text-orange-700' },
+  }
+  const STATUS_LABELS: Record<string, string> = {
+    new: 'New', contacted: 'Contacted', in_progress: 'In Progress', completed: 'Completed', lost: 'Lost'
+  }
+
+  return (
+    <div className="flex gap-4">
+      {/* Table */}
+      <div className={`rounded-2xl border border-border bg-white shadow-sm ${selected ? 'flex-1' : 'w-full'}`}>
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Sales</p>
+            <h2 className="mt-0.5 text-base font-semibold text-foreground">Transfer Requests</h2>
+            <p className="text-xs text-muted-foreground">{transfers.length} total — <a href="/migrate" target="_blank" className="text-primary hover:underline">View /migrate page →</a></p>
+          </div>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead><tr className="border-b border-border bg-secondary/30">
+              {['Ref','Type','Company','Domain','Country','Status','Date'].map(h => (
+                <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {loading ? <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
+              : transfers.length === 0 ? (
+                <tr><td colSpan={7} className="py-16 text-center">
+                  <div className="text-3xl mb-2">🔄</div>
+                  <div className="text-sm font-medium text-foreground mb-1">No transfer requests yet</div>
+                  <div className="text-xs text-muted-foreground">Requests submitted at <a href="/migrate" className="text-primary hover:underline">cloud.golivecompany.com/migrate</a> will appear here</div>
+                </td></tr>
+              ) : transfers.map(t => {
+                const tc = TYPE_LABELS[t.transferType] || { label: t.transferType, color: 'bg-gray-50 text-gray-600' }
+                const isSelected = selected?._id === t._id
+                return (
+                  <tr key={t._id} onClick={() => setSelected(isSelected ? null : t)}
+                    className={`border-b border-border/50 cursor-pointer transition-colors ${isSelected ? 'bg-primary/5 ring-1 ring-inset ring-primary/20' : 'hover:bg-secondary/30'}`}>
+                    <td className="px-4 py-3 font-mono text-[11px] text-primary">{t.ref}</td>
+                    <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${tc.color}`}>{tc.label}</span></td>
+                    <td className="px-4 py-3 font-medium text-foreground">{t.company}<div className="text-[11px] text-muted-foreground">{t.contact}</div></td>
+                    <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">{t.domain}</td>
+                    <td className="px-4 py-3 text-muted-foreground text-xs">{t.country}</td>
+                    <td className="px-4 py-3">
+                      <select value={t.status} onClick={e => e.stopPropagation()} onChange={async e => {
+                        await fetch('/api/transfers', { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id: t._id, status: e.target.value }) })
+                        onUpdate()
+                      }} className="rounded-full bg-blue-50 text-blue-700 px-2.5 py-1 text-[11px] font-semibold border-0 outline-none cursor-pointer">
+                        {Object.entries(STATUS_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3 text-[11px] text-muted-foreground">{new Date(t.createdAt).toLocaleDateString()}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Detail panel */}
+      {selected && (
+        <div className="w-80 shrink-0 rounded-2xl border border-border bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-5 py-4">
+            <h3 className="text-sm font-semibold text-foreground">Request Details</h3>
+            <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground text-lg leading-none">×</button>
+          </div>
+          <div className="p-5 space-y-4">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Reference</div>
+              <div className="font-mono text-sm text-primary">{selected.ref}</div>
+            </div>
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Type</div>
+              <div className="text-sm font-medium">{TYPE_LABELS[selected.transferType]?.label || selected.transferType}</div>
+            </div>
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Company</div>
+              <div className="text-sm font-semibold text-foreground">{selected.company}</div>
+            </div>
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Contact</div>
+              <div className="text-sm">{selected.contact}</div>
+              <div className="text-xs text-primary">{selected.email}</div>
+              {selected.phone && <div className="text-xs text-muted-foreground">{selected.phone}</div>}
+            </div>
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Domain</div>
+              <div className="font-mono text-sm text-muted-foreground">{selected.domain}</div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Users</div>
+                <div className="text-sm">{selected.users}</div>
+              </div>
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Country</div>
+                <div className="text-sm">{selected.country}</div>
+              </div>
+            </div>
+            {(selected as any).currentProvider && (
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Current Provider</div>
+                <div className="text-sm">{(selected as any).currentProvider}</div>
+              </div>
+            )}
+            {(selected as any).notes && (
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Notes</div>
+                <div className="text-xs text-muted-foreground bg-secondary/50 rounded-lg p-3">{(selected as any).notes}</div>
+              </div>
+            )}
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Received</div>
+              <div className="text-xs text-muted-foreground">{new Date(selected.createdAt).toLocaleString()}</div>
+            </div>
+            <div className="pt-2 space-y-2">
+              <a href={`mailto:${selected.email}?subject=Re: Your Microsoft 365 Migration Request (${selected.ref})&body=Dear ${selected.contact},%0A%0AThank you for submitting a migration request to GoLive Digital Solutions.%0A%0AWe have reviewed your request and would like to schedule a call to discuss the next steps.%0A%0ARef: ${selected.ref}%0A%0ABest regards,%0AGoLive Digital Solutions Team`}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary/90">
+                ✉️ Send email response
+              </a>
+              <a href={`https://wa.me/${(selected as any).phone?.replace(/\D/g,'') || ''}?text=Hi ${selected.contact}, this is GoLive Digital Solutions regarding your migration request (${selected.ref}). We'd like to discuss the next steps.`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25d366] px-3 py-2 text-xs font-semibold text-white hover:bg-[#25d366]/90">
+                💬 WhatsApp response
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

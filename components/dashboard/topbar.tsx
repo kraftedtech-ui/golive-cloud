@@ -13,7 +13,7 @@ const PAGE_LABELS: Record<string, { section: string; title: string }> = {
   team:         { section: "Admin",  title: "Team & Access Control" },
 }
 
-export function Topbar({ page = "dashboard" }: { page?: string }) {
+export function Topbar({ page = "dashboard", onNavigate }: { page?: string; onNavigate?: (page: string) => void }) {
   const info = PAGE_LABELS[page] || PAGE_LABELS.dashboard
 
   return (
@@ -40,7 +40,8 @@ export function Topbar({ page = "dashboard" }: { page?: string }) {
           <Bell className="size-4 text-[#5c7184]" />
           <span className="absolute right-2 top-2 size-1.5 rounded-full bg-red-500 ring-2 ring-white" />
         </button>
-        <button className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#0096c7] px-3 text-sm font-semibold text-white shadow-sm hover:bg-[#0096c7]/90">
+        <button onClick={() => onNavigate?.('assessments')}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#0096c7] px-3 text-sm font-semibold text-white shadow-sm hover:bg-[#0096c7]/90">
           <Plus className="size-4" />
           <span className="hidden sm:inline">New Lead</span>
         </button>
