@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import connectDB from '@/lib/mongodb'
 import { MongoClient } from 'mongodb'
 
 const MONGO_URI = process.env.MONGODB_URI!
