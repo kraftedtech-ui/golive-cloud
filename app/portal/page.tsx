@@ -523,7 +523,7 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
     const currencyMap: Record<string, string> = { Nigeria: 'NGN', Ghana: 'GHS', Kenya: 'KES', 'South Africa': 'ZAR' }
     if (currencyMap[lead.country]) setCurrency(currencyMap[lead.country])
     // Auto-set setup fee based on likely package
-    const emailProvider = (lead.services?.[0] || lead.currentEmail || '').toLowerCase()
+    const emailProvider = (lead.services?.[0] || (lead as any).currentEmail || '').toLowerCase()
     if (emailProvider.includes('google')) { setPkg('Secure Business Cloud'); setSetup('300') }
     else if (emailProvider.includes('cpanel') || emailProvider.includes('webmail')) { setPkg('Starter Cloud Office'); setSetup('150') }
     else { setPkg('Secure Business Cloud'); setSetup('300') }
