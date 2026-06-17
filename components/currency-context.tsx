@@ -12,11 +12,11 @@ type CurrencyInfo = {
 }
 
 export const CURRENCIES: Record<CurrencyCode, CurrencyInfo> = {
-  USD: { code: "USD", symbol: "$", label: "USD — US Dollar", rate: 1 },
-  NGN: { code: "NGN", symbol: "₦", label: "NGN — Nigerian Naira", rate: 1600 },
-  GHS: { code: "GHS", symbol: "GH₵", label: "GHS — Ghanaian Cedi", rate: 15 },
-  KES: { code: "KES", symbol: "KSh", label: "KES — Kenyan Shilling", rate: 129 },
-  ZAR: { code: "ZAR", symbol: "R", label: "ZAR — South African Rand", rate: 18 },
+  USD: { code: "USD", symbol: "$",   label: "🇺🇸 USD — US Dollar",           rate: 1 },
+  NGN: { code: "NGN", symbol: "₦",   label: "🇳🇬 NGN — Nigerian Naira",      rate: 1600 },
+  GHS: { code: "GHS", symbol: "GH₵", label: "🇬🇭 GHS — Ghanaian Cedi",       rate: 15 },
+  KES: { code: "KES", symbol: "KSh", label: "🇰🇪 KES — Kenyan Shilling",      rate: 129 },
+  ZAR: { code: "ZAR", symbol: "R",   label: "🇿🇦 ZAR — South African Rand",   rate: 18 },
 }
 
 type CurrencyContextValue = {

@@ -1,12 +1,12 @@
 const MARKETS = [
-  { country: "Nigeria", code: "NG", currency: "NGN" },
-  { country: "Ghana", code: "GH", currency: "GHS" },
-  { country: "Kenya", code: "KE", currency: "KES" },
-  { country: "South Africa", code: "ZA", currency: "ZAR" },
-  { country: "Tanzania", code: "TZ", currency: "TZS" },
-  { country: "Uganda", code: "UG", currency: "UGX" },
-  { country: "Rwanda", code: "RW", currency: "RWF" },
-  { country: "Egypt", code: "EG", currency: "EGP" },
+  { country: "Nigeria",      code: "NG", currency: "NGN", flag: "🇳🇬" },
+  { country: "Ghana",        code: "GH", currency: "GHS", flag: "🇬🇭" },
+  { country: "Kenya",        code: "KE", currency: "KES", flag: "🇰🇪" },
+  { country: "South Africa", code: "ZA", currency: "ZAR", flag: "🇿🇦" },
+  { country: "Tanzania",     code: "TZ", currency: "TZS", flag: "🇹🇿" },
+  { country: "Uganda",       code: "UG", currency: "UGX", flag: "🇺🇬" },
+  { country: "Rwanda",       code: "RW", currency: "RWF", flag: "🇷🇼" },
+  { country: "Egypt",        code: "EG", currency: "EGP", flag: "🇪🇬" },
 ]
 
 export function Markets() {
@@ -23,10 +23,8 @@ export function Markets() {
         </div>
         <div className="mt-14 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {MARKETS.map((m) => (
-            <div key={m.country} className="group flex items-center gap-2.5 rounded-xl border border-[#c8e6f0] bg-white px-3 py-3.5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0096c7]/30 hover:shadow-md sm:gap-3.5 sm:px-5 sm:py-4">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold tracking-tight text-[#00c8c8] ring-1 ring-inset ring-white/10 sm:size-10 sm:text-sm" style={{ background: "linear-gradient(150deg, #0d2233 0%, #0a1a28 100%)" }}>
-                {m.code}
-              </span>
+            <div key={m.country} className="group flex items-center gap-3 rounded-xl border border-[#c8e6f0] bg-white px-4 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#0096c7]/30 hover:shadow-md">
+              <span className="text-3xl leading-none">{m.flag}</span>
               <span className="flex min-w-0 flex-col">
                 <span className="truncate text-sm font-semibold tracking-tight text-[#0d2233]">{m.country}</span>
                 <span className="text-xs text-[#5a7a8a]">{m.currency}</span>

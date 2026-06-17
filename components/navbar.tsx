@@ -15,11 +15,14 @@ const NAV_LINKS = [
 
 function CurrencySelector() {
   const { currency, setCurrency } = useCurrency()
+  const flags: Record<string, string> = { USD: "🇺🇸", NGN: "🇳🇬", GHS: "🇬🇭", KES: "🇰🇪", ZAR: "🇿🇦" }
   return (
     <div className="relative">
       <select value={currency} onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
         className="w-full appearance-none rounded-md border border-[#c8e6f0] bg-white py-2 pl-3 pr-8 text-sm font-medium text-[#0d2233] outline-none transition-colors hover:border-[#0096c7] focus-visible:ring-2 focus-visible:ring-[#0096c7] md:w-auto">
-        {Object.values(CURRENCIES).map((c) => <option key={c.code} value={c.code}>{c.code}</option>)}
+        {Object.values(CURRENCIES).map((c) => (
+          <option key={c.code} value={c.code}>{flags[c.code]} {c.code}</option>
+        ))}
       </select>
       <ChevronDown className="pointer-events-none absolute right-2 top-1/2 size-4 -translate-y-1/2 text-[#5a7a8a]" />
     </div>
@@ -38,13 +41,13 @@ export function Navbar() {
   }, [])
 
   return (
-    <header className={`sticky top-0 z-50 border-b transition-all duration-300 ${scrolled ? "border-[#c8e6f0] bg-white shadow-sm" : "border-[#c8e6f0] bg-white"}`}>
-      <div className="mx-auto flex h-24 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+    <header className={`sticky top-0 z-50 border-b transition-all duration-300 ${scrolled ? "border-[#c8e6f0] bg-white/85 shadow-sm backdrop-blur-xl" : "border-transparent bg-white/70 backdrop-blur-md"}`}>
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center">
           <img 
             src="/images/logo-dark.png" 
             alt="GoLive Digital Solutions" 
-            style={{ height: 120, width: 'auto' }} 
+            style={{ height: 52, width: 'auto', mixBlendMode: 'screen' }} 
           />
         </Link>
 
