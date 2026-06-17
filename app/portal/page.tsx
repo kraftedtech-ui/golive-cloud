@@ -72,7 +72,33 @@ export default function PortalPage() {
   const role = (session?.user as any)?.role || 'viewer'
   const isAdmin = role === 'admin'
 
-  const STATUS_COLORS: Record<string, string> = {
+  const [showNewLead, setShowNewLead] = useState(false)
+  const [newLeadForm, setNewLeadForm] = useState({ company: '', contact: '', email: '', phone: '', country: 'Nigeria', industry: '', users: '', currentEmail: '', notes: '' })
+  const [newLeadLoading, setNewLeadLoading] = useState(false)
+  const [newLeadError, setNewLeadError] = useState('')
+
+  const submitNewLead = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setNewLeadLoading(true)
+    setNewLeadError('')
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newLeadForm, services: [newLeadForm.currentEmail], source: 'portal' })
+      })
+      const data = await res.json()
+      if (data.success) {
+        setShowNewLead(false)
+        setNewLeadForm({ company: '', contact: '', email: '', phone: '', country: 'Nigeria', industry: '', users: '', currentEmail: '', notes: '' })
+        setPage('assessments')
+        fetchData()
+      } else setNewLeadError('Failed to save lead. Please try again.')
+    } catch { setNewLeadError('Network error. Please try again.') }
+    setNewLeadLoading(false)
+  }
+
+  const inp = "w-full rounded-lg border border-[#e3e9f0] bg-white px-3 py-2 text-sm text-[#0d2233] outline-none focus:border-[#0096c7] focus:ring-2 focus:ring-[#0096c7]/20"
     'New Lead': 'bg-blue-50 text-blue-700',
     'Assessment Done': 'bg-purple-50 text-purple-700',
     'Quote Sent': 'bg-yellow-50 text-yellow-700',
@@ -85,8 +111,81 @@ export default function PortalPage() {
     <div className="min-h-screen bg-[#f4f7fb]">
       <Sidebar active={page} onNavigate={setPage} />
       <div className="lg:pl-64">
-        <Topbar page={page} onNavigate={setPage} />
+        <Topbar page={page} onNavigate={setPage} onNewLead={() => setShowNewLead(true)} />
         <main className="mx-auto max-w-[1600px] space-y-6 px-5 py-6 md:px-8">
+
+          {/* NEW LEAD MODAL */}
+          {showNewLead && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(13,34,51,0.6)', backdropFilter: 'blur(4px)' }}>
+              <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+                <div className="flex items-center justify-between border-b border-[#e3e9f0] px-6 py-4">
+                  <div>
+                    <h2 className="text-base font-semibold text-[#0d2233]">Add New Lead</h2>
+                    <p className="text-xs text-[#5c7184]">Manually add a lead from a call, referral or event</p>
+                  </div>
+                  <button onClick={() => setShowNewLead(false)} className="flex size-8 items-center justify-center rounded-lg hover:bg-[#f4f7fb] text-[#5c7184] text-lg">×</button>
+                </div>
+                <form onSubmit={submitNewLead} className="p-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="col-span-2">
+                      <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Company name *</label>
+                      <input required className={inp} placeholder="Acme Ltd" value={newLeadForm.company} onChange={e => setNewLeadForm(f => ({...f, company: e.target.value}))} />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Contact name *</label>
+                      <input required className={inp} placeholder="Jane Doe" value={newLeadForm.contact} onChange={e => setNewLeadForm(f => ({...f, contact: e.target.value}))} />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Email *</label>
+                      <input required type="email" className={inp} placeholder="jane@company.com" value={newLeadForm.email} onChange={e => setNewLeadForm(f => ({...f, email: e.target.value}))} />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">WhatsApp / Phone</label>
+                      <input className={inp} placeholder="+234..." value={newLeadForm.phone} onChange={e => setNewLeadForm(f => ({...f, phone: e.target.value}))} />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Country</label>
+                      <select className={inp} value={newLeadForm.country} onChange={e => setNewLeadForm(f => ({...f, country: e.target.value}))}>
+                        {['Nigeria','Ghana','Kenya','South Africa','Tanzania','Uganda','Rwanda','Egypt','Other'].map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Industry</label>
+                      <select className={inp} value={newLeadForm.industry} onChange={e => setNewLeadForm(f => ({...f, industry: e.target.value}))}>
+                        <option value="">Select industry</option>
+                        {['Legal','Education / Schools','Religious / Churches','Healthcare / Clinics','Financial Services','Retail & E-commerce','Manufacturing','Government / NGO','Other'].map(i => <option key={i}>{i}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Number of users *</label>
+                      <select required className={inp} value={newLeadForm.users} onChange={e => setNewLeadForm(f => ({...f, users: e.target.value}))}>
+                        <option value="">Select range</option>
+                        {['1–5','6–20','21–50','51–100','100+'].map(r => <option key={r}>{r}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Current email provider</label>
+                      <select className={inp} value={newLeadForm.currentEmail} onChange={e => setNewLeadForm(f => ({...f, currentEmail: e.target.value}))}>
+                        <option value="">Select provider</option>
+                        {['Google Workspace','cPanel / Webmail','Microsoft 365 (existing)','Zoho Mail','Other / None'].map(p => <option key={p}>{p}</option>)}
+                      </select>
+                    </div>
+                    <div className="col-span-2">
+                      <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Notes</label>
+                      <textarea className={`${inp} min-h-16 resize-none`} placeholder="How did you meet them? What are their key needs?" value={newLeadForm.notes} onChange={e => setNewLeadForm(f => ({...f, notes: e.target.value}))} />
+                    </div>
+                  </div>
+                  {newLeadError && <p className="rounded-lg bg-red-50 p-3 text-xs text-red-600">{newLeadError}</p>}
+                  <div className="flex gap-3 pt-2">
+                    <button type="button" onClick={() => setShowNewLead(false)} className="flex-1 rounded-lg border border-[#e3e9f0] px-4 py-2.5 text-sm font-medium text-[#5c7184] hover:bg-[#f4f7fb]">Cancel</button>
+                    <button type="submit" disabled={newLeadLoading} className="flex-1 rounded-lg bg-[#0096c7] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#0096c7]/90 disabled:opacity-60">
+                      {newLeadLoading ? 'Saving...' : 'Save Lead'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
 
           {page === 'dashboard' && (
             <>
