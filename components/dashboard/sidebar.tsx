@@ -6,6 +6,7 @@ import {
   ArrowLeftRight, KanbanSquare, FileText, ListChecks,
   Users, ShieldCheck, LayoutDashboard, LogOut, BadgeCheck,
   BookOpen, Award, GraduationCap, ExternalLink, ChevronDown,
+  DollarSign, Bell,
   type LucideIcon, Cloud,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -20,6 +21,7 @@ const sections: NavSection[] = [
       { label: "Cloud Assessments", icon: Cloud, key: "assessments" },
       { label: "Transfer Requests", icon: ArrowLeftRight, key: "transfers" },
       { label: "CRM Pipeline", icon: KanbanSquare, key: "pipeline" },
+      { label: "Commissions", icon: DollarSign, key: "commissions" },
     ],
   },
   {
@@ -27,6 +29,13 @@ const sections: NavSection[] = [
     items: [
       { label: "Proposal Generator", icon: FileText, key: "proposals" },
       { label: "Onboarding Checklist", icon: ListChecks, key: "onboarding" },
+    ],
+  },
+  {
+    heading: "Team",
+    items: [
+      { label: "Announcements", icon: Bell, key: "announcements" },
+      { label: "Knowledge Base", icon: BookOpen, key: "knowledge" },
     ],
   },
   {
