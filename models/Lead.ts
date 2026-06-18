@@ -16,10 +16,14 @@ export interface ILead extends Document {
   notes?: string
   status: 'new' | 'assessment' | 'quoted' | 'negotiating' | 'won' | 'lost'
   assignedTo?: string
+  assignedToEmail?: string
   distributor?: string
   tenantId?: string
   mrr?: number
   setupFee?: number
+  productCategory?: 'm365_license' | 'monthly_subscription' | 'annual_subscription' | 'setup_migration' | 'support_retainer' | 'upsell_crosssell' | 'renewal'
+  grossProfitMargin?: number
+  commissionStatus?: 'tracked' | 'accrued' | 'earned' | 'payable' | 'paid'
   createdAt: Date
   updatedAt: Date
 }
@@ -45,10 +49,21 @@ const LeadSchema = new Schema<ILead>(
       default: 'new',
     },
     assignedTo: String,
+    assignedToEmail: String,
     distributor: String,
     tenantId: String,
     mrr: Number,
     setupFee: Number,
+    productCategory: {
+      type: String,
+      enum: ['m365_license', 'monthly_subscription', 'annual_subscription', 'setup_migration', 'support_retainer', 'upsell_crosssell', 'renewal'],
+    },
+    grossProfitMargin: Number,
+    commissionStatus: {
+      type: String,
+      enum: ['tracked', 'accrued', 'earned', 'payable', 'paid'],
+      default: 'tracked',
+    },
   },
   { timestamps: true }
 )
