@@ -5,13 +5,14 @@ import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     await connectDB()
     const { assignedTo, assignedToEmail, updatedBy } = await req.json()
 
     const lead = await Lead.findByIdAndUpdate(
-      params.id,
+      id,
       { assignedTo, assignedToEmail },
       { new: true }
     )

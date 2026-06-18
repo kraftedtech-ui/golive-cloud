@@ -14,12 +14,13 @@ const STATUS_LABELS: Record<string, string> = {
   lost: 'Lost',
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     await connectDB()
     const body = await req.json()
-    const prevLead = await Lead.findById(params.id)
-    const updated = await Lead.findByIdAndUpdate(params.id, body, { new: true })
+    const prevLead = await Lead.findById(id)
+    const updated = await Lead.findByIdAndUpdate(id, body, { new: true })
 
     if (!updated) return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
 
