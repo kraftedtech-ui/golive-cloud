@@ -9,7 +9,7 @@ const NOTIFY = process.env.NOTIFY_EMAIL || 'contact@golivecompany.com'
 export async function sendLeadNotification(lead: {
   ref: string; company: string; contact: string; email: string
   phone: string; country: string; industry: string; users: string
-  services: string[]
+  services: string[]; notes?: string; currentEmail?: string
 }) {
   await resend.emails.send({
     from: FROM,

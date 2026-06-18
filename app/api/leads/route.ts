@@ -38,8 +38,8 @@ export async function POST(req: NextRequest) {
 
     // Send notifications (non-blocking — don't fail the request if email fails)
     Promise.allSettled([
-      sendLeadNotification({ ...data, ref, notes: data.notes || '' }),
-      sendLeadConfirmation(data.email, data.contact, ref),
+      sendLeadNotification({ ...data, ref }),
+      sendLeadConfirmation({ email: data.email, contact: data.contact, company: data.company, ref }),
     ]).catch(console.error)
 
     return NextResponse.json(
