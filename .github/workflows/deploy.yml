@@ -27,6 +27,8 @@ jobs:
           set -e
           echo "=== GoLive Deploy ==="
           cd /www/wwwroot/golive-cloud
+          # Remove any accidentally nested golive-cloud folder
+          rm -rf /www/wwwroot/golive-cloud/golive-cloud
           git config --global --add safe.directory /www/wwwroot/golive-cloud
           git remote remove origin 2>/dev/null || true
           git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git
