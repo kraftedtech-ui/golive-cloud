@@ -332,7 +332,7 @@ export default function PortalPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Tools</p>
                 <h2 className="mt-0.5 text-base font-semibold text-foreground">Proposal Generator</h2>
               </div>
-              <ProposalContent leads={leads} />
+              <ProposalContent leads={leads} isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} />
             </div>
           )}
 
@@ -498,7 +498,7 @@ function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]
   )
 }
 
-function ProposalContent({ leads }: { leads: Lead[] }) {
+function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin: boolean; userEmail: string }) {
   const [selectedLead, setSelectedLead] = useState('')
   const [pkg, setPkg] = useState('Secure Business Cloud')
   const [users, setUsers] = useState('10')
@@ -667,8 +667,11 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
           <label className="mb-1.5 block text-xs font-medium text-foreground">Select Lead</label>
           <select value={selectedLead} onChange={e => handleLeadSelect(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
             <option value="">Select a lead...</option>
-            {leads.filter(l => !['Won','Lost'].includes(l.status)).map(l => <option key={l._id} value={l._id}>{l.company} — {l.country} ({l.status})</option>)}
+            {leads.filter(l => !['Won','Lost'].includes(l.status)).filter(l => isAdmin || l.assignedToEmail === userEmail).map(l => <option key={l._id} value={l._id}>{l.company} — {l.country} ({l.status})</option>)}
           </select>
+          {!isAdmin && leads.filter(l => !['Won','Lost'].includes(l.status)).filter(l => l.assignedToEmail === userEmail).length === 0 && (
+            <p className="mt-1.5 text-[11px] text-amber-600">You don't have any assigned leads yet. Ask your admin to assign you a lead first.</p>
+          )}
           {lead && (
             <div className="mt-2 rounded-lg bg-[#e8f4fb] border border-[#c8e6f0] px-3 py-2 text-xs">
               <div className="font-semibold text-[#0d2233]">{lead.company}</div>
