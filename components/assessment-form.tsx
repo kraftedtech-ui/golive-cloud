@@ -69,6 +69,7 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
     if (emailWidgetIdRef.current) return
     emailWidgetIdRef.current = window.turnstile.render(emailWidgetRef.current, {
       sitekey: "0x4AAAAAADnfiHKMINlWRfJ7",
+      size: "flexible",
       callback: (token: string) => setEmailTurnstileToken(token),
       "expired-callback": () => setEmailTurnstileToken(""),
       "error-callback": () => setEmailTurnstileToken(""),
@@ -80,6 +81,7 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
     if (widgetIdRef.current) return
     widgetIdRef.current = window.turnstile.render(widgetRef.current, {
       sitekey: "0x4AAAAAADnfiHKMINlWRfJ7",
+      size: "flexible",
       callback: (token: string) => setTurnstileToken(token),
       "expired-callback": () => setTurnstileToken(""),
       "error-callback": () => setTurnstileToken(""),
@@ -289,8 +291,8 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
           </div>
 
           {!emailVerified && (
-            <div className="mt-2 flex justify-start">
-              <div ref={emailWidgetRef} />
+            <div className="mt-2 flex justify-start w-full">
+              <div ref={emailWidgetRef} className="w-full" />
             </div>
           )}
 
@@ -356,8 +358,8 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
         </div>
       </div>
 
-      <div className="mt-4 flex justify-center">
-        <div ref={widgetRef} />
+      <div className="mt-4 flex justify-center w-full">
+        <div ref={widgetRef} className="w-full" />
       </div>
 
       {error && <p className="mt-3 rounded-lg bg-red-50 p-3 text-center text-sm text-red-600">{error}</p>}

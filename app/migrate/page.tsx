@@ -176,6 +176,7 @@ export default function MigratePage() {
     if (widgetIdRef.current) return
     widgetIdRef.current = window.turnstile.render(widgetRef.current, {
       sitekey: '0x4AAAAAADnfiHKMINlWRfJ7',
+      size: 'flexible',
       callback: (token: string) => setTurnstileToken(token),
       'expired-callback': () => setTurnstileToken(''),
       'error-callback': () => setTurnstileToken(''),
@@ -187,6 +188,7 @@ export default function MigratePage() {
     if (emailWidgetIdRef.current) return
     emailWidgetIdRef.current = window.turnstile.render(emailWidgetRef.current, {
       sitekey: '0x4AAAAAADnfiHKMINlWRfJ7',
+      size: 'flexible',
       callback: (token: string) => setEmailTurnstileToken(token),
       'expired-callback': () => setEmailTurnstileToken(''),
       'error-callback': () => setEmailTurnstileToken(''),
@@ -391,8 +393,8 @@ export default function MigratePage() {
                       )}
                     </div>
                     {!emailVerified && (
-                      <div style={{ marginTop: 6 }}>
-                        <div ref={emailWidgetRef} />
+                      <div style={{ marginTop: 6, width: '100%' }}>
+                        <div ref={emailWidgetRef} style={{ width: '100%' }} />
                       </div>
                     )}
                     {emailVerified && (
@@ -442,8 +444,8 @@ export default function MigratePage() {
                   <label style={lbl}>Anything else we should know?</label>
                   <textarea style={{ ...inp, minHeight: 70, resize: 'none' }} placeholder="Special requirements, timeline, concerns..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
-                  <div ref={widgetRef} />
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12, width: '100%' }}>
+                  <div ref={widgetRef} style={{ width: '100%' }} />
                 </div>
                 {status === 'error' && <div style={{ background: '#fee2e2', color: '#991b1b', borderRadius: 7, padding: '10px 12px', fontSize: 12, marginBottom: 12 }}>{!turnstileToken ? 'Please complete the security check above.' : 'Something went wrong. Please try again or WhatsApp us directly.'}</div>}
                 <button type="submit" disabled={status === 'sending' || !turnstileToken || !emailVerified}
