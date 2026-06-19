@@ -378,8 +378,8 @@ export default function MigratePage() {
             ) : (
               <form onSubmit={submit}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                  <div><label style={lbl}>Company *</label><input style={inp} required placeholder="Company name" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} /></div>
-                  <div><label style={lbl}>Contact name *</label><input style={inp} required placeholder="Your name" value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} /></div>
+                  <div style={{ minWidth: 0 }}><label style={lbl}>Company *</label><input style={inp} required placeholder="Company name" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} /></div>
+                  <div style={{ minWidth: 0 }}><label style={lbl}>Contact name *</label><input style={inp} required placeholder="Your name" value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} /></div>
                   <div>
                     <label style={lbl}>Email *</label>
                     <div style={{ display: 'flex', gap: 6 }}>
@@ -413,21 +413,21 @@ export default function MigratePage() {
                     )}
                     {otpError && <p style={{ marginTop: 4, fontSize: 11, color: '#dc2626' }}>{otpError}</p>}
                   </div>
-                  <div><label style={lbl}>WhatsApp / Phone</label><input style={inp} placeholder="+234..." value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
+                  <div style={{ minWidth: 0 }}><label style={lbl}>WhatsApp / Phone</label><input style={inp} placeholder="+234..." value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
                 </div>
                 <div style={{ marginBottom: 10 }}>
                   <label style={lbl}>{type === 'csp' ? 'Microsoft tenant domain *' : type === 'google' ? 'Google Workspace domain *' : 'Your domain / website *'}</label>
                   <input style={inp} required placeholder={type === 'csp' ? 'yourcompany.onmicrosoft.com or yourcompany.com' : 'yourcompany.com'} value={form.domain} onChange={e => setForm(f => ({ ...f, domain: e.target.value }))} />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <label style={lbl}>Number of users *</label>
                     <select style={inp} required value={form.users} onChange={e => setForm(f => ({ ...f, users: e.target.value }))}>
                       <option value="">Select range</option>
                       {['1–5', '6–10', '11–20', '21–50', '51–100', '100+'].map(r => <option key={r}>{r}</option>)}
                     </select>
                   </div>
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <label style={lbl}>Country</label>
                     <select style={inp} value={form.country} onChange={e => setForm(f => ({ ...f, country: e.target.value }))}>
                       {['Nigeria', 'Ghana', 'Kenya', 'South Africa', 'Rwanda', 'Uganda', 'Other'].map(c => <option key={c}>{c}</option>)}
