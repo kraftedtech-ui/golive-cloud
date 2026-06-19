@@ -69,7 +69,7 @@ export default function CertificationBonusPanel({ userRole, userName }: { userRo
 
   // Admin catalog add form
   const [showAddCat, setShowAddCat] = useState(false)
-  const [newCat, setNewCat] = useState({ name: '', vendor: 'Microsoft', level: 'foundational' as const, bonusAmount: 25000 })
+  const [newCat, setNewCat] = useState<{ name: string; vendor: string; level: 'foundational' | 'intermediate' | 'advanced'; bonusAmount: number }>({ name: '', vendor: 'Microsoft', level: 'foundational', bonusAmount: 25000 })
 
   // Admin record edit
   const [editingNotes, setEditingNotes] = useState<Record<string, string>>({})
