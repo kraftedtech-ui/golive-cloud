@@ -105,6 +105,15 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
     fetchData()
   }
 
+  async function updateLeadDeal(id: string, patch: Record<string, unknown>) {
+    setLeads(prev => prev.map(l => (l._id === id ? { ...l, ...patch } : l)))
+    await fetch(`/api/leads/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    })
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -340,17 +349,62 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
                         const cat = PRODUCT_CATEGORIES.find(c => c.value === lead.productCategory)
                         const gp = lead.mrr ? lead.mrr * ((lead.grossProfitMargin || 12) / 100) : 0
                         const estCommission = gp * (cat?.confirmedRate || 0.10)
+                        const canEdit = isAdmin || (!!userEmail && lead.assignedToEmail === userEmail)
                         return (
                           <tr key={lead._id} className="border-b border-border/50 hover:bg-secondary/20">
                             <td className="px-4 py-3 font-medium text-foreground">{lead.company}</td>
-                            <td className="px-4 py-3 text-xs text-muted-foreground">{cat?.label || '—'}</td>
-                            <td className="px-4 py-3 text-xs">{lead.mrr ? fmt(lead.mrr) : '—'}</td>
-                            <td className="px-4 py-3 text-xs">{gp ? fmt(gp) : '—'}</td>
+                            <td className="px-4 py-3 text-xs">
+                              {canEdit ? (
+                                <select
+                                  value={lead.productCategory || ''}
+                                  onChange={e => updateLeadDeal(lead._id, { productCategory: e.target.value || undefined })}
+                                  className="rounded-md border border-border bg-white px-1.5 py-1 text-[11px]"
+                                >
+                                  <option value="">— Select —</option>
+                                  {PRODUCT_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+                                </select>
+                              ) : (cat?.label || '—')}
+                            </td>
+                            <td className="px-4 py-3 text-xs">
+                              {canEdit ? (
+                                <input
+                                  type="number"
+                                  value={lead.mrr ?? ''}
+                                  placeholder="₦/mo"
+                                  onChange={e => updateLeadDeal(lead._id, { mrr: e.target.value ? parseFloat(e.target.value) : undefined })}
+                                  className="w-20 rounded-md border border-border bg-white px-1.5 py-1 text-[11px]"
+                                />
+                              ) : (lead.mrr ? fmt(lead.mrr) : '—')}
+                            </td>
+                            <td className="px-4 py-3 text-xs">
+                              {canEdit ? (
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="number"
+                                    value={lead.grossProfitMargin ?? ''}
+                                    placeholder="12"
+                                    onChange={e => updateLeadDeal(lead._id, { grossProfitMargin: e.target.value ? parseFloat(e.target.value) : undefined })}
+                                    className="w-12 rounded-md border border-border bg-white px-1.5 py-1 text-[11px]"
+                                  />
+                                  <span className="text-muted-foreground">% → {gp ? fmt(gp) : '—'}</span>
+                                </div>
+                              ) : (gp ? fmt(gp) : '—')}
+                            </td>
                             <td className="px-4 py-3 text-xs font-medium text-primary">{estCommission ? fmt(estCommission) : '—'}</td>
                             <td className="px-4 py-3">
-                              <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${STATUS_BADGE[lead.commissionStatus || 'tracked'] || STATUS_BADGE.tracked}`}>
-                                {lead.commissionStatus || 'tracked'}
-                              </span>
+                              {canEdit ? (
+                                <select
+                                  value={lead.commissionStatus || 'tracked'}
+                                  onChange={e => updateLeadDeal(lead._id, { commissionStatus: e.target.value })}
+                                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium capitalize border-0 ${STATUS_BADGE[lead.commissionStatus || 'tracked'] || STATUS_BADGE.tracked}`}
+                                >
+                                  {['tracked', 'accrued', 'earned', 'payable', 'paid'].map(s => <option key={s} value={s}>{s}</option>)}
+                                </select>
+                              ) : (
+                                <span className={`rounded-full px-2 py-0.5 text-[11px] font-medium capitalize ${STATUS_BADGE[lead.commissionStatus || 'tracked'] || STATUS_BADGE.tracked}`}>
+                                  {lead.commissionStatus || 'tracked'}
+                                </span>
+                              )}
                             </td>
                             <td className="px-4 py-3">
                               <span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium capitalize">{lead.status}</span>
