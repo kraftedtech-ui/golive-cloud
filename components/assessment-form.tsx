@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { CheckCircle2 } from "lucide-react"
 
 const COUNTRIES = ["Nigeria","Ghana","Kenya","South Africa","Tanzania","Uganda","Rwanda","Egypt","Other"]
@@ -8,16 +8,65 @@ const INDUSTRIES = ["Legal","Education / Schools","Religious / Churches","Health
 
 const fieldClasses = "w-full rounded-md border border-[#c8e6f0] bg-white px-3 py-3 text-sm text-[#0d2233] outline-none transition-colors placeholder:text-[#5a7a8a] focus-visible:border-[#0096c7] focus-visible:ring-2 focus-visible:ring-[#0096c7]/30 sm:py-2.5"
 
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: HTMLElement, options: Record<string, unknown>) => string
+      reset: (widgetId?: string) => void
+      remove: (widgetId?: string) => void
+    }
+    onTurnstileLoad?: () => void
+  }
+}
+
 export function AssessmentForm({ variant = "card" }: { variant?: "card" | "section" }) {
   const [submitted, setSubmitted] = useState(false)
   const [ref, setRef] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileReady, setTurnstileReady] = useState(false)
+  const widgetRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | undefined>(undefined)
+
+  // Load Turnstile script once
+  useEffect(() => {
+    if (document.getElementById("turnstile-script")) {
+      if (window.turnstile) setTurnstileReady(true)
+      return
+    }
+    const script = document.createElement("script")
+    script.id = "turnstile-script"
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js"
+    script.async = true
+    script.defer = true
+    script.onload = () => setTurnstileReady(true)
+    document.head.appendChild(script)
+  }, [])
+
+  // Render widget once script + container ready
+  useEffect(() => {
+    if (!turnstileReady || !widgetRef.current || !window.turnstile) return
+    if (widgetIdRef.current) return // already rendered
+
+    widgetIdRef.current = window.turnstile.render(widgetRef.current, {
+      sitekey: "0x4AAAAAADnfiHKMINlWRfJ7",
+      callback: (token: string) => setTurnstileToken(token),
+      "expired-callback": () => setTurnstileToken(""),
+      "error-callback": () => setTurnstileToken(""),
+    })
+  }, [turnstileReady])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setLoading(true)
     setError("")
+
+    if (!turnstileToken) {
+      setError("Please complete the security check before submitting.")
+      return
+    }
+
+    setLoading(true)
     const form = e.currentTarget
     const data = new FormData(form)
 
@@ -35,6 +84,7 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
       users: data.get("users"),
       currentEmail: currentEmail,
       services,
+      turnstileToken,
     }
 
     try {
@@ -45,10 +95,16 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
       })
       const result = await res.json()
       if (result.success) {
-        setRef(result.lead?.ref || "GL-" + Date.now())
+        setRef(result.lead?.ref || result.ref || "GL-" + Date.now())
         setSubmitted(true)
+      } else if (result.error === "captcha_failed") {
+        setError("Security check failed. Please try again.")
+        if (window.turnstile && widgetIdRef.current) window.turnstile.reset(widgetIdRef.current)
+        setTurnstileToken("")
       } else {
         setError("Something went wrong. Please try again.")
+        if (window.turnstile && widgetIdRef.current) window.turnstile.reset(widgetIdRef.current)
+        setTurnstileToken("")
       }
     } catch {
       setError("Network error. Please try again.")
@@ -135,6 +191,11 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
             <option>Other / None</option>
           </select>
         </div>
+      </div>
+
+      {/* Turnstile widget */}
+      <div className="mt-4 flex justify-center">
+        <div ref={widgetRef} />
       </div>
 
       {error && <p className="mt-3 rounded-lg bg-red-50 p-3 text-center text-sm text-red-600">{error}</p>}
