@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import CertificationBonusPanel from './CertificationBonusPanel'
 
 interface CommissionRule { _id: string; type: 'do' | 'dont'; text: string; section: string }
-interface Lead { _id: string; company: string; contact: string; status: string; assignedTo?: string; productCategory?: string; mrr?: number; setupFee?: number; grossProfitMargin?: number; commissionStatus?: string; createdAt: string }
+interface Lead { _id: string; company: string; contact: string; status: string; assignedTo?: string; assignedToEmail?: string; productCategory?: string; mrr?: number; setupFee?: number; grossProfitMargin?: number; commissionStatus?: string; createdAt: string }
 
 const PRODUCT_CATEGORIES = [
   { value: 'm365_license', label: 'New M365 Licence / Subscription', probRate: 0.05, confirmedRate: 0.10 },
@@ -25,7 +25,7 @@ const STATUS_BADGE: Record<string, string> = {
 
 function fmt(n: number) { return '₦' + n.toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }
 
-export default function CommissionDashboard({ userRole, userName }: { userRole: string; userName: string }) {
+export default function CommissionDashboard({ userRole, userName, userEmail }: { userRole: string; userName: string; userEmail?: string }) {
   const [tab, setTab] = useState<'rules' | 'calculator' | 'tracker' | 'certification'>('rules')
   const [rules, setRules] = useState<CommissionRule[]>([])
   const [leads, setLeads] = useState<Lead[]>([])
@@ -55,11 +55,13 @@ export default function CommissionDashboard({ userRole, userName }: { userRole: 
       setRules(Array.isArray(rulesData) ? rulesData : [])
       const myLeads = isAdmin
         ? leadsData
-        : (leadsData as Lead[]).filter((l: Lead) => l.assignedTo === userName)
+        : (leadsData as Lead[]).filter((l: Lead) =>
+            userEmail ? l.assignedToEmail === userEmail : l.assignedTo === userName
+          )
       setLeads(Array.isArray(myLeads) ? myLeads : [])
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
-  }, [isAdmin, userName])
+  }, [isAdmin, userName, userEmail])
 
   useEffect(() => { fetchData() }, [fetchData])
 

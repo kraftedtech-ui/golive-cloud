@@ -326,7 +326,7 @@ export default function PortalPage() {
           )}
 
           {page === 'pipeline' && <KanbanBoard />}
-          {page === 'commissions' && <CommissionDashboard userRole={role} userName={(session?.user as any)?.name ?? ''} />}
+          {page === 'commissions' && <CommissionDashboard userRole={role} userName={(session?.user as any)?.name ?? ''} userEmail={session?.user?.email ?? ''} />}
           {page === 'account' && <AccountSettings />}
           {page === 'announcements' && <AnnouncementsPanel userRole={role} userName={(session?.user as any)?.name ?? ''} />}
           {page === 'knowledge' && <KnowledgeBase userRole={role} userName={(session?.user as any)?.name ?? ''} />}
