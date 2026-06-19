@@ -16,6 +16,7 @@ export interface IUser extends Document {
   profilePicture?: string
   twoFactorSecret?: string
   twoFactorEnabled: boolean
+  pendingTwoFactorSecret?: string
   createdAt: Date
   updatedAt: Date
   comparePassword(password: string): Promise<boolean>
@@ -35,6 +36,7 @@ const UserSchema = new Schema<IUser>(
     profilePicture: String,
     twoFactorSecret: String,
     twoFactorEnabled: { type: Boolean, default: false },
+    pendingTwoFactorSecret: String,
   },
   { timestamps: true }
 )

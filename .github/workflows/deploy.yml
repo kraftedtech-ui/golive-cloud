@@ -69,6 +69,9 @@ jobs:
           git show "origin/main:app/api/auth/check-2fa/route.ts" > "app/api/auth/check-2fa/route.ts"
           git show "origin/main:app/api/2fa/setup/route.ts" > "app/api/2fa/setup/route.ts"
           git show "origin/main:app/api/2fa/confirm/route.ts" > "app/api/2fa/confirm/route.ts"
+          mkdir -p "app/api/2fa/reset" "app/api/2fa/reset/confirm"
+          git show "origin/main:app/api/2fa/reset/route.ts" > "app/api/2fa/reset/route.ts"
+          git show "origin/main:app/api/2fa/reset/confirm/route.ts" > "app/api/2fa/reset/confirm/route.ts"
           git show origin/main:app/api/leads/route.ts > app/api/leads/route.ts
           mkdir -p app/api/verify-email "app/api/verify-email/check"
           git show origin/main:app/api/verify-email/route.ts > app/api/verify-email/route.ts
