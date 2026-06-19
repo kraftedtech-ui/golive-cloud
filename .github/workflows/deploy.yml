@@ -63,8 +63,12 @@ jobs:
           git show origin/main:models/KnowledgeArticle.ts > models/KnowledgeArticle.ts
           git show origin/main:models/CommissionRule.ts > models/CommissionRule.ts
           git show origin/main:models/User.ts > models/User.ts
+          git show origin/main:models/EmailOTP.ts > models/EmailOTP.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
           git show origin/main:app/api/leads/route.ts > app/api/leads/route.ts
+          mkdir -p app/api/verify-email "app/api/verify-email/check"
+          git show origin/main:app/api/verify-email/route.ts > app/api/verify-email/route.ts
+          git show "origin/main:app/api/verify-email/check/route.ts" > "app/api/verify-email/check/route.ts"
           git show "origin/main:app/api/leads/[id]/route.ts" > "app/api/leads/[id]/route.ts"
           mkdir -p "app/api/leads/[id]/assign"
           git show "origin/main:app/api/leads/[id]/assign/route.ts" > "app/api/leads/[id]/assign/route.ts"

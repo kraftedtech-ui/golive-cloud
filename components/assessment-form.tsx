@@ -15,8 +15,11 @@ declare global {
       reset: (widgetId?: string) => void
       remove: (widgetId?: string) => void
     }
-    onTurnstileLoad?: () => void
   }
+}
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
 export function AssessmentForm({ variant = "card" }: { variant?: "card" | "section" }) {
@@ -24,12 +27,22 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
   const [ref, setRef] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  const [email, setEmail] = useState("")
+  const [emailVerified, setEmailVerified] = useState(false)
+  const [verificationToken, setVerificationToken] = useState("")
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpCode, setOtpCode] = useState("")
+  const [sendingOtp, setSendingOtp] = useState(false)
+  const [verifyingOtp, setVerifyingOtp] = useState(false)
+  const [otpError, setOtpError] = useState("")
+  const [otpCooldown, setOtpCooldown] = useState(0)
+
   const [turnstileToken, setTurnstileToken] = useState("")
   const [turnstileReady, setTurnstileReady] = useState(false)
   const widgetRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | undefined>(undefined)
 
-  // Load Turnstile script once
   useEffect(() => {
     if (document.getElementById("turnstile-script")) {
       if (window.turnstile) setTurnstileReady(true)
@@ -44,11 +57,9 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
     document.head.appendChild(script)
   }, [])
 
-  // Render widget once script + container ready
   useEffect(() => {
     if (!turnstileReady || !widgetRef.current || !window.turnstile) return
-    if (widgetIdRef.current) return // already rendered
-
+    if (widgetIdRef.current) return
     widgetIdRef.current = window.turnstile.render(widgetRef.current, {
       sitekey: "0x4AAAAAADnfiHKMINlWRfJ7",
       callback: (token: string) => setTurnstileToken(token),
@@ -57,10 +68,82 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
     })
   }, [turnstileReady])
 
+  useEffect(() => {
+    if (otpCooldown <= 0) return
+    const t = setTimeout(() => setOtpCooldown(c => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [otpCooldown])
+
+  async function handleSendOtp() {
+    if (!isValidEmail(email)) {
+      setOtpError("Please enter a valid email address first.")
+      return
+    }
+    setOtpError("")
+    setSendingOtp(true)
+    try {
+      const res = await fetch("/api/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      const result = await res.json()
+      if (result.success) {
+        setOtpSent(true)
+        setOtpCooldown(60)
+      } else {
+        setOtpError(result.error || "Failed to send code. Please try again.")
+      }
+    } catch {
+      setOtpError("Network error. Please try again.")
+    } finally {
+      setSendingOtp(false)
+    }
+  }
+
+  async function handleVerifyOtp() {
+    if (!otpCode || otpCode.length !== 6) {
+      setOtpError("Enter the 6-digit code from your email.")
+      return
+    }
+    setOtpError("")
+    setVerifyingOtp(true)
+    try {
+      const res = await fetch("/api/verify-email/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: otpCode }),
+      })
+      const result = await res.json()
+      if (result.success) {
+        setEmailVerified(true)
+        setVerificationToken(result.verificationToken)
+      } else {
+        setOtpError(result.error || "Incorrect code.")
+      }
+    } catch {
+      setOtpError("Network error. Please try again.")
+    } finally {
+      setVerifyingOtp(false)
+    }
+  }
+
+  function resetEmailVerification() {
+    setEmailVerified(false)
+    setVerificationToken("")
+    setOtpSent(false)
+    setOtpCode("")
+    setOtpError("")
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
 
+    if (!emailVerified || !verificationToken) {
+      setError("Please verify your email address before submitting.")
+      return
+    }
     if (!turnstileToken) {
       setError("Please complete the security check before submitting.")
       return
@@ -77,7 +160,7 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
     const payload = {
       company: data.get("company"),
       contact: data.get("name"),
-      email: data.get("email"),
+      email,
       phone: data.get("whatsapp"),
       country: data.get("country"),
       industry: data.get("industry"),
@@ -85,6 +168,7 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
       currentEmail: currentEmail,
       services,
       turnstileToken,
+      verificationToken,
     }
 
     try {
@@ -101,10 +185,11 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
         setError("Security check failed. Please try again.")
         if (window.turnstile && widgetIdRef.current) window.turnstile.reset(widgetIdRef.current)
         setTurnstileToken("")
+      } else if (result.error === "email_not_verified") {
+        setError("Email verification expired. Please verify your email again.")
+        resetEmailVerification()
       } else {
         setError("Something went wrong. Please try again.")
-        if (window.turnstile && widgetIdRef.current) window.turnstile.reset(widgetIdRef.current)
-        setTurnstileToken("")
       }
     } catch {
       setError("Network error. Please try again.")
@@ -154,10 +239,56 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
           <label htmlFor="name" className="mb-1.5 block text-xs font-medium text-[#0d2233]">Full name</label>
           <input id="name" name="name" required placeholder="Jane Doe" className={fieldClasses} />
         </div>
+
         <div>
           <label htmlFor="email" className="mb-1.5 block text-xs font-medium text-[#0d2233]">Work email</label>
-          <input id="email" name="email" type="email" required placeholder="jane@acme.com" className={fieldClasses} />
+          <div className="flex gap-2">
+            <input
+              id="email" name="email" type="email" required placeholder="jane@acme.com"
+              value={email}
+              disabled={emailVerified}
+              onChange={(e) => { setEmail(e.target.value); resetEmailVerification() }}
+              className={fieldClasses + (emailVerified ? " bg-green-50 border-green-300" : "")}
+            />
+            {!emailVerified && (
+              <button
+                type="button"
+                onClick={handleSendOtp}
+                disabled={sendingOtp || otpCooldown > 0 || !isValidEmail(email)}
+                className="shrink-0 whitespace-nowrap rounded-md bg-[#0096c7] px-3 text-xs font-semibold text-white disabled:opacity-50"
+              >
+                {sendingOtp ? "Sending..." : otpCooldown > 0 ? `Resend (${otpCooldown}s)` : otpSent ? "Resend" : "Verify"}
+              </button>
+            )}
+          </div>
+
+          {emailVerified && (
+            <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-green-600">
+              <CheckCircle2 className="size-3.5" /> Email verified
+            </p>
+          )}
+
+          {otpSent && !emailVerified && (
+            <div className="mt-2 flex gap-2">
+              <input
+                type="text" inputMode="numeric" maxLength={6} placeholder="6-digit code"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                className="w-32 rounded-md border border-[#c8e6f0] bg-white px-3 py-2 text-sm tracking-widest outline-none focus-visible:border-[#0096c7] focus-visible:ring-2 focus-visible:ring-[#0096c7]/30"
+              />
+              <button
+                type="button"
+                onClick={handleVerifyOtp}
+                disabled={verifyingOtp || otpCode.length !== 6}
+                className="rounded-md bg-[#00c8c8] px-3 text-xs font-semibold text-white disabled:opacity-50"
+              >
+                {verifyingOtp ? "Checking..." : "Confirm"}
+              </button>
+            </div>
+          )}
+          {otpError && <p className="mt-1.5 text-xs text-red-600">{otpError}</p>}
         </div>
+
         <div>
           <label htmlFor="whatsapp" className="mb-1.5 block text-xs font-medium text-[#0d2233]">WhatsApp number</label>
           <input id="whatsapp" name="whatsapp" type="tel" placeholder="+234 800 000 0000" className={fieldClasses} />
@@ -193,7 +324,6 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
         </div>
       </div>
 
-      {/* Turnstile widget */}
       <div className="mt-4 flex justify-center">
         <div ref={widgetRef} />
       </div>
@@ -202,10 +332,10 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
 
       <button
         type="submit"
-        disabled={loading}
+        disabled={loading || !emailVerified}
         className="mt-6 w-full rounded-lg bg-[#0096c7] py-3 text-sm font-semibold tracking-tight text-white shadow-sm transition-all hover:bg-[#0096c7]/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0096c7]/50 disabled:opacity-60"
       >
-        {loading ? "Submitting..." : "Get free assessment"}
+        {loading ? "Submitting..." : !emailVerified ? "Verify your email to continue" : "Get free assessment"}
       </button>
       <p className="mt-3 text-center text-xs text-[#5a7a8a]">NDPR compliant. We never share your data.</p>
     </form>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import crypto from 'crypto'
 import { connectDB } from '@/lib/mongodb'
 import { Lead } from '@/models/Lead'
 import { sendLeadNotification, sendLeadConfirmation } from '@/lib/email'
@@ -18,6 +19,7 @@ const LeadSchema = z.object({
   billing: z.string().default('Monthly'),
   notes: z.string().optional(),
   turnstileToken: z.string().min(1, 'Security verification required'),
+  verificationToken: z.string().min(1, 'Email verification required'),
 })
 
 function generateRef(): string {
@@ -46,12 +48,39 @@ async function verifyTurnstile(token: string, remoteIp?: string): Promise<boolea
   }
 }
 
+function verifyEmailToken(token: string, email: string): boolean {
+  try {
+    const secret = process.env.NEXTAUTH_SECRET || 'fallback-secret-change-me'
+    const decoded = Buffer.from(token, 'base64').toString('utf8')
+    const [tokenEmail, expiresAtStr, signature] = decoded.split(':')
+    const expiresAt = parseInt(expiresAtStr, 10)
+
+    if (tokenEmail !== email.toLowerCase()) return false
+    if (Date.now() > expiresAt) return false
+
+    const expectedPayload = `${tokenEmail}:${expiresAtStr}`
+    const expectedSignature = crypto.createHmac('sha256', secret).update(expectedPayload).digest('hex')
+    return signature === expectedSignature
+  } catch {
+    return false
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const data = LeadSchema.parse(body)
 
-    // Verify Turnstile token before doing anything else
+    // 1. Verify email was actually OTP-verified
+    const emailOk = verifyEmailToken(data.verificationToken, data.email)
+    if (!emailOk) {
+      return NextResponse.json(
+        { success: false, error: 'email_not_verified' },
+        { status: 403 }
+      )
+    }
+
+    // 2. Verify Turnstile (bot protection)
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || undefined
     const isHuman = await verifyTurnstile(data.turnstileToken, ip)
     if (!isHuman) {
@@ -61,7 +90,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { turnstileToken, ...leadData } = data
+    const { turnstileToken, verificationToken, ...leadData } = data
     const ref = generateRef()
     await connectDB()
     const lead = await Lead.create({ ...leadData, ref })
