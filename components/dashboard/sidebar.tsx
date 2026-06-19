@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-type NavItem = { label: string; icon: LucideIcon; key: string }
+type NavItem = { label: string; icon: LucideIcon; key: string; adminOnly?: boolean }
 type NavSection = { heading: string; items: NavItem[] }
 
 const sections: NavSection[] = [
@@ -42,7 +42,7 @@ const sections: NavSection[] = [
     heading: "Admin",
     items: [
       { label: "Customer Accounts", icon: Users, key: "customers" },
-      { label: "Team & Access", icon: ShieldCheck, key: "team" },
+      { label: "Team & Access", icon: ShieldCheck, key: "team", adminOnly: true },
       { label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
     ],
   },
@@ -107,7 +107,7 @@ export function Sidebar({ active, onNavigate }: { active: string; onNavigate: (k
               {section.heading}
             </p>
             <ul className="space-y-1">
-              {section.items.map((item) => {
+              {section.items.filter((item) => !item.adminOnly || role === "admin").map((item) => {
                 const isActive = active === item.key
                 return (
                   <li key={item.key}>
