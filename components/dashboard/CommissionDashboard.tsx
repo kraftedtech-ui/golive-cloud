@@ -53,9 +53,15 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
       const rulesData = await rulesRes.json()
       const leadsData = await leadsRes.json()
       setRules(Array.isArray(rulesData) ? rulesData : [])
-      const myLeads = isAdmin
+      // /api/leads responds with { success, leads: [...] }, not a bare array.
+      const leadsArray: Lead[] = Array.isArray(leadsData)
         ? leadsData
-        : (leadsData as Lead[]).filter((l: Lead) =>
+        : Array.isArray(leadsData?.leads)
+          ? leadsData.leads
+          : []
+      const myLeads = isAdmin
+        ? leadsArray
+        : leadsArray.filter((l: Lead) =>
             (!!userEmail && l.assignedToEmail === userEmail) || (!!userName && l.assignedTo === userName)
           )
       setLeads(Array.isArray(myLeads) ? myLeads : [])
