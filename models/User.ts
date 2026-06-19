@@ -17,6 +17,8 @@ export interface IUser extends Document {
   twoFactorSecret?: string
   twoFactorEnabled: boolean
   pendingTwoFactorSecret?: string
+  failedTotpAttempts: number
+  totpLockedUntil?: Date
   createdAt: Date
   updatedAt: Date
   comparePassword(password: string): Promise<boolean>
@@ -37,6 +39,8 @@ const UserSchema = new Schema<IUser>(
     twoFactorSecret: String,
     twoFactorEnabled: { type: Boolean, default: false },
     pendingTwoFactorSecret: String,
+    failedTotpAttempts: { type: Number, default: 0 },
+    totpLockedUntil: Date,
   },
   { timestamps: true }
 )

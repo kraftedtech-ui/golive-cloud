@@ -64,6 +64,10 @@ export default function MigratePage() {
   const widgetRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | undefined>(undefined)
 
+  const [emailTurnstileToken, setEmailTurnstileToken] = useState('')
+  const emailWidgetRef = useRef<HTMLDivElement>(null)
+  const emailWidgetIdRef = useRef<string | undefined>(undefined)
+
   const [emailVerified, setEmailVerified] = useState(false)
   const [verificationToken, setVerificationToken] = useState('')
   const [otpSent, setOtpSent] = useState(false)
@@ -96,18 +100,26 @@ export default function MigratePage() {
       setOtpError('Please enter a valid email address first.')
       return
     }
+    if (!emailTurnstileToken) {
+      setOtpError('Please complete the security check below first.')
+      return
+    }
     setOtpError('')
     setSendingOtp(true)
     try {
       const res = await fetch('/api/verify-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: form.email }),
+        body: JSON.stringify({ email: form.email, turnstileToken: emailTurnstileToken }),
       })
       const result = await res.json()
       if (result.success) {
         setOtpSent(true)
         setOtpCooldown(60)
+      } else if (result.error === 'captcha_failed' || result.error === 'captcha_required') {
+        setOtpError('Security check failed. Please try again.')
+        if (window.turnstile && emailWidgetIdRef.current) window.turnstile.reset(emailWidgetIdRef.current)
+        setEmailTurnstileToken('')
       } else {
         setOtpError(result.error || 'Failed to send code. Please try again.')
       }
@@ -167,6 +179,17 @@ export default function MigratePage() {
       callback: (token: string) => setTurnstileToken(token),
       'expired-callback': () => setTurnstileToken(''),
       'error-callback': () => setTurnstileToken(''),
+    })
+  }, [turnstileReady])
+
+  useEffect(() => {
+    if (!turnstileReady || !emailWidgetRef.current || !window.turnstile) return
+    if (emailWidgetIdRef.current) return
+    emailWidgetIdRef.current = window.turnstile.render(emailWidgetRef.current, {
+      sitekey: '0x4AAAAAADnfiHKMINlWRfJ7',
+      callback: (token: string) => setEmailTurnstileToken(token),
+      'expired-callback': () => setEmailTurnstileToken(''),
+      'error-callback': () => setEmailTurnstileToken(''),
     })
   }, [turnstileReady])
 
@@ -361,12 +384,17 @@ export default function MigratePage() {
                       <input style={{ ...inp, background: emailVerified ? '#f0fdf4' : '#fff', borderColor: emailVerified ? '#86efac' : BORDER }} required type="email" placeholder="you@company.com" disabled={emailVerified}
                         value={form.email} onChange={e => { setForm(f => ({ ...f, email: e.target.value })); resetEmailVerification() }} />
                       {!emailVerified && (
-                        <button type="button" onClick={handleSendOtp} disabled={sendingOtp || otpCooldown > 0 || !isValidEmail(form.email)}
-                          style={{ flexShrink: 0, whiteSpace: 'nowrap', background: CY, color: '#fff', border: 'none', borderRadius: 6, padding: '0 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: (sendingOtp || otpCooldown > 0 || !isValidEmail(form.email)) ? 0.5 : 1 }}>
+                        <button type="button" onClick={handleSendOtp} disabled={sendingOtp || otpCooldown > 0 || !isValidEmail(form.email) || !emailTurnstileToken}
+                          style={{ flexShrink: 0, whiteSpace: 'nowrap', background: CY, color: '#fff', border: 'none', borderRadius: 6, padding: '0 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: (sendingOtp || otpCooldown > 0 || !isValidEmail(form.email) || !emailTurnstileToken) ? 0.5 : 1 }}>
                           {sendingOtp ? 'Sending...' : otpCooldown > 0 ? `Resend (${otpCooldown}s)` : otpSent ? 'Resend' : 'Verify'}
                         </button>
                       )}
                     </div>
+                    {!emailVerified && (
+                      <div style={{ marginTop: 6 }}>
+                        <div ref={emailWidgetRef} />
+                      </div>
+                    )}
                     {emailVerified && (
                       <p style={{ marginTop: 4, fontSize: 11, fontWeight: 600, color: '#16a34a' }}>✓ Email verified</p>
                     )}

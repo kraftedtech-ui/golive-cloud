@@ -7,9 +7,7 @@ import bcrypt from 'bcryptjs'
 // This runs BEFORE the actual NextAuth signIn, so the login page knows which step to show next.
 //
 // The env-based ADMIN_EMAIL/ADMIN_PASSWORD account is an intentional break-glass account with no
-// database record. It is exempt from 2FA by design — it exists specifically for emergency access
-// (e.g. database unreachable, all User records inaccessible). It should be used only in emergencies
-// and its credentials should be treated with the same care as a root password.
+// database record. It is exempt from 2FA by design.
 export async function POST(req: NextRequest) {
   try {
     await connectDB()
@@ -21,14 +19,12 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.toLowerCase()
 
-    // Check break-glass env admin account first — exempt from 2FA
     const adminEmail = process.env.ADMIN_EMAIL
     const adminPassword = process.env.ADMIN_PASSWORD
     if (adminEmail && normalizedEmail === adminEmail.toLowerCase() && password === adminPassword) {
       return NextResponse.json({ success: true, needsSetup: false, has2FA: false, breakGlass: true })
     }
 
-    // Normal database-backed user
     const user = await User.findOne({ email: normalizedEmail, active: true })
     if (!user) {
       return NextResponse.json({ success: false, error: 'Invalid email or password' }, { status: 401 })
@@ -37,6 +33,15 @@ export async function POST(req: NextRequest) {
     const validCreds = await bcrypt.compare(password, user.password)
     if (!validCreds) {
       return NextResponse.json({ success: false, error: 'Invalid email or password' }, { status: 401 })
+    }
+
+    // Surface TOTP lockout status before the user even tries entering a code
+    if (user.twoFactorEnabled && user.totpLockedUntil && user.totpLockedUntil > new Date()) {
+      const minutesLeft = Math.ceil((user.totpLockedUntil.getTime() - Date.now()) / 60000)
+      return NextResponse.json({
+        success: false,
+        error: `Too many incorrect codes. Please try again in ${minutesLeft} minute${minutesLeft === 1 ? '' : 's'}.`,
+      }, { status: 429 })
     }
 
     const needsSetup = !user.twoFactorEnabled

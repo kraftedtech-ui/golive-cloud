@@ -5,6 +5,9 @@ import { User } from '@/models/User'
 import bcrypt from 'bcryptjs'
 import { verify } from 'otplib'
 
+const TOTP_MAX_ATTEMPTS = 5
+const TOTP_LOCKOUT_MS = 15 * 60 * 1000 // 15 minutes
+
 const handler = NextAuth({
   providers: [
     CredentialsProvider({
@@ -24,21 +27,44 @@ const handler = NextAuth({
             if (!isValid) return null
 
             if (user.twoFactorEnabled) {
+              // Check lockout first
+              if (user.totpLockedUntil && user.totpLockedUntil > new Date()) {
+                return null
+              }
+
               if (!credentials.totpCode) return null
+
               const result = await verify({
                 token: credentials.totpCode.trim(),
                 secret: user.twoFactorSecret || '',
               })
-              if (!result.valid) return null
+
+              if (!result.valid) {
+                user.failedTotpAttempts = (user.failedTotpAttempts || 0) + 1
+                if (user.failedTotpAttempts >= TOTP_MAX_ATTEMPTS) {
+                  user.totpLockedUntil = new Date(Date.now() + TOTP_LOCKOUT_MS)
+                  user.failedTotpAttempts = 0
+                }
+                await user.save()
+                return null
+              }
+
+              // Success — reset failure tracking
+              if (user.failedTotpAttempts > 0 || user.totpLockedUntil) {
+                user.failedTotpAttempts = 0
+                user.totpLockedUntil = undefined
+              }
             }
 
-            await User.findByIdAndUpdate(user._id, { lastLogin: new Date() })
+            user.lastLogin = new Date()
+            await user.save()
             return { id: user._id.toString(), email: user.email, name: user.name, role: user.role }
           }
         } catch (err) {
           console.error('MongoDB auth error:', err)
         }
 
+        // Break-glass env-based admin account — exempt from 2FA by design.
         const adminEmail = process.env.ADMIN_EMAIL
         const adminPassword = process.env.ADMIN_PASSWORD
         if (!adminEmail || !adminPassword) return null

@@ -9,11 +9,74 @@ function generateCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
+async function verifyTurnstile(token: string, remoteIp?: string): Promise<boolean> {
+  try {
+    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        secret: process.env.TURNSTILE_SECRET_KEY || '',
+        response: token,
+        ...(remoteIp ? { remoteip: remoteIp } : {}),
+      }),
+    })
+    const data = await res.json()
+    return data.success === true
+  } catch (err) {
+    console.error('Turnstile verification error:', err)
+    return false
+  }
+}
+
+// In-memory IP rate limiter — single-server deployment, no Redis needed.
+// Resets on server restart, which is acceptable for this protective layer.
+const ipRequestLog = new Map<string, number[]>()
+const IP_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
+const IP_MAX_REQUESTS = 10 // max OTP sends per IP per window
+
+function isIpRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const timestamps = (ipRequestLog.get(ip) || []).filter(t => now - t < IP_WINDOW_MS)
+  if (timestamps.length >= IP_MAX_REQUESTS) {
+    ipRequestLog.set(ip, timestamps)
+    return true
+  }
+  timestamps.push(now)
+  ipRequestLog.set(ip, timestamps)
+  return false
+}
+
+// Periodic cleanup to prevent unbounded memory growth
+setInterval(() => {
+  const now = Date.now()
+  for (const [ip, timestamps] of Array.from(ipRequestLog.entries())) {
+    const fresh = timestamps.filter((t: number) => now - t < IP_WINDOW_MS)
+    if (fresh.length === 0) ipRequestLog.delete(ip)
+    else ipRequestLog.set(ip, fresh)
+  }
+}, 15 * 60 * 1000)
+
 // POST /api/verify-email — send a new OTP code
 export async function POST(req: NextRequest) {
   try {
     await connectDB()
-    const { email } = await req.json()
+    const { email, turnstileToken } = await req.json()
+
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown'
+
+    // 1. IP-based rate limit — blocks bots rotating through many emails from one source
+    if (isIpRateLimited(ip)) {
+      return NextResponse.json({ success: false, error: 'Too many requests from this network. Please try again later.' }, { status: 429 })
+    }
+
+    // 2. Turnstile — blocks automated requests before any email is sent
+    if (!turnstileToken) {
+      return NextResponse.json({ success: false, error: 'captcha_required' }, { status: 400 })
+    }
+    const isHuman = await verifyTurnstile(turnstileToken, ip === 'unknown' ? undefined : ip)
+    if (!isHuman) {
+      return NextResponse.json({ success: false, error: 'captcha_failed' }, { status: 403 })
+    }
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ success: false, error: 'A valid email address is required' }, { status: 400 })
@@ -21,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim()
 
-    // Rate limit: max 5 OTP requests per email per hour
+    // 3. Per-email rate limit — existing protection, kept as-is
     const recentCount = await EmailOTP.countDocuments({
       email: normalizedEmail,
       createdAt: { $gte: new Date(Date.now() - 60 * 60 * 1000) },
@@ -31,7 +94,7 @@ export async function POST(req: NextRequest) {
     }
 
     const code = generateCode()
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000)
 
     await EmailOTP.create({ email: normalizedEmail, code, expiresAt })
 

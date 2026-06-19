@@ -38,6 +38,13 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
   const [otpError, setOtpError] = useState("")
   const [otpCooldown, setOtpCooldown] = useState(0)
 
+  // Turnstile widget #1 — gates the email OTP send
+  const [emailTurnstileToken, setEmailTurnstileToken] = useState("")
+  const [emailTurnstileReady, setEmailTurnstileReady] = useState(false)
+  const emailWidgetRef = useRef<HTMLDivElement>(null)
+  const emailWidgetIdRef = useRef<string | undefined>(undefined)
+
+  // Turnstile widget #2 — gates the final form submission
   const [turnstileToken, setTurnstileToken] = useState("")
   const [turnstileReady, setTurnstileReady] = useState(false)
   const widgetRef = useRef<HTMLDivElement>(null)
@@ -45,7 +52,7 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
 
   useEffect(() => {
     if (document.getElementById("turnstile-script")) {
-      if (window.turnstile) setTurnstileReady(true)
+      if (window.turnstile) { setTurnstileReady(true); setEmailTurnstileReady(true) }
       return
     }
     const script = document.createElement("script")
@@ -53,9 +60,20 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
     script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js"
     script.async = true
     script.defer = true
-    script.onload = () => setTurnstileReady(true)
+    script.onload = () => { setTurnstileReady(true); setEmailTurnstileReady(true) }
     document.head.appendChild(script)
   }, [])
+
+  useEffect(() => {
+    if (!emailTurnstileReady || !emailWidgetRef.current || !window.turnstile) return
+    if (emailWidgetIdRef.current) return
+    emailWidgetIdRef.current = window.turnstile.render(emailWidgetRef.current, {
+      sitekey: "0x4AAAAAADnfiHKMINlWRfJ7",
+      callback: (token: string) => setEmailTurnstileToken(token),
+      "expired-callback": () => setEmailTurnstileToken(""),
+      "error-callback": () => setEmailTurnstileToken(""),
+    })
+  }, [emailTurnstileReady])
 
   useEffect(() => {
     if (!turnstileReady || !widgetRef.current || !window.turnstile) return
@@ -79,18 +97,26 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
       setOtpError("Please enter a valid email address first.")
       return
     }
+    if (!emailTurnstileToken) {
+      setOtpError("Please complete the security check below first.")
+      return
+    }
     setOtpError("")
     setSendingOtp(true)
     try {
       const res = await fetch("/api/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken: emailTurnstileToken }),
       })
       const result = await res.json()
       if (result.success) {
         setOtpSent(true)
         setOtpCooldown(60)
+      } else if (result.error === "captcha_failed" || result.error === "captcha_required") {
+        setOtpError("Security check failed. Please try again.")
+        if (window.turnstile && emailWidgetIdRef.current) window.turnstile.reset(emailWidgetIdRef.current)
+        setEmailTurnstileToken("")
       } else {
         setOtpError(result.error || "Failed to send code. Please try again.")
       }
@@ -254,13 +280,19 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
               <button
                 type="button"
                 onClick={handleSendOtp}
-                disabled={sendingOtp || otpCooldown > 0 || !isValidEmail(email)}
+                disabled={sendingOtp || otpCooldown > 0 || !isValidEmail(email) || !emailTurnstileToken}
                 className="shrink-0 whitespace-nowrap rounded-md bg-[#0096c7] px-3 text-xs font-semibold text-white disabled:opacity-50"
               >
                 {sendingOtp ? "Sending..." : otpCooldown > 0 ? `Resend (${otpCooldown}s)` : otpSent ? "Resend" : "Verify"}
               </button>
             )}
           </div>
+
+          {!emailVerified && (
+            <div className="mt-2 flex justify-start">
+              <div ref={emailWidgetRef} />
+            </div>
+          )}
 
           {emailVerified && (
             <p className="mt-1.5 flex items-center gap-1 text-xs font-medium text-green-600">
