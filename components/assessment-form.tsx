@@ -268,7 +268,7 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
           <input id="name" name="name" required placeholder="Jane Doe" className={fieldClasses} />
         </div>
 
-        <div>
+        <div className="sm:col-span-2">
           <label htmlFor="email" className="mb-1.5 block text-xs font-medium text-[#0d2233]">Work email</label>
           <div className="flex gap-2">
             <input
