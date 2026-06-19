@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 const CY = '#0096c7'
 const TEAL = '#00c8c8'
@@ -44,24 +44,71 @@ const PRICING = [
   { name: 'AI-Ready Enterprise', price: 'Custom', per: 'quote', best: 'Mid-size teams ready for Copilot AI', features: ['Microsoft 365 + Copilot pilot', 'Copilot Readiness Audit', 'Power Automate workflows', 'Power BI reporting setup', 'Prompt engineering training', 'Premium managed support'], color: TEAL },
 ]
 
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (container: HTMLElement, options: Record<string, unknown>) => string
+      reset: (widgetId?: string) => void
+      remove: (widgetId?: string) => void
+    }
+  }
+}
+
 export default function MigratePage() {
   const [type, setType] = useState<TransferType>('csp')
   const [form, setForm] = useState({ company: '', contact: '', email: '', phone: '', domain: '', users: '', currentProvider: '', country: 'Nigeria', notes: '' })
   const [status, setStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
   const [ref, setRef] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const [turnstileReady, setTurnstileReady] = useState(false)
+  const widgetRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | undefined>(undefined)
+
+  useEffect(() => {
+    if (document.getElementById('turnstile-script')) {
+      if (window.turnstile) setTurnstileReady(true)
+      return
+    }
+    const script = document.createElement('script')
+    script.id = 'turnstile-script'
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
+    script.async = true
+    script.defer = true
+    script.onload = () => setTurnstileReady(true)
+    document.head.appendChild(script)
+  }, [])
+
+  useEffect(() => {
+    if (!turnstileReady || !widgetRef.current || !window.turnstile) return
+    if (widgetIdRef.current) return
+    widgetIdRef.current = window.turnstile.render(widgetRef.current, {
+      sitekey: '0x4AAAAAADnfiHKMINlWRfJ7',
+      callback: (token: string) => setTurnstileToken(token),
+      'expired-callback': () => setTurnstileToken(''),
+      'error-callback': () => setTurnstileToken(''),
+    })
+  }, [turnstileReady])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!turnstileToken) {
+      setStatus('error')
+      return
+    }
     setStatus('sending')
     try {
       const res = await fetch('/api/transfers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, transferType: type })
+        body: JSON.stringify({ ...form, transferType: type, turnstileToken })
       })
       const data = await res.json()
       if (data.success) { setStatus('done'); setRef(data.ref) }
-      else setStatus('error')
+      else {
+        setStatus('error')
+        if (window.turnstile && widgetIdRef.current) window.turnstile.reset(widgetIdRef.current)
+        setTurnstileToken('')
+      }
     } catch { setStatus('error') }
   }
 
@@ -252,9 +299,12 @@ export default function MigratePage() {
                   <label style={lbl}>Anything else we should know?</label>
                   <textarea style={{ ...inp, minHeight: 70, resize: 'none' }} placeholder="Special requirements, timeline, concerns..." value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
                 </div>
-                {status === 'error' && <div style={{ background: '#fee2e2', color: '#991b1b', borderRadius: 7, padding: '10px 12px', fontSize: 12, marginBottom: 12 }}>Something went wrong. Please try again or WhatsApp us directly.</div>}
-                <button type="submit" disabled={status === 'sending'}
-                  style={{ width: '100%', background: status === 'sending' ? MUTED : CY, color: '#fff', border: 'none', borderRadius: 8, padding: '13px', fontSize: 14, fontWeight: 700, cursor: status === 'sending' ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
+                  <div ref={widgetRef} />
+                </div>
+                {status === 'error' && <div style={{ background: '#fee2e2', color: '#991b1b', borderRadius: 7, padding: '10px 12px', fontSize: 12, marginBottom: 12 }}>{!turnstileToken ? 'Please complete the security check above.' : 'Something went wrong. Please try again or WhatsApp us directly.'}</div>}
+                <button type="submit" disabled={status === 'sending' || !turnstileToken}
+                  style={{ width: '100%', background: (status === 'sending' || !turnstileToken) ? MUTED : CY, color: '#fff', border: 'none', borderRadius: 8, padding: '13px', fontSize: 14, fontWeight: 700, cursor: (status === 'sending' || !turnstileToken) ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
                   {status === 'sending' ? 'Submitting...' : `Submit ${TRANSFER_TYPES[type].label} Request →`}
                 </button>
                 <p style={{ textAlign: 'center', fontSize: 11, color: MUTED, marginTop: 10 }}>No commitment required. Free assessment call included.</p>

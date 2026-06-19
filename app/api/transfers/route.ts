@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import mongoose, { Schema } from 'mongoose'
+
+async function verifyTurnstile(token: string, remoteIp?: string) {
+  try {
+    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        secret: process.env.TURNSTILE_SECRET_KEY || '',
+        response: token,
+        ...(remoteIp ? { remoteip: remoteIp } : {}),
+      }),
+    })
+    const data = await res.json()
+    return data.success === true
+  } catch (err) {
+    console.error('Turnstile verification error:', err)
+    return false
+  }
+}
 import { Resend } from 'resend'
 import { Notification } from '@/models/Notification'
 
@@ -50,8 +69,20 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB()
     const body = await req.json()
-    const ref = generateRef(body.transferType || 'csp')
-    const transfer = await Transfer.create({ ...body, ref })
+
+    if (!body.turnstileToken) {
+      return NextResponse.json({ success: false, error: 'captcha_required' }, { status: 400 })
+    }
+
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || undefined
+    const isHuman = await verifyTurnstile(body.turnstileToken, ip)
+    if (!isHuman) {
+      return NextResponse.json({ success: false, error: 'captcha_failed' }, { status: 403 })
+    }
+
+    const { turnstileToken, ...transferData } = body
+    const ref = generateRef(transferData.transferType || 'csp')
+    const transfer = await Transfer.create({ ...transferData, ref })
     return NextResponse.json({ success: true, transfer, ref }, { status: 201 })
   } catch (err) {
     console.error(err)
