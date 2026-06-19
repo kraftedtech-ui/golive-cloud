@@ -56,7 +56,7 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
       const myLeads = isAdmin
         ? leadsData
         : (leadsData as Lead[]).filter((l: Lead) =>
-            userEmail ? l.assignedToEmail === userEmail : l.assignedTo === userName
+            (!!userEmail && l.assignedToEmail === userEmail) || (!!userName && l.assignedTo === userName)
           )
       setLeads(Array.isArray(myLeads) ? myLeads : [])
     } catch (e) { console.error(e) }

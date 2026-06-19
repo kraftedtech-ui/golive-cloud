@@ -21,6 +21,7 @@ interface Lead {
   _id: string; ref: string; company: string; contact: string; email: string
   phone: string; country: string; industry: string; users: string
   services: string[]; status: string; createdAt: string; assignedTo?: string; assignedToEmail?: string
+  convertedToCustomer?: boolean
 }
 interface Customer {
   _id: string; company: string; tenantDomain: string; package: string
@@ -262,11 +263,16 @@ export default function PortalPage() {
                         </td>
                         <td className="px-4 py-3 text-[11px] text-muted-foreground">{new Date(lead.createdAt).toLocaleDateString()}</td>
                         <td className="px-4 py-3">
-                          {lead.status === 'Won' && (
+                          {lead.status === 'Won' && !lead.convertedToCustomer && (
                             <button onClick={() => setConvertingLead(lead)}
                               className="rounded-lg bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-700 hover:bg-green-100 ring-1 ring-green-200">
                               ✦ Convert
                             </button>
+                          )}
+                          {lead.status === 'Won' && lead.convertedToCustomer && (
+                            <span className="rounded-lg bg-gray-50 px-3 py-1 text-[11px] font-semibold text-gray-500 ring-1 ring-gray-200">
+                              ✓ Converted
+                            </span>
                           )}
                         </td>
                       </tr>
@@ -1307,6 +1313,7 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
           billingCycle,
           startDate: new Date().toISOString(),
           leadRef: lead.ref,
+          leadId: lead._id,
         }),
       })
       const data = await res.json()
