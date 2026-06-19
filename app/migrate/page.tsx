@@ -380,6 +380,8 @@ export default function MigratePage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
                   <div style={{ minWidth: 0 }}><label style={lbl}>Company *</label><input style={inp} required placeholder="Company name" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} /></div>
                   <div style={{ minWidth: 0 }}><label style={lbl}>Contact name *</label><input style={inp} required placeholder="Your name" value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} /></div>
+                </div>
+                <div style={{ marginBottom: 10 }}>
                   <div>
                     <label style={lbl}>Email *</label>
                     <div style={{ display: 'flex', gap: 6 }}>
@@ -413,7 +415,10 @@ export default function MigratePage() {
                     )}
                     {otpError && <p style={{ marginTop: 4, fontSize: 11, color: '#dc2626' }}>{otpError}</p>}
                   </div>
-                  <div style={{ minWidth: 0 }}><label style={lbl}>WhatsApp / Phone</label><input style={inp} placeholder="+234..." value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
+                </div>
+                <div style={{ marginBottom: 10 }}>
+                  <label style={lbl}>WhatsApp / Phone</label>
+                  <input style={inp} placeholder="+234..." value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} />
                 </div>
                 <div style={{ marginBottom: 10 }}>
                   <label style={lbl}>{type === 'csp' ? 'Microsoft tenant domain *' : type === 'google' ? 'Google Workspace domain *' : 'Your domain / website *'}</label>
