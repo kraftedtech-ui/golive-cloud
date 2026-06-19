@@ -225,7 +225,7 @@ export default function MigratePage() {
     } catch { setStatus('error') }
   }
 
-  const inp: React.CSSProperties = { width: '100%', border: `1.5px solid ${BORDER}`, borderRadius: 8, padding: '10px 13px', fontSize: 14, color: NAVY, fontFamily: 'Segoe UI,system-ui,sans-serif', outline: 'none', background: '#fff' }
+  const inp: React.CSSProperties = { width: '100%', boxSizing: 'border-box', border: `1.5px solid ${BORDER}`, borderRadius: 8, padding: '10px 13px', fontSize: 14, color: NAVY, fontFamily: 'Segoe UI,system-ui,sans-serif', outline: 'none', background: '#fff' }
   const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 700, color: MUTED, textTransform: 'uppercase' as const, letterSpacing: '.4px', display: 'block', marginBottom: 4 }
 
   return (
