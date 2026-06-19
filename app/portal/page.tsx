@@ -844,7 +844,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
                     </td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">{u.email}</td>
                     <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${roleInfo.color}`}>{roleInfo.label}</span></td>
-                    <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${u.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{u.active ? 'â— Active' : 'â—‹ Inactive'}</span></td>
+                    <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${u.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{u.active ? '● Active' : '○ Inactive'}</span></td>
                     <td className="px-4 py-3 text-[11px] text-muted-foreground">{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
