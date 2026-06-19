@@ -9,7 +9,8 @@ const STATUS_DATE_FIELD: Record<string, string> = {
   paid: 'paidAt',
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     await connectDB()
     const body = await req.json()
@@ -17,17 +18,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (body.status && STATUS_DATE_FIELD[body.status]) {
       update[STATUS_DATE_FIELD[body.status]] = new Date()
     }
-    const record = await CertificationRecord.findByIdAndUpdate(params.id, update, { new: true })
+    const record = await CertificationRecord.findByIdAndUpdate(id, update, { new: true })
     return NextResponse.json(record)
   } catch {
     return NextResponse.json({ error: 'Failed to update certification record' }, { status: 500 })
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     await connectDB()
-    await CertificationRecord.findByIdAndDelete(params.id)
+    await CertificationRecord.findByIdAndDelete(id)
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: 'Failed to delete certification record' }, { status: 500 })
