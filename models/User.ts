@@ -14,6 +14,8 @@ export interface IUser extends Document {
   phone?: string
   emailNotifications: boolean
   profilePicture?: string
+  twoFactorSecret?: string
+  twoFactorEnabled: boolean
   createdAt: Date
   updatedAt: Date
   comparePassword(password: string): Promise<boolean>
@@ -31,6 +33,8 @@ const UserSchema = new Schema<IUser>(
     phone: String,
     emailNotifications: { type: Boolean, default: true },
     profilePicture: String,
+    twoFactorSecret: String,
+    twoFactorEnabled: { type: Boolean, default: false },
   },
   { timestamps: true }
 )
