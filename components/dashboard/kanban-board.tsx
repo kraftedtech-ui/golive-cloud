@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { Users, Hash } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -20,9 +21,10 @@ function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
-function DealCard({ lead, onStageChange }: { lead: any; onStageChange: (id: string, stage: string) => void }) {
+function DealCard({ lead, onStageChange, isAdmin, userEmail }: { lead: any; onStageChange: (id: string, stage: string) => void; isAdmin: boolean; userEmail?: string | null }) {
   const initials = getInitials(lead.contact || lead.company || 'U')
   const colorIdx = lead.company?.charCodeAt(0) % ownerColors.length || 0
+  const canEdit = isAdmin || (lead.assignedToEmail && lead.assignedToEmail === userEmail)
   return (
     <div className="group rounded-xl border border-[#e3e9f0] bg-white p-3 shadow-xs ring-1 ring-transparent transition-all hover:-translate-y-0.5 hover:shadow-md hover:ring-[#0096c7]/20">
       <div className="flex items-start justify-between gap-2">
@@ -38,17 +40,31 @@ function DealCard({ lead, onStageChange }: { lead: any; onStageChange: (id: stri
         <span className="inline-flex items-center gap-1"><Users className="size-3.5" />{lead.users}</span>
         <span className="inline-flex items-center gap-1 font-mono text-[11px]"><Hash className="size-3" />{lead.ref?.slice(-8)}</span>
       </div>
+      {lead.assignedTo && (
+        <p className="mt-2 text-[10px] text-[#5c7184]">Assigned: <span className="font-medium text-[#0d2233]">{lead.assignedTo}</span></p>
+      )}
       <div className="mt-3">
-        <select value={lead.status} onChange={e => onStageChange(lead._id, e.target.value)}
-          className="w-full rounded-md border border-[#e3e9f0] bg-[#f4f7fb] px-2 py-1.5 text-xs text-[#0d2233] outline-none focus:border-[#0096c7] focus:ring-1 focus:ring-[#0096c7]/30">
-          {STAGES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
-        </select>
+        {canEdit ? (
+          <select value={lead.status} onChange={e => onStageChange(lead._id, e.target.value)}
+            className="w-full rounded-md border border-[#e3e9f0] bg-[#f4f7fb] px-2 py-1.5 text-xs text-[#0d2233] outline-none focus:border-[#0096c7] focus:ring-1 focus:ring-[#0096c7]/30">
+            {STAGES.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+          </select>
+        ) : (
+          <div title={lead.assignedTo ? `Only ${lead.assignedTo} or an admin can change this` : 'Assign this lead first to change its status'}
+            className="w-full cursor-not-allowed rounded-md border border-[#e3e9f0] bg-[#f4f7fb] px-2 py-1.5 text-xs text-[#5c7184] opacity-70">
+            🔒 {lead.status}
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
 export function KanbanBoard() {
+  const { data: session } = useSession()
+  const role = (session?.user as any)?.role || "viewer"
+  const isAdmin = role === "admin"
+  const userEmail = session?.user?.email
   const [leads, setLeads] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -98,7 +114,7 @@ export function KanbanBoard() {
                 </div>
                 <div className="flex flex-1 flex-col gap-2.5 mt-2">
                   {column.map(lead => (
-                    <DealCard key={lead._id} lead={lead} onStageChange={handleStageChange} />
+                    <DealCard key={lead._id} lead={lead} onStageChange={handleStageChange} isAdmin={isAdmin} userEmail={userEmail} />
                   ))}
                   {column.length === 0 && (
                     <p className="rounded-lg border border-dashed border-[#e3e9f0] px-2 py-6 text-center text-[11px] text-[#5c7184]">No leads</p>
