@@ -73,6 +73,8 @@ jobs:
           git show "origin/main:app/api/customers/[id]/route.ts" > "app/api/customers/[id]/route.ts"
           mkdir -p "app/api/users/[id]"
           git show origin/main:app/api/users/route.ts > app/api/users/route.ts
+          mkdir -p app/api/account
+          git show origin/main:app/api/account/route.ts > app/api/account/route.ts
           git show "origin/main:app/api/users/[id]/route.ts" > "app/api/users/[id]/route.ts"
           mkdir -p app/api/milestones
           git show origin/main:app/api/milestones/route.ts > app/api/milestones/route.ts
@@ -134,6 +136,7 @@ jobs:
           git show origin/main:components/dashboard/KnowledgeBase.tsx > components/dashboard/KnowledgeBase.tsx
           git show origin/main:components/dashboard/LeadAssign.tsx > components/dashboard/LeadAssign.tsx
           git show origin/main:components/dashboard/TransferAssign.tsx > components/dashboard/TransferAssign.tsx
+          git show origin/main:components/dashboard/AccountSettings.tsx > components/dashboard/AccountSettings.tsx
           mkdir -p components/ui
           git show origin/main:components/ui/card.tsx > components/ui/card.tsx
           git show origin/main:components/ui/button.tsx > components/ui/button.tsx

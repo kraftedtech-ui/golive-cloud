@@ -6,7 +6,7 @@ import {
   ArrowLeftRight, KanbanSquare, FileText, ListChecks,
   Users, ShieldCheck, LayoutDashboard, LogOut, BadgeCheck,
   BookOpen, Award, GraduationCap, ExternalLink, ChevronDown,
-  DollarSign, Bell,
+  DollarSign, Bell, Settings,
   type LucideIcon, Cloud,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -209,6 +209,19 @@ export function Sidebar({ active, onNavigate }: { active: string; onNavigate: (k
           </div>
           <span className="ml-auto size-1.5 animate-pulse rounded-full bg-[var(--color-chart-2)]" />
         </div>
+        <button
+          type="button"
+          onClick={() => onNavigate('account')}
+          className={cn(
+            "mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            active === 'account'
+              ? "bg-sidebar-accent text-white"
+              : "text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-white"
+          )}
+        >
+          <Settings className="size-4" />
+          Account Settings
+        </button>
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: '/portal/login' })}

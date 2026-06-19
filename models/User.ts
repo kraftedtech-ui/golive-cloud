@@ -11,6 +11,9 @@ export interface IUser extends Document {
   active: boolean
   lastLogin?: Date
   invitedBy?: string
+  phone?: string
+  emailNotifications: boolean
+  profilePicture?: string
   createdAt: Date
   updatedAt: Date
   comparePassword(password: string): Promise<boolean>
@@ -25,11 +28,13 @@ const UserSchema = new Schema<IUser>(
     active: { type: Boolean, default: true },
     lastLogin: Date,
     invitedBy: String,
+    phone: String,
+    emailNotifications: { type: Boolean, default: true },
+    profilePicture: String,
   },
   { timestamps: true }
 )
 
-// Hash password before saving
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next()
   this.password = await bcrypt.hash(this.password, 12)

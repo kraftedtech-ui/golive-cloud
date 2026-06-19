@@ -13,6 +13,7 @@ import AnnouncementsPanel from '@/components/dashboard/AnnouncementsPanel'
 import KnowledgeBase from '@/components/dashboard/KnowledgeBase'
 import LeadAssign from '@/components/dashboard/LeadAssign'
 import TransferAssign from '@/components/dashboard/TransferAssign'
+import AccountSettings from '@/components/dashboard/AccountSettings'
 
 export const dynamic = 'force-dynamic'
 
@@ -326,6 +327,7 @@ export default function PortalPage() {
 
           {page === 'pipeline' && <KanbanBoard />}
           {page === 'commissions' && <CommissionDashboard userRole={role} userName={(session?.user as any)?.name ?? ''} />}
+          {page === 'account' && <AccountSettings />}
           {page === 'announcements' && <AnnouncementsPanel userRole={role} userName={(session?.user as any)?.name ?? ''} />}
           {page === 'knowledge' && <KnowledgeBase userRole={role} userName={(session?.user as any)?.name ?? ''} />}
 
