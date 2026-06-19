@@ -62,6 +62,8 @@ jobs:
           git show origin/main:models/Announcement.ts > models/Announcement.ts
           git show origin/main:models/KnowledgeArticle.ts > models/KnowledgeArticle.ts
           git show origin/main:models/CommissionRule.ts > models/CommissionRule.ts
+          git show origin/main:models/CertificationCatalog.ts > models/CertificationCatalog.ts
+          git show origin/main:models/CertificationRecord.ts > models/CertificationRecord.ts
           git show origin/main:models/User.ts > models/User.ts
           git show origin/main:models/EmailOTP.ts > models/EmailOTP.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
@@ -102,6 +104,12 @@ jobs:
           mkdir -p app/api/commission-rules "app/api/commission-rules/[id]"
           git show origin/main:app/api/commission-rules/route.ts > app/api/commission-rules/route.ts
           git show "origin/main:app/api/commission-rules/[id]/route.ts" > "app/api/commission-rules/[id]/route.ts"
+
+          mkdir -p app/api/certification-catalog "app/api/certification-catalog/[id]" app/api/certification-records "app/api/certification-records/[id]"
+          git show origin/main:app/api/certification-catalog/route.ts > app/api/certification-catalog/route.ts
+          git show "origin/main:app/api/certification-catalog/[id]/route.ts" > "app/api/certification-catalog/[id]/route.ts"
+          git show origin/main:app/api/certification-records/route.ts > app/api/certification-records/route.ts
+          git show "origin/main:app/api/certification-records/[id]/route.ts" > "app/api/certification-records/[id]/route.ts"
           mkdir -p public/images
           git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
           git show origin/main:public/images/logo-dark.png > public/images/logo-dark.png
@@ -143,6 +151,7 @@ jobs:
           git show origin/main:components/dashboard/recent-leads.tsx > components/dashboard/recent-leads.tsx
           git show origin/main:components/dashboard/mrr-charts.tsx > components/dashboard/mrr-charts.tsx
           git show origin/main:components/dashboard/CommissionDashboard.tsx > components/dashboard/CommissionDashboard.tsx
+          git show origin/main:components/dashboard/CertificationBonusPanel.tsx > components/dashboard/CertificationBonusPanel.tsx
           git show origin/main:components/dashboard/AnnouncementsPanel.tsx > components/dashboard/AnnouncementsPanel.tsx
           git show origin/main:components/dashboard/KnowledgeBase.tsx > components/dashboard/KnowledgeBase.tsx
           git show origin/main:components/dashboard/LeadAssign.tsx > components/dashboard/LeadAssign.tsx

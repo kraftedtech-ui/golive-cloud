@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
+import CertificationBonusPanel from './CertificationBonusPanel'
 
 interface CommissionRule { _id: string; type: 'do' | 'dont'; text: string; section: string }
 interface Lead { _id: string; company: string; contact: string; status: string; assignedTo?: string; productCategory?: string; mrr?: number; setupFee?: number; grossProfitMargin?: number; commissionStatus?: string; createdAt: string }
@@ -25,7 +26,7 @@ const STATUS_BADGE: Record<string, string> = {
 function fmt(n: number) { return '₦' + n.toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }
 
 export default function CommissionDashboard({ userRole, userName }: { userRole: string; userName: string }) {
-  const [tab, setTab] = useState<'rules' | 'calculator' | 'tracker'>('rules')
+  const [tab, setTab] = useState<'rules' | 'calculator' | 'tracker' | 'certification'>('rules')
   const [rules, setRules] = useState<CommissionRule[]>([])
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
@@ -110,10 +111,10 @@ export default function CommissionDashboard({ userRole, userName }: { userRole: 
 
         {/* Tabs */}
         <div className="flex border-b border-border">
-          {(['rules', 'calculator', 'tracker'] as const).map(t => (
+          {(['rules', 'calculator', 'tracker', 'certification'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-5 py-3 text-sm font-medium capitalize transition-colors ${tab === t ? 'border-b-2 border-primary text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
-              {t === 'rules' ? '📋 Do\'s & Don\'ts' : t === 'calculator' ? '🧮 Forecast Calculator' : '📊 Commission Tracker'}
+              {t === 'rules' ? '📋 Do\'s & Don\'ts' : t === 'calculator' ? '🧮 Forecast Calculator' : t === 'tracker' ? '📊 Commission Tracker' : '🎓 Certification Bonus'}
             </button>
           ))}
         </div>
@@ -354,6 +355,11 @@ export default function CommissionDashboard({ userRole, userName }: { userRole: 
                 </div>
               )}
             </div>
+          )}
+
+          {/* CERTIFICATION TAB */}
+          {tab === 'certification' && (
+            <CertificationBonusPanel userRole={userRole} userName={userName} />
           )}
         </div>
       </div>

@@ -1,0 +1,24 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { connectDB } from '@/lib/mongodb'
+import { CertificationCatalog } from '@/models/CertificationCatalog'
+
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    await connectDB()
+    const body = await req.json()
+    const item = await CertificationCatalog.findByIdAndUpdate(params.id, body, { new: true })
+    return NextResponse.json(item)
+  } catch {
+    return NextResponse.json({ error: 'Failed to update catalog item' }, { status: 500 })
+  }
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    await connectDB()
+    await CertificationCatalog.findByIdAndUpdate(params.id, { active: false })
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ error: 'Failed to remove catalog item' }, { status: 500 })
+  }
+}
