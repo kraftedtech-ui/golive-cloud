@@ -21,7 +21,7 @@ export default function LeadAssign({ leadId, currentAssignee, currentAssigneeEma
 
   useEffect(() => {
     if (isAdmin && showPicker) {
-      fetch('/api/team').then(r => r.json()).then(d => setTeam(Array.isArray(d) ? d.filter((m: TeamMember) => m.active) : []))
+      fetch('/api/users').then(r => r.json()).then(d => setTeam(d.success && Array.isArray(d.users) ? d.users.filter((m: TeamMember) => m.active) : []))
     }
   }, [isAdmin, showPicker])
 

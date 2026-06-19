@@ -242,12 +242,19 @@ export default function PortalPage() {
                           />
                         </td>
                         <td className="px-4 py-3">
-                          <select value={lead.status} onChange={async e => {
-                            await fetch(`/api/leads/${lead._id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: e.target.value }) })
-                            fetchData()
-                          }} className={`rounded-full px-2.5 py-1 text-[11px] font-semibold border-0 outline-none cursor-pointer ${STATUS_COLORS[lead.status] || 'bg-gray-50 text-gray-600'}`}>
-                            {['New Lead','Assessment Done','Quote Sent','Negotiating','Won','Lost'].map(s => <option key={s}>{s}</option>)}
-                          </select>
+                          {(isAdmin || (lead.assignedToEmail && lead.assignedToEmail === session?.user?.email)) ? (
+                            <select value={lead.status} onChange={async e => {
+                              await fetch(`/api/leads/${lead._id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: e.target.value }) })
+                              fetchData()
+                            }} className={`rounded-full px-2.5 py-1 text-[11px] font-semibold border-0 outline-none cursor-pointer ${STATUS_COLORS[lead.status] || 'bg-gray-50 text-gray-600'}`}>
+                              {['New Lead','Assessment Done','Quote Sent','Negotiating','Won','Lost'].map(s => <option key={s}>{s}</option>)}
+                            </select>
+                          ) : (
+                            <span title={lead.assignedTo ? `Only ${lead.assignedTo} or an admin can change this` : 'Assign this lead first to change its status'}
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold cursor-not-allowed opacity-70 ${STATUS_COLORS[lead.status] || 'bg-gray-50 text-gray-600'}`}>
+                              🔒 {lead.status}
+                            </span>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-[11px] text-muted-foreground">{new Date(lead.createdAt).toLocaleDateString()}</td>
                         <td className="px-4 py-3">
