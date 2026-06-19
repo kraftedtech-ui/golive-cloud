@@ -1,26 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { Lead } from '@/models/Lead'
+import { Notification } from '@/models/Notification'
 import { Resend } from 'resend'
-
 const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   try {
     await connectDB()
     const { assignedTo, assignedToEmail, updatedBy } = await req.json()
-
     const lead = await Lead.findByIdAndUpdate(
       id,
       { assignedTo, assignedToEmail },
       { new: true }
     )
-
     if (!lead) return NextResponse.json({ error: 'Lead not found' }, { status: 404 })
 
-    // Send email notification to assigned rep
     if (assignedToEmail) {
+      // In-app notification
+      try {
+        await Notification.create({
+          recipientEmail: assignedToEmail,
+          type: 'lead_assigned',
+          title: 'New lead assigned to you',
+          message: `${lead.company} (${lead.country}) — ${lead.status}`,
+          link: 'assessments',
+        })
+      } catch (e) { console.error('In-app notification failed:', e) }
+
+      // Email notification
       try {
         await resend.emails.send({
           from: 'GoLive Portal <hello@golivecompany.com>',
@@ -60,10 +68,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         })
       } catch (emailErr) {
         console.error('Email notification failed:', emailErr)
-        // Don't fail the whole request if email fails
       }
     }
-
     return NextResponse.json(lead)
   } catch {
     return NextResponse.json({ error: 'Failed to assign lead' }, { status: 500 })

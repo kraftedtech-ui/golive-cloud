@@ -57,6 +57,7 @@ jobs:
           git show origin/main:lib/utils.ts > lib/utils.ts
           git show origin/main:lib/data.ts > lib/data.ts
           git show origin/main:models/Lead.ts > models/Lead.ts
+          git show origin/main:models/Notification.ts > models/Notification.ts
           git show origin/main:models/Customer.ts > models/Customer.ts
           git show origin/main:models/Announcement.ts > models/Announcement.ts
           git show origin/main:models/KnowledgeArticle.ts > models/KnowledgeArticle.ts
@@ -80,6 +81,8 @@ jobs:
           mkdir -p app/api/announcements "app/api/announcements/[id]"
           git show origin/main:app/api/announcements/route.ts > app/api/announcements/route.ts
           git show "origin/main:app/api/announcements/[id]/route.ts" > "app/api/announcements/[id]/route.ts"
+          mkdir -p app/api/notifications
+          git show origin/main:app/api/notifications/route.ts > app/api/notifications/route.ts
           mkdir -p app/api/knowledge "app/api/knowledge/[id]"
           git show origin/main:app/api/knowledge/route.ts > app/api/knowledge/route.ts
           git show "origin/main:app/api/knowledge/[id]/route.ts" > "app/api/knowledge/[id]/route.ts"

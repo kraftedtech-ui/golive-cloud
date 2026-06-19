@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { Lead } from '@/models/Lead'
+import { Notification } from '@/models/Notification'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -30,6 +31,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       prevLead?.status !== updated.status &&
       body.status
     ) {
+      try {
+        await Notification.create({
+          recipientEmail: updated.assignedToEmail,
+          type: 'lead_status',
+          title: `Lead status updated: ${updated.company}`,
+          message: `${STATUS_LABELS[prevLead?.status || ''] || prevLead?.status} → ${STATUS_LABELS[updated.status] || updated.status}`,
+          link: 'assessments',
+        })
+      } catch (e) { console.error('In-app notification failed:', e) }
+
       try {
         await resend.emails.send({
           from: 'GoLive Portal <hello@golivecompany.com>',

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import mongoose, { Schema } from 'mongoose'
 import { Resend } from 'resend'
+import { Notification } from '@/models/Notification'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -71,6 +72,16 @@ export async function PATCH(req: NextRequest) {
     // Notify on new assignment
     if (update.assignedToEmail && prevTransfer?.assignedToEmail !== update.assignedToEmail) {
       try {
+        await Notification.create({
+          recipientEmail: update.assignedToEmail,
+          type: 'transfer_assigned',
+          title: 'New transfer request assigned to you',
+          message: `${transfer.company} — ${transfer.transferType.toUpperCase()} transfer`,
+          link: 'transfers',
+        })
+      } catch (e) { console.error('In-app notification failed:', e) }
+
+      try {
         await resend.emails.send({
           from: 'GoLive Portal <hello@golivecompany.com>',
           to: update.assignedToEmail,
@@ -108,6 +119,16 @@ export async function PATCH(req: NextRequest) {
     }
     // Notify on status change (only if already assigned and status actually changed)
     else if (transfer.assignedToEmail && update.status && prevTransfer?.status !== update.status) {
+      try {
+        await Notification.create({
+          recipientEmail: transfer.assignedToEmail,
+          type: 'transfer_status',
+          title: `Transfer status updated: ${transfer.company}`,
+          message: `${STATUS_LABELS[prevTransfer?.status || ''] || prevTransfer?.status} → ${STATUS_LABELS[transfer.status] || transfer.status}`,
+          link: 'transfers',
+        })
+      } catch (e) { console.error('In-app notification failed:', e) }
+
       try {
         await resend.emails.send({
           from: 'GoLive Portal <hello@golivecompany.com>',
