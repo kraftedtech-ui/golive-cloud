@@ -166,7 +166,7 @@ export default function PortalPage() {
                       <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Number of users *</label>
                       <select required className={inp} value={newLeadForm.users} onChange={e => setNewLeadForm(f => ({...f, users: e.target.value}))}>
                         <option value="">Select range</option>
-                        {['1â€“5','6â€“20','21â€“50','51â€“100','100+'].map(r => <option key={r}>{r}</option>)}
+                        {['1–5','6–20','21–50','51–100','100+'].map(r => <option key={r}>{r}</option>)}
                       </select>
                     </div>
                     <div>
@@ -243,7 +243,7 @@ export default function PortalPage() {
                           {lead.status === 'Won' && (
                             <button onClick={() => setPage('customers')}
                               className="rounded-lg bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-700 hover:bg-green-100 ring-1 ring-green-200">
-                              âœ¦ Convert
+                              ✦ Convert
                             </button>
                           )}
                         </td>
@@ -264,7 +264,7 @@ export default function PortalPage() {
               <div className="border-b border-border px-5 py-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Admin</p>
                 <h2 className="mt-0.5 text-base font-semibold text-foreground">Customer Accounts</h2>
-                <p className="text-xs text-muted-foreground">{customers.length} customers Â· ${customers.reduce((s,c) => s+(c.mrr||0),0).toLocaleString()}/mo MRR</p>
+                <p className="text-xs text-muted-foreground">{customers.length} customers · ${customers.reduce((s,c) => s+(c.mrr||0),0).toLocaleString()}/mo MRR</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -287,7 +287,7 @@ export default function PortalPage() {
                           <td className="px-4 py-3"><span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium">{c.package}</span></td>
                           <td className="px-4 py-3">{c.users}</td>
                           <td className="px-4 py-3 font-semibold tabular-nums">${(c.mrr||0).toLocaleString()}</td>
-                          <td className="px-4 py-3 text-[11px]">{daysLeft !== null ? <span className={daysLeft <= 30 ? 'font-semibold text-red-600' : 'text-muted-foreground'}>{daysLeft <= 0 ? 'Expired' : `${daysLeft}d`}</span> : 'â€”'}</td>
+                          <td className="px-4 py-3 text-[11px]">{daysLeft !== null ? <span className={daysLeft <= 30 ? 'font-semibold text-red-600' : 'text-muted-foreground'}>{daysLeft <= 0 ? 'Expired' : `${daysLeft}d`}</span> : '—'}</td>
                           <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${healthColors[c.healthScore] || 'bg-gray-50 text-gray-500'}`}>{c.healthScore}</span></td>
                           <td className="px-4 py-3 text-muted-foreground">{c.country}</td>
                         </tr>
@@ -343,7 +343,7 @@ function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]
 
   const TYPE_LABELS: Record<string, { label: string; color: string }> = {
     csp:    { label: 'CSP Transfer',   color: 'bg-blue-50 text-blue-700' },
-    google: { label: 'Google â†’ M365', color: 'bg-red-50 text-red-700' },
+    google: { label: 'Google → M365', color: 'bg-red-50 text-red-700' },
     cpanel: { label: 'cPanel Upgrade', color: 'bg-orange-50 text-orange-700' },
   }
   const STATUS_LABELS: Record<string, string> = {
@@ -358,7 +358,7 @@ function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Sales</p>
             <h2 className="mt-0.5 text-base font-semibold text-foreground">Transfer Requests</h2>
-            <p className="text-xs text-muted-foreground">{transfers.length} total â€” <a href="/migrate" target="_blank" className="text-primary hover:underline">View /migrate page â†’</a></p>
+            <p className="text-xs text-muted-foreground">{transfers.length} total — <a href="/migrate" target="_blank" className="text-primary hover:underline">View /migrate page →</a></p>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -372,7 +372,7 @@ function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]
               {loading ? <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
               : transfers.length === 0 ? (
                 <tr><td colSpan={7} className="py-16 text-center">
-                  <div className="text-3xl mb-2">ðŸ”„</div>
+                  <div className="text-3xl mb-2">🔄</div>
                   <div className="text-sm font-medium text-foreground mb-1">No transfer requests yet</div>
                   <div className="text-xs text-muted-foreground">Requests submitted at <a href="/migrate" className="text-primary hover:underline">cloud.golivecompany.com/migrate</a> will appear here</div>
                 </td></tr>
@@ -465,12 +465,12 @@ function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]
             <div className="pt-2 space-y-2">
               <a href={`mailto:${selected.email}?subject=Re: Your Microsoft 365 Migration Request (${selected.ref})&body=Dear ${selected.contact},%0A%0AThank you for submitting a migration request to GoLive Digital Solutions.%0A%0AWe have reviewed your request and would like to schedule a call to discuss the next steps.%0A%0ARef: ${selected.ref}%0A%0ABest regards,%0AGoLive Digital Solutions Team`}
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:bg-primary/90">
-                âœ‰ï¸ Send email response
+                ✉️ Send email response
               </a>
               <a href={`https://wa.me/${selected.phone?.replace(/\D/g,'') || ''}?text=Hi ${selected.contact}, this is GoLive Digital Solutions regarding your migration request (${selected.ref}). We'd like to discuss the next steps.`}
                 target="_blank" rel="noopener noreferrer"
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25d366] px-3 py-2 text-xs font-semibold text-white hover:bg-[#25d366]/90">
-                ðŸ’¬ WhatsApp response
+                💬 WhatsApp response
               </a>
             </div>
           </div>
@@ -493,7 +493,7 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
     if (!lead) return
     // Auto-populate users from lead data
     const userRange = lead.users || ''
-    const userNum = userRange.includes('â€“') ? userRange.split('â€“')[1] : userRange.replace('+', '')
+    const userNum = userRange.includes('–') ? userRange.split('–')[1] : userRange.replace('+', '')
     const parsed = parseInt(userNum)
     if (!isNaN(parsed)) setUsers(String(parsed))
     // Auto-set currency based on country
@@ -535,7 +535,7 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
     if (!win) return
     win.document.write(`
       <!DOCTYPE html><html><head>
-      <title>GoLive Proposal â€” ${lead?.company || 'Client'}</title>
+      <title>GoLive Proposal — ${lead?.company || 'Client'}</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Arial, sans-serif; color: #0d2233; background: #fff; }
@@ -572,8 +572,8 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
         <div class="header">
           <div class="logo-area">
             <img src="https://cloud.golivecompany.com/images/logo-dark.png" style="height:80px;width:auto;" alt="GoLive" onerror="this.style.display='none'" />
-            <div class="company-sub">RC1644767 Â· 7 Ibiyinka Olorunbe Close, Victoria Island, Lagos</div>
-            <div class="company-sub">contact@golivecompany.com Â· +234 808 358 7801</div>
+            <div class="company-sub">RC1644767 · 7 Ibiyinka Olorunbe Close, Victoria Island, Lagos</div>
+            <div class="company-sub">contact@golivecompany.com · +234 808 358 7801</div>
           </div>
           <div class="ms-badge">
             <svg width="20" height="20" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
@@ -582,26 +582,26 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
               <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
               <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
             </svg>
-            <div class="ms-badge-text">Authorized Microsoft<br/>CSP Partner Â· ID 6787357</div>
+            <div class="ms-badge-text">Authorized Microsoft<br/>CSP Partner · ID 6787357</div>
           </div>
         </div>
 
         <div class="proposal-title">Microsoft 365 Proposal</div>
-        <div class="proposal-ref">Ref: ${proposalRef} Â· Prepared: ${today} Â· Valid until: ${expiry}</div>
+        <div class="proposal-ref">Ref: ${proposalRef} · Prepared: ${today} · Valid until: ${expiry}</div>
 
         <div class="meta-grid">
           <div class="meta-card">
             <div class="meta-label">Prepared for</div>
-            <div class="meta-value">${lead?.company || 'â€”'}</div>
+            <div class="meta-value">${lead?.company || '—'}</div>
             <div style="font-size:12px;color:#5c7184;margin-top:2px">${lead?.contact || ''}</div>
             <div style="font-size:12px;color:#5c7184;">${lead?.email || ''}</div>
             ${lead?.phone ? `<div style="font-size:12px;color:#5c7184;">${lead.phone}</div>` : ''}
-            <div style="font-size:12px;color:#5c7184;">${lead?.country || ''}${lead?.industry ? ' Â· ' + lead.industry : ''}</div>
+            <div style="font-size:12px;color:#5c7184;">${lead?.country || ''}${lead?.industry ? ' · ' + lead.industry : ''}</div>
           </div>
           <div class="meta-card">
             <div class="meta-label">Package</div>
             <div class="meta-value">${pkg}</div>
-            <div style="font-size:12px;color:#5c7184;margin-top:2px">${userCount} users Â· Billed in ${currency}</div>
+            <div style="font-size:12px;color:#5c7184;margin-top:2px">${userCount} users · Billed in ${currency}</div>
             ${lead?.services?.[0] ? `<div style="font-size:11px;color:#0096c7;margin-top:4px">Migrating from: ${lead.services[0]}</div>` : ''}
           </div>
         </div>
@@ -612,14 +612,14 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
           <tr><td style="color:#5c7184">Number of users</td><td>${userCount}</td></tr>
           <tr><td style="color:#5c7184">Price per user / month</td><td>${sym}${pricePerUser.toLocaleString()}</td></tr>
           <tr><td style="color:#5c7184">Monthly subscription total</td><td>${sym}${monthlyTotal.toLocaleString()}</td></tr>
-          <tr><td style="color:#5c7184">Annual plan (10 months â€” 2 months free)</td><td>${sym}${annualTotal.toLocaleString()}</td></tr>
+          <tr><td style="color:#5c7184">Annual plan (10 months — 2 months free)</td><td>${sym}${annualTotal.toLocaleString()}</td></tr>
           <tr><td style="color:#5c7184">One-time setup & migration fee</td><td>${sym}${setupFee.toLocaleString()}</td></tr>
           <tr class="total-row"><td>Total first year investment</td><td>${sym}${(annualTotal + setupFee).toLocaleString()}</td></tr>
         </table>
 
         <div class="section-title">What's Included</div>
         <div class="features">
-          ${(pkgFeatures[pkg] || []).map(f => `<div class="feature"><span class="check">âœ“</span><span>${f}</span></div>`).join('')}
+          ${(pkgFeatures[pkg] || []).map(f => `<div class="feature"><span class="check">✓</span><span>${f}</span></div>`).join('')}
         </div>
 
         <div class="validity">
@@ -629,8 +629,8 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
         <div class="footer-box">
           <div class="footer-text">
             <strong style="color:#fff">The GoLive Digital Solutions Company Ltd.</strong><br/>
-            RC1644767 Â· Microsoft CSP Partner ID: 6787357<br/>
-            cloud.golivecompany.com Â· contact@golivecompany.com
+            RC1644767 · Microsoft CSP Partner ID: 6787357<br/>
+            cloud.golivecompany.com · contact@golivecompany.com
           </div>
           <div class="ndpr">NDPA 2023 Compliant<br/>Migration Included<br/>30-Day Support</div>
         </div>
@@ -649,14 +649,14 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
           <label className="mb-1.5 block text-xs font-medium text-foreground">Select Lead</label>
           <select value={selectedLead} onChange={e => handleLeadSelect(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
             <option value="">Select a lead...</option>
-            {leads.filter(l => !['Won','Lost'].includes(l.status)).map(l => <option key={l._id} value={l._id}>{l.company} â€” {l.country} ({l.status})</option>)}
+            {leads.filter(l => !['Won','Lost'].includes(l.status)).map(l => <option key={l._id} value={l._id}>{l.company} — {l.country} ({l.status})</option>)}
           </select>
           {lead && (
             <div className="mt-2 rounded-lg bg-[#e8f4fb] border border-[#c8e6f0] px-3 py-2 text-xs">
               <div className="font-semibold text-[#0d2233]">{lead.company}</div>
-              <div className="text-[#5c7184]">{lead.contact} Â· {lead.email}</div>
+              <div className="text-[#5c7184]">{lead.contact} · {lead.email}</div>
               {lead.phone && <div className="text-[#5c7184]">{lead.phone}</div>}
-              <div className="text-[#5c7184]">{lead.industry} Â· {lead.users} users Â· {lead.country}</div>
+              <div className="text-[#5c7184]">{lead.industry} · {lead.users} users · {lead.country}</div>
               {(lead.services?.[0] || (lead as any).currentEmail) && <div className="text-[#0096c7] mt-0.5">Current: {lead.services?.[0] || (lead as any).currentEmail}</div>}
             </div>
           )}
@@ -685,7 +685,7 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
         </div>
         <button onClick={printProposal} disabled={!selectedLead}
           className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed">
-          ðŸ–¨ï¸ Generate & Print PDF
+          🖨️ Generate & Print PDF
         </button>
         {!selectedLead && <p className="text-center text-xs text-muted-foreground">Select a lead to enable proposal generation</p>}
       </div>
@@ -695,7 +695,7 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
         <div className="flex items-start justify-between border-b border-border pb-4 mb-4">
           <div>
             <img src="/images/logo-dark.png" alt="GoLive" style={{ height: 60, width: 'auto' }} />
-            <div className="text-[10px] text-muted-foreground mt-1">RC1644767 Â· contact@golivecompany.com</div>
+            <div className="text-[10px] text-muted-foreground mt-1">RC1644767 · contact@golivecompany.com</div>
           </div>
           <div className="flex items-center gap-2 rounded-lg border border-border bg-[#f0f8ff] px-3 py-2">
             <svg width="20" height="20" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
@@ -704,12 +704,12 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
               <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
               <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
             </svg>
-            <div className="text-[10px] font-semibold text-foreground leading-tight">Authorized Microsoft<br/>CSP Â· ID 6787357</div>
+            <div className="text-[10px] font-semibold text-foreground leading-tight">Authorized Microsoft<br/>CSP · ID 6787357</div>
           </div>
         </div>
         <div className="text-base font-bold text-foreground mb-1">Microsoft 365 Proposal</div>
-        <div className="text-[10px] text-muted-foreground mb-4">Ref: {proposalRef} Â· Valid 14 days from {today}</div>
-        {lead && <div className="mb-3 rounded-lg bg-secondary/50 px-3 py-2 text-xs"><span className="text-muted-foreground">Prepared for: </span><strong>{lead.company}</strong> â€” {lead.contact}</div>}
+        <div className="text-[10px] text-muted-foreground mb-4">Ref: {proposalRef} · Valid 14 days from {today}</div>
+        {lead && <div className="mb-3 rounded-lg bg-secondary/50 px-3 py-2 text-xs"><span className="text-muted-foreground">Prepared for: </span><strong>{lead.company}</strong> — {lead.contact}</div>}
         <div className="space-y-2 text-xs">
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Package</span><span className="font-medium">{pkg}</span></div>
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Users</span><span className="font-medium">{users}</span></div>
@@ -719,7 +719,7 @@ function ProposalContent({ leads }: { leads: Lead[] }) {
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Setup fee</span><span className="font-medium">{sym}{setupFee.toLocaleString()}</span></div>
           <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">Total first year</span><span className="font-bold text-primary text-base">{sym}{(annualTotal + setupFee).toLocaleString()}</span></div>
         </div>
-        <div className="mt-3 rounded-lg bg-primary/10 p-2.5 text-[10px] text-primary">âœ“ Migration included &nbsp;Â·&nbsp; âœ“ NDPA 2023 compliant &nbsp;Â·&nbsp; âœ“ 30-day support</div>
+        <div className="mt-3 rounded-lg bg-primary/10 p-2.5 text-[10px] text-primary">✓ Migration included &nbsp;·&nbsp; ✓ NDPA 2023 compliant &nbsp;·&nbsp; ✓ 30-day support</div>
       </div>
     </div>
   )
@@ -745,9 +745,9 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
   const inp = "w-full rounded-lg border border-[#e3e9f0] bg-white px-3 py-2 text-sm text-[#0d2233] outline-none focus:border-[#0096c7] focus:ring-2 focus:ring-[#0096c7]/20"
 
   const ROLE_LABELS: Record<string, { label: string; desc: string; color: string }> = {
-    admin:  { label: 'Admin',  desc: 'Full access â€” team management, all data', color: 'bg-purple-50 text-purple-700' },
+    admin:  { label: 'Admin',  desc: 'Full access — team management, all data', color: 'bg-purple-50 text-purple-700' },
     sales:  { label: 'Sales',  desc: 'Leads, pipeline, proposals, transfers', color: 'bg-blue-50 text-blue-700' },
-    viewer: { label: 'Viewer', desc: 'Read-only â€” cannot edit any records', color: 'bg-gray-50 text-gray-600' },
+    viewer: { label: 'Viewer', desc: 'Read-only — cannot edit any records', color: 'bg-gray-50 text-gray-600' },
   }
 
   const openEdit = (u: User) => {
@@ -763,7 +763,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
       const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
       const data = await res.json()
       if (data.success) {
-        setSuccess(`âœ“ ${form.name} added. They can log in at /portal/login.`)
+        setSuccess(`✓ ${form.name} added. They can log in at /portal/login.`)
         setForm({ name: '', email: '', password: '', role: 'sales' })
         setShowAdd(false); onUpdate()
       } else setError(data.error || 'Failed to add. Email may already exist.')
@@ -780,7 +780,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
       if (editForm.password) payload.password = editForm.password
       const res = await fetch(`/api/users/${editUser._id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const data = await res.json()
-      if (data.success) { setEditUser(null); onUpdate(); setSuccess(`âœ“ ${editForm.name} updated successfully.`) }
+      if (data.success) { setEditUser(null); onUpdate(); setSuccess(`✓ ${editForm.name} updated successfully.`) }
       else setError(data.error || 'Failed to update.')
     } catch { setError('Network error.') }
     setSaving(false)
@@ -789,7 +789,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
   const deleteUser = async (u: User) => {
     await fetch(`/api/users/${u._id}`, { method: 'DELETE' })
     setConfirmDelete(null); onUpdate()
-    setSuccess(`âœ“ ${u.name} removed from the team.`)
+    setSuccess(`✓ ${u.name} removed from the team.`)
   }
 
   return (
@@ -801,7 +801,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Admin</p>
             <h2 className="mt-0.5 text-base font-semibold text-foreground">Team & Access Control</h2>
-            <p className="text-xs text-muted-foreground">{users.length} team members Â· Click Edit to change details or reset password</p>
+            <p className="text-xs text-muted-foreground">{users.length} team members · Click Edit to change details or reset password</p>
           </div>
           <button onClick={() => { setShowAdd(true); setError('') }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
@@ -874,14 +874,14 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Temporary password *</label>
                 <input required type="password" minLength={8} className={inp} placeholder="Minimum 8 characters" value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))} />
-                <p className="mt-1 text-[11px] text-[#5c7184]">Share privately â€” admin can reset anytime from this page</p>
+                <p className="mt-1 text-[11px] text-[#5c7184]">Share privately — admin can reset anytime from this page</p>
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Role *</label>
                 <select className={inp} value={form.role} onChange={e => setForm(f => ({...f, role: e.target.value}))}>
-                  <option value="sales">Sales â€” leads, pipeline, proposals</option>
-                  <option value="admin">Admin â€” full access including team management</option>
-                  <option value="viewer">Viewer â€” read-only</option>
+                  <option value="sales">Sales — leads, pipeline, proposals</option>
+                  <option value="admin">Admin — full access including team management</option>
+                  <option value="viewer">Viewer — read-only</option>
                 </select>
               </div>
               {error && <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">{error}</div>}
@@ -899,7 +899,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(13,34,51,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#e3e9f0] px-6 py-4">
-              <div><h2 className="text-base font-semibold text-[#0d2233]">Edit â€” {editUser.name}</h2><p className="text-xs text-[#5c7184]">Leave password blank to keep existing password</p></div>
+              <div><h2 className="text-base font-semibold text-[#0d2233]">Edit — {editUser.name}</h2><p className="text-xs text-[#5c7184]">Leave password blank to keep existing password</p></div>
               <button onClick={() => setEditUser(null)} className="flex size-8 items-center justify-center rounded-lg text-[#5c7184] hover:bg-[#f4f7fb] text-lg">Ã—</button>
             </div>
             <form onSubmit={saveEdit} className="p-6 space-y-4">
@@ -914,11 +914,11 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Account Status</label>
                 <select className={inp} value={editForm.active ? 'true' : 'false'} onChange={e => setEditForm(f => ({...f, active: e.target.value === 'true'}))}>
-                  <option value="true">Active â€” can log in</option><option value="false">Inactive â€” login blocked</option>
+                  <option value="true">Active — can log in</option><option value="false">Inactive — login blocked</option>
                 </select>
               </div>
               <div className="rounded-xl border border-[#e3e9f0] bg-[#f4f7fb] p-4">
-                <label className="mb-1.5 block text-xs font-semibold text-[#0d2233]">ðŸ”‘ Reset Password</label>
+                <label className="mb-1.5 block text-xs font-semibold text-[#0d2233]">🔑 Reset Password</label>
                 <p className="mb-2 text-[11px] text-[#5c7184]">Leave blank to keep their current password unchanged</p>
                 <input type="password" minLength={8} className={inp} placeholder="New password (min 8 characters)" value={editForm.password} onChange={e => setEditForm(f => ({...f, password: e.target.value}))} />
               </div>
@@ -936,7 +936,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(13,34,51,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl p-6 text-center">
-            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-red-50 text-2xl">âš ï¸</div>
+            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-red-50 text-2xl">âš ️</div>
             <h2 className="text-base font-semibold text-[#0d2233] mb-1">Remove Team Member?</h2>
             <p className="text-sm text-[#5c7184] mb-1"><strong className="text-[#0d2233]">{confirmDelete.name}</strong> will be permanently removed.</p>
             <p className="text-xs text-[#5c7184] mb-6">They will no longer be able to log in. This cannot be undone.</p>
@@ -956,55 +956,55 @@ const CERT_MILESTONES = [
     id: 'ab900_study', phase: 'Month 1', category: 'Skilling',
     title: 'AB-900 study started',
     desc: 'Team member enrolled in Microsoft Learn AB-900 path',
-    link: 'https://learn.microsoft.com', linkLabel: 'Start on Microsoft Learn â†’'
+    link: 'https://learn.microsoft.com', linkLabel: 'Start on Microsoft Learn →'
   },
   {
     id: 'ab900_passed', phase: 'Month 1', category: 'Skilling',
-    title: 'AB-900 exam passed âœ¦ Intermediate cert earned',
-    desc: 'Microsoft 365 Copilot & Agent Administration Fundamentals â€” $99 on Pearson VUE',
-    link: 'https://home.pearsonvue.com/microsoft', linkLabel: 'Register on Pearson VUE â†’'
+    title: 'AB-900 exam passed ✦ Intermediate cert earned',
+    desc: 'Microsoft 365 Copilot & Agent Administration Fundamentals — $99 on Pearson VUE',
+    link: 'https://home.pearsonvue.com/microsoft', linkLabel: 'Register on Pearson VUE →'
   },
   {
-    id: 'ms102_study', phase: 'Month 1â€“3', category: 'Skilling',
+    id: 'ms102_study', phase: 'Month 1–3', category: 'Skilling',
     title: 'MS-102 study started',
     desc: 'Technical lead set up free M365 E5 dev tenant and began learning path',
-    link: 'https://developer.microsoft.com/en-us/microsoft-365/dev-program', linkLabel: 'Get free dev tenant â†’'
+    link: 'https://developer.microsoft.com/en-us/microsoft-365/dev-program', linkLabel: 'Get free dev tenant →'
   },
   {
     id: 'customer_2', phase: 'Month 2', category: 'Performance',
     title: '2 net new M365 customers signed',
-    desc: 'Two businesses onboarded on Microsoft 365 via GoLive CSP â€” linked in Partner Center',
-    link: 'https://partner.microsoft.com', linkLabel: 'Check Partner Center score â†’'
+    desc: 'Two businesses onboarded on Microsoft 365 via GoLive CSP — linked in Partner Center',
+    link: 'https://partner.microsoft.com', linkLabel: 'Check Partner Center score →'
   },
   {
     id: 'ms102_passed', phase: 'Month 3', category: 'Skilling',
-    title: 'MS-102 exam passed âœ¦ Advanced cert earned',
-    desc: 'Microsoft 365 Administrator Expert â€” $165 on Pearson VUE. REQUIRED for designation.',
-    link: 'https://home.pearsonvue.com/microsoft', linkLabel: 'Register MS-102 â†’'
+    title: 'MS-102 exam passed ✦ Advanced cert earned',
+    desc: 'Microsoft 365 Administrator Expert — $165 on Pearson VUE. REQUIRED for designation.',
+    link: 'https://home.pearsonvue.com/microsoft', linkLabel: 'Register MS-102 →'
   },
   {
     id: 'customer_4', phase: 'Month 4', category: 'Performance',
     title: '4 net new M365 customers signed',
     desc: 'Four qualifying businesses onboarded. Microsoft evaluates on SMB CSP track.',
-    link: 'https://partner.microsoft.com', linkLabel: 'Track in Partner Center â†’'
+    link: 'https://partner.microsoft.com', linkLabel: 'Track in Partner Center →'
   },
   {
     id: 'workloads', phase: 'Month 4', category: 'Customer Success',
     title: 'Teams + OneDrive activated for all clients',
-    desc: 'Ensure every customer has Teams and OneDrive enabled â€” this builds usage growth score',
+    desc: 'Ensure every customer has Teams and OneDrive enabled — this builds usage growth score',
     link: null, linkLabel: null
   },
   {
-    id: 'applied', phase: 'Month 4â€“5', category: 'Admin',
+    id: 'applied', phase: 'Month 4–5', category: 'Admin',
     title: 'Applied for designation in Partner Center',
-    desc: 'Partner Center â†’ Membership â†’ Solutions Partner â†’ Modern Work â†’ Apply',
-    link: 'https://partner.microsoft.com', linkLabel: 'Go to Partner Center â†’'
+    desc: 'Partner Center → Membership → Solutions Partner → Modern Work → Apply',
+    link: 'https://partner.microsoft.com', linkLabel: 'Go to Partner Center →'
   },
   {
-    id: 'badge_live', phase: 'Month 5â€“6', category: 'Complete',
-    title: 'ðŸŽ‰ Solutions Partner badge awarded',
+    id: 'badge_live', phase: 'Month 5–6', category: 'Complete',
+    title: '🎉 Solutions Partner badge awarded',
     desc: 'GoLive listed in Microsoft Marketplace partner directory for Nigeria. Badge live.',
-    link: 'https://marketplace.microsoft.com', linkLabel: 'View Microsoft Marketplace â†’'
+    link: 'https://marketplace.microsoft.com', linkLabel: 'View Microsoft Marketplace →'
   },
 ]
 
@@ -1049,15 +1049,15 @@ function CertificationPage({ role }: { role: string }) {
       <div className="rounded-2xl bg-[#0d2233] p-6 text-white">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#00c8c8]">Resources Â· Internal</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#00c8c8]">Resources · Internal</p>
             <h2 className="mt-1 text-xl font-bold">Microsoft Solutions Partner</h2>
-            <p className="text-sm text-white/70">Modern Work Designation â€” SMB Track Â· 2026</p>
+            <p className="text-sm text-white/70">Modern Work Designation — SMB Track · 2026</p>
           </div>
           <div className="text-right">
             <div className="text-3xl font-bold text-[#00c8c8]">{completed}/{total}</div>
             <div className="text-xs text-white/50">milestones complete</div>
             {saving && <div className="text-[10px] text-white/40 mt-1">Saving...</div>}
-            {saved && <div className="text-[10px] text-[#00c8c8] mt-1">âœ“ Saved</div>}
+            {saved && <div className="text-[10px] text-[#00c8c8] mt-1">✓ Saved</div>}
           </div>
         </div>
         {/* Progress bar */}
@@ -1088,14 +1088,14 @@ function CertificationPage({ role }: { role: string }) {
 
       {/* Score breakdown */}
       <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-        <h3 className="mb-3 text-sm font-semibold text-foreground">Scoring Breakdown â€” 70 points needed</h3>
+        <h3 className="mb-3 text-sm font-semibold text-foreground">Scoring Breakdown — 70 points needed</h3>
         <div className="space-y-3">
           {[
-            { label: 'Performance â€” Net New M365 Customers', max: 50, note: 'Sign 4+ qualifying customers via CSP' },
-            { label: 'Skilling â€” Intermediate (AB-900 / MS-900)', max: 12.5, note: '1 person certified â€” MANDATORY' },
-            { label: 'Skilling â€” Advanced (MS-102)', max: 12.5, note: '1 person certified â€” MANDATORY' },
-            { label: 'Customer Success â€” Usage Growth', max: 12.5, note: 'Auto â€” activate Teams & OneDrive per client' },
-            { label: 'Customer Success â€” Deployments', max: 12.5, note: 'Auto â€” grows with client base' },
+            { label: 'Performance — Net New M365 Customers', max: 50, note: 'Sign 4+ qualifying customers via CSP' },
+            { label: 'Skilling — Intermediate (AB-900 / MS-900)', max: 12.5, note: '1 person certified — MANDATORY' },
+            { label: 'Skilling — Advanced (MS-102)', max: 12.5, note: '1 person certified — MANDATORY' },
+            { label: 'Customer Success — Usage Growth', max: 12.5, note: 'Auto — activate Teams & OneDrive per client' },
+            { label: 'Customer Success — Deployments', max: 12.5, note: 'Auto — grows with client base' },
           ].map((s, i) => (
             <div key={i}>
               <div className="flex justify-between text-xs mb-1">
@@ -1117,12 +1117,12 @@ function CertificationPage({ role }: { role: string }) {
           <div>
             <h3 className="text-sm font-semibold text-foreground">Action Plan & Milestones</h3>
             <p className="text-xs text-muted-foreground">
-              {isAdmin ? 'Click any milestone to mark complete â€” visible to all team members' : 'Milestones updated by admin Â· read only'}
+              {isAdmin ? 'Click any milestone to mark complete — visible to all team members' : 'Milestones updated by admin · read only'}
             </p>
           </div>
           <a href="/certification-guide.html" target="_blank"
             className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-white px-3 py-1.5 text-xs font-medium text-foreground shadow-xs hover:bg-secondary">
-            Full guide â†—
+            Full guide ↗
           </a>
         </div>
         <div className="divide-y divide-border">
@@ -1147,7 +1147,7 @@ function CertificationPage({ role }: { role: string }) {
                   <div className="flex flex-wrap items-center gap-2">
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${CATEGORY_COLORS[m.category]}`}>{m.category}</span>
                     <span className="text-[10px] text-muted-foreground">{m.phase}</span>
-                    {done && <span className="text-[10px] font-semibold text-green-600">âœ“ Complete</span>}
+                    {done && <span className="text-[10px] font-semibold text-green-600">✓ Complete</span>}
                   </div>
                   <p className={`mt-1 text-sm font-semibold ${done ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{m.title}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground">{m.desc}</p>
@@ -1173,13 +1173,13 @@ function CertificationPage({ role }: { role: string }) {
             { label: 'Partner Center', desc: 'Track GoLive\'s live PCS score', href: 'https://partner.microsoft.com' },
             { label: 'Microsoft Learn', desc: 'Free study paths for all exams', href: 'https://learn.microsoft.com' },
             { label: 'Free M365 Dev Tenant', desc: '90-day E5 sandbox for MS-102 practice', href: 'https://developer.microsoft.com/en-us/microsoft-365/dev-program' },
-            { label: 'Pearson VUE â€” Register Exams', desc: 'Book AB-900 and MS-102 online', href: 'https://home.pearsonvue.com/microsoft' },
-            { label: 'Virtual Training Days', desc: 'Free prep â€” sometimes includes voucher', href: 'https://events.microsoft.com' },
+            { label: 'Pearson VUE — Register Exams', desc: 'Book AB-900 and MS-102 online', href: 'https://home.pearsonvue.com/microsoft' },
+            { label: 'Virtual Training Days', desc: 'Free prep — sometimes includes voucher', href: 'https://events.microsoft.com' },
             { label: 'Modern Work Requirements', desc: 'Official Microsoft documentation', href: 'https://learn.microsoft.com/en-us/partner-center/membership/solutions-partner-modern-work' },
           ].map(l => (
             <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer"
               className="flex items-start gap-3 rounded-lg border border-border p-3 text-sm transition-colors hover:border-[#0096c7]/30 hover:bg-[#e8f4fb]">
-              <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-[#e8f4fb] text-[#0096c7] text-xs">â†—</span>
+              <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-[#e8f4fb] text-[#0096c7] text-xs">↗</span>
               <div>
                 <div className="font-medium text-foreground">{l.label}</div>
                 <div className="text-xs text-muted-foreground">{l.desc}</div>
