@@ -64,6 +64,87 @@ export default function MigratePage() {
   const widgetRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | undefined>(undefined)
 
+  const [emailVerified, setEmailVerified] = useState(false)
+  const [verificationToken, setVerificationToken] = useState('')
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpCode, setOtpCode] = useState('')
+  const [sendingOtp, setSendingOtp] = useState(false)
+  const [verifyingOtp, setVerifyingOtp] = useState(false)
+  const [otpError, setOtpError] = useState('')
+  const [otpCooldown, setOtpCooldown] = useState(0)
+
+  useEffect(() => {
+    if (otpCooldown <= 0) return
+    const t = setTimeout(() => setOtpCooldown(cd => cd - 1), 1000)
+    return () => clearTimeout(t)
+  }, [otpCooldown])
+
+  function isValidEmail(value: string) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+  }
+
+  function resetEmailVerification() {
+    setEmailVerified(false)
+    setVerificationToken('')
+    setOtpSent(false)
+    setOtpCode('')
+    setOtpError('')
+  }
+
+  async function handleSendOtp() {
+    if (!isValidEmail(form.email)) {
+      setOtpError('Please enter a valid email address first.')
+      return
+    }
+    setOtpError('')
+    setSendingOtp(true)
+    try {
+      const res = await fetch('/api/verify-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email }),
+      })
+      const result = await res.json()
+      if (result.success) {
+        setOtpSent(true)
+        setOtpCooldown(60)
+      } else {
+        setOtpError(result.error || 'Failed to send code. Please try again.')
+      }
+    } catch {
+      setOtpError('Network error. Please try again.')
+    } finally {
+      setSendingOtp(false)
+    }
+  }
+
+  async function handleVerifyOtp() {
+    if (!otpCode || otpCode.length !== 6) {
+      setOtpError('Enter the 6-digit code from your email.')
+      return
+    }
+    setOtpError('')
+    setVerifyingOtp(true)
+    try {
+      const res = await fetch('/api/verify-email/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: form.email, code: otpCode }),
+      })
+      const result = await res.json()
+      if (result.success) {
+        setEmailVerified(true)
+        setVerificationToken(result.verificationToken)
+      } else {
+        setOtpError(result.error || 'Incorrect code.')
+      }
+    } catch {
+      setOtpError('Network error. Please try again.')
+    } finally {
+      setVerifyingOtp(false)
+    }
+  }
+
   useEffect(() => {
     if (document.getElementById('turnstile-script')) {
       if (window.turnstile) setTurnstileReady(true)
@@ -91,6 +172,10 @@ export default function MigratePage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!emailVerified || !verificationToken) {
+      setStatus('error')
+      return
+    }
     if (!turnstileToken) {
       setStatus('error')
       return
@@ -100,12 +185,15 @@ export default function MigratePage() {
       const res = await fetch('/api/transfers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, transferType: type, turnstileToken })
+        body: JSON.stringify({ ...form, transferType: type, turnstileToken, verificationToken })
       })
       const data = await res.json()
       if (data.success) { setStatus('done'); setRef(data.ref) }
       else {
         setStatus('error')
+        if (data.error === 'email_not_verified') {
+          resetEmailVerification()
+        }
         if (window.turnstile && widgetIdRef.current) window.turnstile.reset(widgetIdRef.current)
         setTurnstileToken('')
       }
@@ -267,7 +355,34 @@ export default function MigratePage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
                   <div><label style={lbl}>Company *</label><input style={inp} required placeholder="Company name" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} /></div>
                   <div><label style={lbl}>Contact name *</label><input style={inp} required placeholder="Your name" value={form.contact} onChange={e => setForm(f => ({ ...f, contact: e.target.value }))} /></div>
-                  <div><label style={lbl}>Email *</label><input style={inp} required type="email" placeholder="you@company.com" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></div>
+                  <div>
+                    <label style={lbl}>Email *</label>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <input style={{ ...inp, background: emailVerified ? '#f0fdf4' : '#fff', borderColor: emailVerified ? '#86efac' : BORDER }} required type="email" placeholder="you@company.com" disabled={emailVerified}
+                        value={form.email} onChange={e => { setForm(f => ({ ...f, email: e.target.value })); resetEmailVerification() }} />
+                      {!emailVerified && (
+                        <button type="button" onClick={handleSendOtp} disabled={sendingOtp || otpCooldown > 0 || !isValidEmail(form.email)}
+                          style={{ flexShrink: 0, whiteSpace: 'nowrap', background: CY, color: '#fff', border: 'none', borderRadius: 6, padding: '0 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: (sendingOtp || otpCooldown > 0 || !isValidEmail(form.email)) ? 0.5 : 1 }}>
+                          {sendingOtp ? 'Sending...' : otpCooldown > 0 ? `Resend (${otpCooldown}s)` : otpSent ? 'Resend' : 'Verify'}
+                        </button>
+                      )}
+                    </div>
+                    {emailVerified && (
+                      <p style={{ marginTop: 4, fontSize: 11, fontWeight: 600, color: '#16a34a' }}>✓ Email verified</p>
+                    )}
+                    {otpSent && !emailVerified && (
+                      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+                        <input type="text" inputMode="numeric" maxLength={6} placeholder="6-digit code" value={otpCode}
+                          onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                          style={{ ...inp, width: 110, letterSpacing: 4, textAlign: 'center' }} />
+                        <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || otpCode.length !== 6}
+                          style={{ background: TEAL, color: '#fff', border: 'none', borderRadius: 6, padding: '0 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: (verifyingOtp || otpCode.length !== 6) ? 0.5 : 1 }}>
+                          {verifyingOtp ? 'Checking...' : 'Confirm'}
+                        </button>
+                      </div>
+                    )}
+                    {otpError && <p style={{ marginTop: 4, fontSize: 11, color: '#dc2626' }}>{otpError}</p>}
+                  </div>
                   <div><label style={lbl}>WhatsApp / Phone</label><input style={inp} placeholder="+234..." value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} /></div>
                 </div>
                 <div style={{ marginBottom: 10 }}>
@@ -303,9 +418,9 @@ export default function MigratePage() {
                   <div ref={widgetRef} />
                 </div>
                 {status === 'error' && <div style={{ background: '#fee2e2', color: '#991b1b', borderRadius: 7, padding: '10px 12px', fontSize: 12, marginBottom: 12 }}>{!turnstileToken ? 'Please complete the security check above.' : 'Something went wrong. Please try again or WhatsApp us directly.'}</div>}
-                <button type="submit" disabled={status === 'sending' || !turnstileToken}
-                  style={{ width: '100%', background: (status === 'sending' || !turnstileToken) ? MUTED : CY, color: '#fff', border: 'none', borderRadius: 8, padding: '13px', fontSize: 14, fontWeight: 700, cursor: (status === 'sending' || !turnstileToken) ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
-                  {status === 'sending' ? 'Submitting...' : `Submit ${TRANSFER_TYPES[type].label} Request →`}
+                <button type="submit" disabled={status === 'sending' || !turnstileToken || !emailVerified}
+                  style={{ width: '100%', background: (status === 'sending' || !turnstileToken || !emailVerified) ? MUTED : CY, color: '#fff', border: 'none', borderRadius: 8, padding: '13px', fontSize: 14, fontWeight: 700, cursor: (status === 'sending' || !turnstileToken || !emailVerified) ? 'not-allowed' : 'pointer', fontFamily: 'inherit' }}>
+                  {status === 'sending' ? 'Submitting...' : !emailVerified ? 'Verify your email to continue' : `Submit ${TRANSFER_TYPES[type].label} Request →`}
                 </button>
                 <p style={{ textAlign: 'center', fontSize: 11, color: MUTED, marginTop: 10 }}>No commitment required. Free assessment call included.</p>
               </form>

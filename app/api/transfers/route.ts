@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import mongoose, { Schema } from 'mongoose'
+import crypto from 'crypto'
+
+function verifyEmailToken(token: string, email: string): boolean {
+  try {
+    const secret = process.env.NEXTAUTH_SECRET || 'fallback-secret-change-me'
+    const decoded = Buffer.from(token, 'base64').toString('utf8')
+    const [tokenEmail, expiresAtStr, signature] = decoded.split(':')
+    const expiresAt = parseInt(expiresAtStr, 10)
+
+    if (tokenEmail !== email.toLowerCase()) return false
+    if (Date.now() > expiresAt) return false
+
+    const expectedPayload = `${tokenEmail}:${expiresAtStr}`
+    const expectedSignature = crypto.createHmac('sha256', secret).update(expectedPayload).digest('hex')
+    return signature === expectedSignature
+  } catch {
+    return false
+  }
+}
 
 async function verifyTurnstile(token: string, remoteIp?: string) {
   try {
@@ -70,6 +89,14 @@ export async function POST(req: NextRequest) {
     await connectDB()
     const body = await req.json()
 
+    if (!body.verificationToken || !body.email) {
+      return NextResponse.json({ success: false, error: 'email_not_verified' }, { status: 403 })
+    }
+    const emailOk = verifyEmailToken(body.verificationToken, body.email)
+    if (!emailOk) {
+      return NextResponse.json({ success: false, error: 'email_not_verified' }, { status: 403 })
+    }
+
     if (!body.turnstileToken) {
       return NextResponse.json({ success: false, error: 'captcha_required' }, { status: 400 })
     }
@@ -80,7 +107,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'captcha_failed' }, { status: 403 })
     }
 
-    const { turnstileToken, ...transferData } = body
+    const { turnstileToken, verificationToken, ...transferData } = body
     const ref = generateRef(transferData.transferType || 'csp')
     const transfer = await Transfer.create({ ...transferData, ref })
     return NextResponse.json({ success: true, transfer, ref }, { status: 201 })
