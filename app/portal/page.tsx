@@ -12,6 +12,7 @@ import CommissionDashboard from '@/components/dashboard/CommissionDashboard'
 import AnnouncementsPanel from '@/components/dashboard/AnnouncementsPanel'
 import KnowledgeBase from '@/components/dashboard/KnowledgeBase'
 import LeadAssign from '@/components/dashboard/LeadAssign'
+import TransferAssign from '@/components/dashboard/TransferAssign'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,6 +30,7 @@ interface Transfer {
   _id: string; ref: string; transferType: string; company: string
   contact: string; email: string; phone: string; domain: string; users: string
   country: string; status: string; createdAt: string; currentProvider?: string; notes?: string
+  assignedTo?: string; assignedToEmail?: string
 }
 interface User {
   _id: string; name: string; email: string; role: string; active: boolean; lastLogin: string
@@ -275,7 +277,7 @@ export default function PortalPage() {
           )}
 
           {page === 'transfers' && (
-            <TransfersView transfers={transfers} loading={loading} onUpdate={fetchData} />
+            <TransfersView transfers={transfers} loading={loading} onUpdate={fetchData} isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} userName={(session?.user as any)?.name ?? ''} />
           )}
 
           {page === 'customers' && (
@@ -364,7 +366,7 @@ export default function PortalPage() {
   )
 }
 
-function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]; loading: boolean; onUpdate: () => void }) {
+function TransfersView({ transfers, loading, onUpdate, isAdmin, userEmail, userName }: { transfers: Transfer[]; loading: boolean; onUpdate: () => void; isAdmin: boolean; userEmail: string; userName: string }) {
   const [selected, setSelected] = useState<Transfer | null>(null)
 
   const TYPE_LABELS: Record<string, { label: string; color: string }> = {
@@ -390,14 +392,14 @@ function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="border-b border-border bg-secondary/30">
-              {['Ref','Type','Company','Domain','Country','Status','Date'].map(h => (
+              {['Ref','Type','Company','Domain','Country','Assigned','Status','Date'].map(h => (
                 <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>
               ))}
             </tr></thead>
             <tbody>
-              {loading ? <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
+              {loading ? <tr><td colSpan={8} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
               : transfers.length === 0 ? (
-                <tr><td colSpan={7} className="py-16 text-center">
+                <tr><td colSpan={8} className="py-16 text-center">
                   <div className="text-3xl mb-2">🔄</div>
                   <div className="text-sm font-medium text-foreground mb-1">No transfer requests yet</div>
                   <div className="text-xs text-muted-foreground">Requests submitted at <a href="/migrate" className="text-primary hover:underline">cloud.golivecompany.com/migrate</a> will appear here</div>
@@ -413,13 +415,23 @@ function TransfersView({ transfers, loading, onUpdate }: { transfers: Transfer[]
                     <td className="px-4 py-3 font-medium text-foreground">{t.company}<div className="text-[11px] text-muted-foreground">{t.contact}</div></td>
                     <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">{t.domain}</td>
                     <td className="px-4 py-3 text-muted-foreground text-xs">{t.country}</td>
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <TransferAssign transfer={t} isAdmin={isAdmin} userEmail={userEmail} userName={userName} onAssigned={onUpdate} />
+                    </td>
                     <td className="px-4 py-3">
-                      <select value={t.status} onClick={e => e.stopPropagation()} onChange={async e => {
-                        await fetch('/api/transfers', { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id: t._id, status: e.target.value }) })
-                        onUpdate()
-                      }} className="rounded-full bg-blue-50 text-blue-700 px-2.5 py-1 text-[11px] font-semibold border-0 outline-none cursor-pointer">
-                        {Object.entries(STATUS_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
-                      </select>
+                      {(isAdmin || (t.assignedToEmail && t.assignedToEmail === userEmail)) ? (
+                        <select value={t.status} onClick={e => e.stopPropagation()} onChange={async e => {
+                          await fetch('/api/transfers', { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id: t._id, status: e.target.value, updatedBy: userName }) })
+                          onUpdate()
+                        }} className="rounded-full bg-blue-50 text-blue-700 px-2.5 py-1 text-[11px] font-semibold border-0 outline-none cursor-pointer">
+                          {Object.entries(STATUS_LABELS).map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                        </select>
+                      ) : (
+                        <span onClick={e => e.stopPropagation()} title={t.assignedTo ? `Only ${t.assignedTo} or an admin can change this` : 'Assign this transfer first to change its status'}
+                          className="inline-flex items-center gap-1 rounded-full bg-blue-50 text-blue-700 px-2.5 py-1 text-[11px] font-semibold cursor-not-allowed opacity-70">
+                          🔒 {STATUS_LABELS[t.status] || t.status}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-[11px] text-muted-foreground">{new Date(t.createdAt).toLocaleDateString()}</td>
                   </tr>

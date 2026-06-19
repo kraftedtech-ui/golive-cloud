@@ -130,6 +130,7 @@ jobs:
           git show origin/main:components/dashboard/AnnouncementsPanel.tsx > components/dashboard/AnnouncementsPanel.tsx
           git show origin/main:components/dashboard/KnowledgeBase.tsx > components/dashboard/KnowledgeBase.tsx
           git show origin/main:components/dashboard/LeadAssign.tsx > components/dashboard/LeadAssign.tsx
+          git show origin/main:components/dashboard/TransferAssign.tsx > components/dashboard/TransferAssign.tsx
           mkdir -p components/ui
           git show origin/main:components/ui/card.tsx > components/ui/card.tsx
           git show origin/main:components/ui/button.tsx > components/ui/button.tsx
