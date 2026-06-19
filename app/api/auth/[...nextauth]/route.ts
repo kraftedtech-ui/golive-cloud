@@ -3,7 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { connectDB } from '@/lib/mongodb'
 import { User } from '@/models/User'
 import bcrypt from 'bcryptjs'
-import { authenticator } from 'otplib'
+import { verify } from 'otplib'
 
 const handler = NextAuth({
   providers: [
@@ -23,15 +23,13 @@ const handler = NextAuth({
             const isValid = await bcrypt.compare(credentials.password, user.password)
             if (!isValid) return null
 
-            // Enforce 2FA if enabled — defense in depth, even though the login page
-            // already gates this before calling signIn.
             if (user.twoFactorEnabled) {
               if (!credentials.totpCode) return null
-              const isCodeValid = authenticator.verify({
+              const result = await verify({
                 token: credentials.totpCode.trim(),
                 secret: user.twoFactorSecret || '',
               })
-              if (!isCodeValid) return null
+              if (!result.valid) return null
             }
 
             await User.findByIdAndUpdate(user._id, { lastLogin: new Date() })
@@ -41,7 +39,6 @@ const handler = NextAuth({
           console.error('MongoDB auth error:', err)
         }
 
-        // Break-glass env-based admin account — exempt from 2FA by design.
         const adminEmail = process.env.ADMIN_EMAIL
         const adminPassword = process.env.ADMIN_PASSWORD
         if (!adminEmail || !adminPassword) return null

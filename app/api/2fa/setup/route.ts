@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { User } from '@/models/User'
-import { authenticator } from 'otplib'
+import { generateSecret, generateURI } from 'otplib'
 import QRCode from 'qrcode'
 import bcrypt from 'bcryptjs'
 
 // POST /api/2fa/setup — generate a new secret + QR code for a user to scan
-// Requires email + password to confirm identity before issuing a new secret
 export async function POST(req: NextRequest) {
   try {
     await connectDB()
@@ -26,12 +25,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 })
     }
 
-    const secret = authenticator.generateSecret()
+    const secret = generateSecret()
     const issuer = 'GoLive Cloud Marketplace'
-    const otpauthUrl = authenticator.keyuri(user.email, issuer, secret)
+    const otpauthUrl = await generateURI({ secret, issuer, label: user.email })
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl)
 
-    // Store secret temporarily (not yet enabled) — only confirmed after user verifies a code
     user.twoFactorSecret = secret
     user.twoFactorEnabled = false
     await user.save()

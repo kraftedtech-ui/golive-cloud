@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { User } from '@/models/User'
-import { authenticator } from 'otplib'
+import { verify } from 'otplib'
 
 // POST /api/2fa/confirm — verify the first code to confirm setup and enable 2FA
 export async function POST(req: NextRequest) {
@@ -18,8 +18,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'No pending 2FA setup found' }, { status: 404 })
     }
 
-    const isValid = authenticator.verify({ token: code.trim(), secret: user.twoFactorSecret })
-    if (!isValid) {
+    const result = await verify({ token: code.trim(), secret: user.twoFactorSecret })
+    if (!result.valid) {
       return NextResponse.json({ success: false, error: 'Incorrect code. Please try again.' }, { status: 401 })
     }
 
