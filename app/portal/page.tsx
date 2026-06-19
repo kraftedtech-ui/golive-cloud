@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic'
 interface Lead {
   _id: string; ref: string; company: string; contact: string; email: string
   phone: string; country: string; industry: string; users: string
-  services: string[]; status: string; createdAt: string
+  services: string[]; status: string; createdAt: string; assignedTo?: string; assignedToEmail?: string
 }
 interface Customer {
   _id: string; company: string; tenantDomain: string; package: string
@@ -216,13 +216,13 @@ export default function PortalPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border bg-secondary/30">
-                    {['Ref','Company','Contact','Country','Users','Status','Date','Action'].map(h => (
+                    {['Ref','Company','Contact','Country','Users','Assigned','Status','Date','Action'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>
                     ))}
                   </tr></thead>
                   <tbody>
-                    {loading ? <tr><td colSpan={8} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
-                    : leads.length === 0 ? <tr><td colSpan={8} className="py-12 text-center text-sm text-muted-foreground">No leads yet</td></tr>
+                    {loading ? <tr><td colSpan={9} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
+                    : leads.length === 0 ? <tr><td colSpan={9} className="py-12 text-center text-sm text-muted-foreground">No leads yet</td></tr>
                     : leads.map(lead => (
                       <tr key={lead._id} className="border-b border-border/50 hover:bg-secondary/30">
                         <td className="px-4 py-3 font-mono text-[11px] text-primary">{lead.ref}</td>
@@ -230,6 +230,17 @@ export default function PortalPage() {
                         <td className="px-4 py-3 text-muted-foreground">{lead.contact}<div className="text-[11px]">{lead.email}</div></td>
                         <td className="px-4 py-3 text-muted-foreground">{lead.country}</td>
                         <td className="px-4 py-3">{lead.users}</td>
+                        <td className="px-4 py-3">
+                          <LeadAssign
+                            leadId={lead._id}
+                            currentAssignee={lead.assignedTo}
+                            currentAssigneeEmail={lead.assignedToEmail}
+                            userRole={role}
+                            userName={(session?.user as any)?.name ?? ''}
+                            userEmail={session?.user?.email ?? ''}
+                            onAssigned={fetchData}
+                          />
+                        </td>
                         <td className="px-4 py-3">
                           <select value={lead.status} onChange={async e => {
                             await fetch(`/api/leads/${lead._id}`, { method: 'PATCH', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ status: e.target.value }) })
