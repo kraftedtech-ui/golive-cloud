@@ -3,8 +3,11 @@ import { connectDB } from '@/lib/mongodb'
 import { Lead } from '@/models/Lead'
 import { Notification } from '@/models/Notification'
 import { Resend } from 'resend'
+import { requireSession } from '@/lib/apiAuth'
 const resend = new Resend(process.env.RESEND_API_KEY)
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   const { id } = await params
   try {
     await connectDB()

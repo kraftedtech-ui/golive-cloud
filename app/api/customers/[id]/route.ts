@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { Customer } from '@/models/Customer'
+import { requireSession, requireAdmin } from '@/lib/apiAuth'
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     const { id } = await params
     await connectDB()
@@ -22,6 +25,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   try {
     const { id } = await params
     await connectDB()
@@ -43,6 +48,8 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   try {
     const { id } = await params
     await connectDB()

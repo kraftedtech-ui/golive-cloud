@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import mongoose, { Schema } from 'mongoose'
 import crypto from 'crypto'
+import { requireSession } from '@/lib/apiAuth'
 
 function verifyEmailToken(token: string, email: string): boolean {
   try {
@@ -74,6 +75,8 @@ function generateRef(type: string) {
 }
 
 export async function GET() {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const transfers = await Transfer.find({}).sort({ createdAt: -1 }).limit(200)
@@ -118,6 +121,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const body = await req.json()

@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { User } from '@/models/User'
 import { Resend } from 'resend'
+import { requireAdmin } from '@/lib/apiAuth'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function GET() {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const users = await User.find({}).select('-password').sort({ createdAt: -1 })
@@ -17,6 +20,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const { name, email, password, role, invitedBy } = await req.json()

@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
+import { requireSession } from '@/lib/apiAuth'
 
 const MONGO_URI = process.env.MONGODB_URI!
 
 export async function GET() {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     const client = new MongoClient(MONGO_URI)
     await client.connect()
@@ -17,6 +20,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     const { milestones } = await req.json()
     const client = new MongoClient(MONGO_URI)

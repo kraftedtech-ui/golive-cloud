@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { KnowledgeArticle } from '@/models/KnowledgeArticle'
+import { requireSession, requireAdmin } from '@/lib/apiAuth'
 
 const SEED_ARTICLES = [
   {
@@ -266,6 +267,8 @@ This is a plain-English summary of the Commission & Bonus Addendum (REF#01010). 
 ]
 
 export async function GET() {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const count = await KnowledgeArticle.countDocuments()
@@ -280,6 +283,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const body = await req.json()

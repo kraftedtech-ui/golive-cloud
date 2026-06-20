@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { ExchangeRate } from '@/models/ExchangeRate'
 import { getExchangeRates } from '@/lib/exchangeRates'
+import { requireSession, requireAdmin } from '@/lib/apiAuth'
 
 export async function GET() {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     const { rates, source, fetchedAt } = await getExchangeRates()
     return NextResponse.json({ success: true, rates, source, fetchedAt })
@@ -16,6 +19,8 @@ export async function GET() {
 // Manual admin override — e.g. if the live FX API is down or a specific deal
 // was actually settled at a different negotiated rate.
 export async function PATCH(req: NextRequest) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const body = await req.json()

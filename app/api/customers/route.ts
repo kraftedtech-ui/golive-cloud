@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { Customer } from '@/models/Customer'
 import { Lead } from '@/models/Lead'
+import { requireSession } from '@/lib/apiAuth'
 
 export async function GET(req: NextRequest) {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const { searchParams } = new URL(req.url)
@@ -19,6 +22,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const body = await req.json()

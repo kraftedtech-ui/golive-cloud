@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { CertificationCatalog } from '@/models/CertificationCatalog'
+import { requireAdmin } from '@/lib/apiAuth'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   const { id } = await params
   try {
     await connectDB()
@@ -15,6 +18,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   const { id } = await params
   try {
     await connectDB()

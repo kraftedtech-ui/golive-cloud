@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { User } from '@/models/User'
+import { requireSession } from '@/lib/apiAuth'
 
 export async function GET(req: NextRequest) {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
-    const email = req.nextUrl.searchParams.get('email')
+    // Account Settings is self-service only — always use the session's own email,
+    // ignore whatever was passed in the query string.
+    const email = auth.email
     if (!email) return NextResponse.json({ success: false, error: 'email required' }, { status: 400 })
     const user = await User.findOne({ email: email.toLowerCase() }).select('-password -twoFactorSecret -pendingTwoFactorSecret')
     if (!user) return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
@@ -17,10 +22,13 @@ export async function GET(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const body = await req.json()
-    const { email, phone, emailNotifications, profilePicture, currentPassword, newPassword } = body
+    const { phone, emailNotifications, profilePicture, currentPassword, newPassword } = body
+    const email = auth.email
     if (!email) return NextResponse.json({ success: false, error: 'email required' }, { status: 400 })
     const user = await User.findOne({ email: email.toLowerCase() })
     if (!user) return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })

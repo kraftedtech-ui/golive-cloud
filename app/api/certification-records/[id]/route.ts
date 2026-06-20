@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { CertificationRecord } from '@/models/CertificationRecord'
+import { requireSession, requireAdmin } from '@/lib/apiAuth'
 
 const STATUS_DATE_FIELD: Record<string, string> = {
   approved_to_enroll: 'approvedAt',
@@ -10,6 +11,8 @@ const STATUS_DATE_FIELD: Record<string, string> = {
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   const { id } = await params
   try {
     await connectDB()
@@ -26,6 +29,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   const { id } = await params
   try {
     await connectDB()

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { CertificationCatalog } from '@/models/CertificationCatalog'
+import { requireSession, requireAdmin } from '@/lib/apiAuth'
 
 const SEED_CATALOG = [
   { name: 'Microsoft 365 Fundamentals (MS-900)', vendor: 'Microsoft', level: 'foundational', bonusAmount: 25000 },
@@ -11,6 +12,8 @@ const SEED_CATALOG = [
 ]
 
 export async function GET() {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const count = await CertificationCatalog.countDocuments()
@@ -25,6 +28,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const body = await req.json()

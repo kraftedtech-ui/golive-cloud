@@ -3,8 +3,11 @@ import { connectDB } from '@/lib/mongodb'
 import { Announcement } from '@/models/Announcement'
 import { Notification } from '@/models/Notification'
 import { User } from '@/models/User'
+import { requireSession, requireAdmin } from '@/lib/apiAuth'
 
 export async function GET() {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const announcements = await Announcement.find().sort({ pinned: -1, createdAt: -1 }).limit(50)
@@ -15,6 +18,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const body = await req.json()

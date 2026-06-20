@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { KnowledgeArticle } from '@/models/KnowledgeArticle'
+import { requireSession, requireAdmin } from '@/lib/apiAuth'
 
 export async function GET(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireSession()
+  if (auth instanceof NextResponse) return auth
   const { id } = await params
   try {
     await connectDB()
@@ -15,6 +18,8 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   const { id } = await params
   try {
     await connectDB()
@@ -27,6 +32,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 }
 
 export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
   const { id } = await params
   try {
     await connectDB()
