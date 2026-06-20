@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { TrendingUp, AlertTriangle, DollarSign, Users, UserPlus } from "lucide-react"
 import { Area, AreaChart, ResponsiveContainer } from "recharts"
 
-export function StatCards() {
+export function StatCards({ isAdmin = true }: { isAdmin?: boolean }) {
   const [data, setData] = useState({
     totalMRR: 0, activeCustomers: 0, newLeadsThisWeek: 0, renewalAlerts: 0, loading: true
   })
@@ -34,8 +34,8 @@ export function StatCards() {
   }, [])
 
   const stats = [
-    { label: "Total MRR", value: data.loading ? "—" : `$${data.totalMRR.toLocaleString()}`, change: "Monthly", trend: "up" as const, hint: "from active customers", icon: DollarSign, spark: [0, data.totalMRR * 0.7, data.totalMRR * 0.8, data.totalMRR * 0.9, data.totalMRR] },
-    { label: "Active Customers", value: data.loading ? "—" : String(data.activeCustomers), change: "Total", trend: "up" as const, hint: "Microsoft 365 accounts", icon: Users, spark: [0, data.activeCustomers * 0.8, data.activeCustomers * 0.9, data.activeCustomers] },
+    { label: isAdmin ? "Total MRR" : "Your MRR", value: data.loading ? "—" : `$${data.totalMRR.toLocaleString()}`, change: "Monthly", trend: "up" as const, hint: isAdmin ? "from active customers" : "from customers you closed", icon: DollarSign, spark: [0, data.totalMRR * 0.7, data.totalMRR * 0.8, data.totalMRR * 0.9, data.totalMRR] },
+    { label: isAdmin ? "Active Customers" : "Your Customers", value: data.loading ? "—" : String(data.activeCustomers), change: "Total", trend: "up" as const, hint: "Microsoft 365 accounts", icon: Users, spark: [0, data.activeCustomers * 0.8, data.activeCustomers * 0.9, data.activeCustomers] },
     { label: "New Leads this week", value: data.loading ? "—" : String(data.newLeadsThisWeek), change: "Last 7 days", trend: "up" as const, hint: "from assessment form", icon: UserPlus, spark: [0, data.newLeadsThisWeek * 0.5, data.newLeadsThisWeek * 0.8, data.newLeadsThisWeek] },
     { label: "Renewal alerts", value: data.loading ? "—" : String(data.renewalAlerts), change: "Due ≤ 30 days", trend: data.renewalAlerts > 0 ? "alert" as const : "up" as const, hint: "customers renewing soon", icon: AlertTriangle, spark: [0, data.renewalAlerts] },
   ]

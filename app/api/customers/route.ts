@@ -13,6 +13,10 @@ export async function GET(req: NextRequest) {
     const status = searchParams.get('status')
     const filter: Record<string, string> = {}
     if (status) filter.status = status
+    // Non-admins only ever see customers they personally closed.
+    if (auth.role !== 'admin') {
+      filter.closedByEmail = auth.email || '__none__'
+    }
     const customers = await Customer.find(filter).sort({ renewalDate: 1 }).limit(200)
     return NextResponse.json({ success: true, customers })
   } catch (err) {
@@ -31,6 +35,7 @@ export async function POST(req: NextRequest) {
     // Idempotency: a lead can only be converted once. Check both the explicit
     // leadId flag and (as a belt-and-braces check for older data) an existing
     // customer already created from the same leadRef.
+    let sourceLead = null as null | { assignedTo?: string; assignedToEmail?: string }
     if (body.leadId) {
       const existingLead = await Lead.findById(body.leadId)
       if (existingLead?.convertedToCustomer) {
@@ -39,6 +44,7 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         )
       }
+      sourceLead = existingLead
     }
     if (body.leadRef) {
       const existingCustomer = await Customer.findOne({ leadRef: body.leadRef })
@@ -73,6 +79,11 @@ export async function POST(req: NextRequest) {
       startDate,
       renewalDate,
       nextInvoiceDate,
+      // Attribute the customer to whoever the lead was assigned to (the rep who
+      // actually closed it). Falls back to whoever clicked "Convert" if the lead
+      // had no assignment recorded.
+      closedByEmail: sourceLead?.assignedToEmail || auth.email || undefined,
+      closedByName: sourceLead?.assignedTo || auth.name || undefined,
     })
 
     if (leadId) {

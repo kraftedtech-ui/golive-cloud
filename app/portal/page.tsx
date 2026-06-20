@@ -205,7 +205,7 @@ export default function PortalPage() {
 
           {page === 'dashboard' && (
             <>
-              <StatCards />
+              <StatCards isAdmin={isAdmin} />
               <KanbanBoard />
               <div className="grid grid-cols-1 gap-6">
                 <MrrCharts />
@@ -918,6 +918,15 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
     setSuccess(`✓ ${u.name} removed from the team.`)
   }
 
+  const [togglingId, setTogglingId] = useState<string | null>(null)
+  const toggleActive = async (u: User) => {
+    setTogglingId(u._id)
+    await fetch(`/api/users/${u._id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active: !u.active }) })
+    setTogglingId(null)
+    onUpdate()
+    setSuccess(u.active ? `○ ${u.name} deactivated — login blocked.` : `● ${u.name} reactivated — can log in again.`)
+  }
+
   return (
     <div className="space-y-4">
       {success && <div className="rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-700">{success}</div>}
@@ -975,6 +984,10 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <button onClick={() => openEdit(u)} className="rounded-lg bg-[#e8f4fb] px-3 py-1.5 text-[11px] font-semibold text-[#0096c7] hover:bg-[#0096c7] hover:text-white transition-colors">Edit</button>
+                        <button onClick={() => toggleActive(u)} disabled={togglingId === u._id}
+                          className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-colors disabled:opacity-60 ${u.active ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}>
+                          {togglingId === u._id ? '...' : u.active ? 'Deactivate' : 'Activate'}
+                        </button>
                         <button onClick={() => setConfirmDelete(u)} className="rounded-lg bg-red-50 px-3 py-1.5 text-[11px] font-semibold text-red-600 hover:bg-red-100 transition-colors">Remove</button>
                       </div>
                     </td>
