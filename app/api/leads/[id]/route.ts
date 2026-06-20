@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/mongodb'
 import { Lead } from '@/models/Lead'
 import { Notification } from '@/models/Notification'
 import { Resend } from 'resend'
-import { requireSession } from '@/lib/apiAuth'
+import { requireSession, requireAdmin } from '@/lib/apiAuth'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -94,5 +94,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json(updated)
   } catch {
     return NextResponse.json({ error: 'Failed to update lead' }, { status: 500 })
+  }
+}
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+  const { id } = await params
+  try {
+    await connectDB()
+    await Lead.findByIdAndDelete(id)
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ error: 'Failed to delete lead' }, { status: 500 })
   }
 }

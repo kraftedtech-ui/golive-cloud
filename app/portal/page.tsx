@@ -49,6 +49,10 @@ export default function PortalPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [convertingLead, setConvertingLead] = useState<Lead | null>(null)
+  const [deletingLead, setDeletingLead] = useState<Lead | null>(null)
+  const [deletingLeadBusy, setDeletingLeadBusy] = useState(false)
+  const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null)
+  const [deletingCustomerBusy, setDeletingCustomerBusy] = useState(false)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/portal/login')
@@ -264,17 +268,25 @@ export default function PortalPage() {
                         </td>
                         <td className="px-4 py-3 text-[11px] text-muted-foreground">{new Date(lead.createdAt).toLocaleDateString()}</td>
                         <td className="px-4 py-3">
-                          {lead.status === 'Won' && !lead.convertedToCustomer && (
-                            <button onClick={() => setConvertingLead(lead)}
-                              className="rounded-lg bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-700 hover:bg-green-100 ring-1 ring-green-200">
-                              ✦ Convert
-                            </button>
-                          )}
-                          {lead.status === 'Won' && lead.convertedToCustomer && (
-                            <span className="rounded-lg bg-gray-50 px-3 py-1 text-[11px] font-semibold text-gray-500 ring-1 ring-gray-200">
-                              ✓ Converted
-                            </span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {lead.status === 'Won' && !lead.convertedToCustomer && (
+                              <button onClick={() => setConvertingLead(lead)}
+                                className="rounded-lg bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-700 hover:bg-green-100 ring-1 ring-green-200">
+                                ✦ Convert
+                              </button>
+                            )}
+                            {lead.status === 'Won' && lead.convertedToCustomer && (
+                              <span className="rounded-lg bg-gray-50 px-3 py-1 text-[11px] font-semibold text-gray-500 ring-1 ring-gray-200">
+                                ✓ Converted
+                              </span>
+                            )}
+                            {isAdmin && (
+                              <button onClick={() => setDeletingLead(lead)}
+                                className="rounded-lg bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-100 ring-1 ring-red-200">
+                                Delete
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -298,13 +310,13 @@ export default function PortalPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border bg-secondary/30">
-                    {['Company','Tenant','Package','Users','MRR','Renewal','Health','Country'].map(h => (
+                    {['Company','Tenant','Package','Users','MRR','Renewal','Health','Country','Action'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>
                     ))}
                   </tr></thead>
                   <tbody>
-                    {loading ? <tr><td colSpan={8} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
-                    : customers.length === 0 ? <tr><td colSpan={8} className="py-12 text-center text-sm text-muted-foreground">No customers yet</td></tr>
+                    {loading ? <tr><td colSpan={9} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
+                    : customers.length === 0 ? <tr><td colSpan={9} className="py-12 text-center text-sm text-muted-foreground">No customers yet</td></tr>
                     : customers.map(c => {
                       const renewal = c.renewalDate ? new Date(c.renewalDate) : null
                       const daysLeft = renewal ? Math.ceil((renewal.getTime() - Date.now()) / 86400000) : null
@@ -319,6 +331,14 @@ export default function PortalPage() {
                           <td className="px-4 py-3 text-[11px]">{daysLeft !== null ? <span className={daysLeft <= 30 ? 'font-semibold text-red-600' : 'text-muted-foreground'}>{daysLeft <= 0 ? 'Expired' : `${daysLeft}d`}</span> : '—'}</td>
                           <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${healthColors[c.healthScore] || 'bg-gray-50 text-gray-500'}`}>{c.healthScore}</span></td>
                           <td className="px-4 py-3 text-muted-foreground">{c.country}</td>
+                          <td className="px-4 py-3">
+                            {isAdmin && (
+                              <button onClick={() => setDeletingCustomer(c)}
+                                className="rounded-lg bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-100 ring-1 ring-red-200">
+                                Delete
+                              </button>
+                            )}
+                          </td>
                         </tr>
                       )
                     })}
@@ -367,6 +387,62 @@ export default function PortalPage() {
             onClose={() => setConvertingLead(null)}
             onConverted={() => { setConvertingLead(null); fetchData(); setPage('customers') }}
           />
+        )}
+        {deletingLead && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+              <h2 className="text-base font-semibold text-foreground mb-1">Delete this lead?</h2>
+              <p className="text-sm text-muted-foreground mb-1">
+                <strong className="text-foreground">{deletingLead.company}</strong> ({deletingLead.ref}) will be permanently removed. This cannot be undone.
+              </p>
+              <div className="mt-4 flex gap-2">
+                <button onClick={() => setDeletingLead(null)} disabled={deletingLeadBusy}
+                  className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary/40">
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    setDeletingLeadBusy(true)
+                    await fetch(`/api/leads/${deletingLead._id}`, { method: 'DELETE' })
+                    setDeletingLeadBusy(false)
+                    setDeletingLead(null)
+                    fetchData()
+                  }}
+                  disabled={deletingLeadBusy}
+                  className="flex-1 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-60">
+                  {deletingLeadBusy ? 'Deleting...' : 'Delete Permanently'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {deletingCustomer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+              <h2 className="text-base font-semibold text-foreground mb-1">Delete this customer?</h2>
+              <p className="text-sm text-muted-foreground mb-1">
+                <strong className="text-foreground">{deletingCustomer.company}</strong> will be permanently removed. This cannot be undone.
+              </p>
+              <div className="mt-4 flex gap-2">
+                <button onClick={() => setDeletingCustomer(null)} disabled={deletingCustomerBusy}
+                  className="flex-1 rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-secondary/40">
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    setDeletingCustomerBusy(true)
+                    await fetch(`/api/customers/${deletingCustomer._id}`, { method: 'DELETE' })
+                    setDeletingCustomerBusy(false)
+                    setDeletingCustomer(null)
+                    fetchData()
+                  }}
+                  disabled={deletingCustomerBusy}
+                  className="flex-1 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600 disabled:opacity-60">
+                  {deletingCustomerBusy ? 'Deleting...' : 'Delete Permanently'}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         </main>
