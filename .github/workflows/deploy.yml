@@ -56,6 +56,8 @@ jobs:
           git show origin/main:lib/email.ts > lib/email.ts
           git show origin/main:lib/utils.ts > lib/utils.ts
           git show origin/main:lib/data.ts > lib/data.ts
+          git show origin/main:lib/currency.ts > lib/currency.ts
+          git show origin/main:lib/exchangeRates.ts > lib/exchangeRates.ts
           git show origin/main:models/Lead.ts > models/Lead.ts
           git show origin/main:models/Notification.ts > models/Notification.ts
           git show origin/main:models/Customer.ts > models/Customer.ts
@@ -66,6 +68,7 @@ jobs:
           git show origin/main:models/CertificationRecord.ts > models/CertificationRecord.ts
           git show origin/main:models/User.ts > models/User.ts
           git show origin/main:models/EmailOTP.ts > models/EmailOTP.ts
+          git show origin/main:models/ExchangeRate.ts > models/ExchangeRate.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
           mkdir -p "app/api/auth/check-2fa" "app/api/2fa/setup" "app/api/2fa/confirm"
           git show "origin/main:app/api/auth/check-2fa/route.ts" > "app/api/auth/check-2fa/route.ts"
@@ -84,6 +87,8 @@ jobs:
           mkdir -p "app/api/customers/[id]"
           git show origin/main:app/api/customers/route.ts > app/api/customers/route.ts
           git show "origin/main:app/api/customers/[id]/route.ts" > "app/api/customers/[id]/route.ts"
+          mkdir -p app/api/exchange-rates
+          git show origin/main:app/api/exchange-rates/route.ts > app/api/exchange-rates/route.ts
           mkdir -p "app/api/users/[id]"
           git show origin/main:app/api/users/route.ts > app/api/users/route.ts
           mkdir -p app/api/account
