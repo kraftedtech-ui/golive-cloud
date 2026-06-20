@@ -8,6 +8,7 @@ import { StatCards } from '@/components/dashboard/stat-cards'
 import { KanbanBoard } from '@/components/dashboard/kanban-board'
 import { RecentLeads } from '@/components/dashboard/recent-leads'
 import { MrrCharts } from '@/components/dashboard/mrr-charts'
+import { SUPPORTED_CURRENCIES, currencyForCountry } from '@/lib/currency'
 import CommissionDashboard from '@/components/dashboard/CommissionDashboard'
 import AnnouncementsPanel from '@/components/dashboard/AnnouncementsPanel'
 import KnowledgeBase from '@/components/dashboard/KnowledgeBase'
@@ -1284,6 +1285,7 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
   const [pkg, setPkg] = useState<'starter' | 'secure' | 'ai' | 'custom'>('secure')
   const [users, setUsers] = useState(String(lead.users || '1').split('-')[0] || '1')
   const [mrr, setMrr] = useState('')
+  const [currency, setCurrency] = useState(currencyForCountry(lead.country))
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -1310,6 +1312,7 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
           package: pkg,
           users: parseInt(users) || 1,
           mrr: parseFloat(mrr) || 0,
+          currency,
           billingCycle,
           startDate: new Date().toISOString(),
           leadRef: lead.ref,
@@ -1364,11 +1367,18 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
                 className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="mb-1 block text-xs font-medium text-foreground">MRR ($)</label>
+              <label className="mb-1 block text-xs font-medium text-foreground">MRR</label>
               <input type="number" min="0" value={mrr} onChange={e => setMrr(e.target.value)} placeholder="220"
                 className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-foreground">Currency</label>
+              <select value={currency} onChange={e => setCurrency(e.target.value as typeof currency)}
+                className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
+                {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-foreground">Billing Cycle</label>

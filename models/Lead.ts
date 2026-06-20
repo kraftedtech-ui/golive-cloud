@@ -23,6 +23,7 @@ export interface ILead extends Document {
   setupFee?: number
   productCategory?: 'm365_license' | 'monthly_subscription' | 'annual_subscription' | 'setup_migration' | 'support_retainer' | 'upsell_crosssell' | 'renewal'
   grossProfitMargin?: number
+  currency?: string
   commissionStatus?: 'tracked' | 'accrued' | 'earned' | 'payable' | 'paid'
   convertedToCustomer?: boolean
   customerId?: string
@@ -61,6 +62,7 @@ const LeadSchema = new Schema<ILead>(
       enum: ['m365_license', 'monthly_subscription', 'annual_subscription', 'setup_migration', 'support_retainer', 'upsell_crosssell', 'renewal'],
     },
     grossProfitMargin: Number,
+    currency: { type: String, default: 'USD' },
     commissionStatus: {
       type: String,
       enum: ['tracked', 'accrued', 'earned', 'payable', 'paid'],

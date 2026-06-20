@@ -4,6 +4,7 @@ import crypto from 'crypto'
 import { connectDB } from '@/lib/mongodb'
 import { Lead } from '@/models/Lead'
 import { sendLeadNotification, sendLeadConfirmation } from '@/lib/email'
+import { currencyForCountry } from '@/lib/currency'
 
 const LeadSchema = z.object({
   company: z.string().min(2, 'Company name required'),
@@ -93,7 +94,7 @@ export async function POST(req: NextRequest) {
     const { turnstileToken, verificationToken, ...leadData } = data
     const ref = generateRef()
     await connectDB()
-    const lead = await Lead.create({ ...leadData, ref })
+    const lead = await Lead.create({ ...leadData, ref, currency: currencyForCountry(leadData.country) })
 
     Promise.allSettled([
       sendLeadNotification({ ...leadData, ref }),

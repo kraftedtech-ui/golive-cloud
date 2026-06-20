@@ -1,9 +1,10 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import CertificationBonusPanel from './CertificationBonusPanel'
+import { SUPPORTED_CURRENCIES, fmtCurrency, currencyForCountry } from '@/lib/currency'
 
 interface CommissionRule { _id: string; type: 'do' | 'dont'; text: string; section: string }
-interface Lead { _id: string; company: string; contact: string; status: string; assignedTo?: string; assignedToEmail?: string; productCategory?: string; mrr?: number; setupFee?: number; grossProfitMargin?: number; commissionStatus?: string; createdAt: string }
+interface Lead { _id: string; company: string; contact: string; status: string; country?: string; assignedTo?: string; assignedToEmail?: string; productCategory?: string; mrr?: number; setupFee?: number; grossProfitMargin?: number; commissionStatus?: string; currency?: string; createdAt: string }
 
 const PRODUCT_CATEGORIES = [
   { value: 'm365_license', label: 'New M365 Licence / Subscription', probRate: 0.05, confirmedRate: 0.10 },
@@ -24,12 +25,18 @@ const STATUS_BADGE: Record<string, string> = {
 }
 
 function fmt(n: number) { return '₦' + n.toLocaleString('en-NG', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) }
+function toNGN(amount: number, currency: string | undefined, rates: Record<string, number>): number {
+  return amount * (rates[currency || 'NGN'] ?? 1)
+}
 
 export default function CommissionDashboard({ userRole, userName, userEmail }: { userRole: string; userName: string; userEmail?: string }) {
   const [tab, setTab] = useState<'rules' | 'calculator' | 'tracker' | 'certification'>('rules')
   const [rules, setRules] = useState<CommissionRule[]>([])
   const [leads, setLeads] = useState<Lead[]>([])
   const [loading, setLoading] = useState(true)
+  const [fxRates, setFxRates] = useState<Record<string, number>>({ NGN: 1 })
+  const [fxSource, setFxSource] = useState<'live' | 'manual'>('live')
+  const [fxFetchedAt, setFxFetchedAt] = useState<string | null>(null)
 
   // Calculator state
   const [calcCategory, setCalcCategory] = useState('m365_license')
@@ -46,12 +53,19 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const [rulesRes, leadsRes] = await Promise.all([
+      const [rulesRes, leadsRes, fxRes] = await Promise.all([
         fetch('/api/commission-rules'),
         fetch('/api/leads'),
+        fetch('/api/exchange-rates'),
       ])
       const rulesData = await rulesRes.json()
       const leadsData = await leadsRes.json()
+      const fxData = await fxRes.json().catch(() => null)
+      if (fxData?.success) {
+        setFxRates(fxData.rates || { NGN: 1 })
+        setFxSource(fxData.source || 'live')
+        setFxFetchedAt(fxData.fetchedAt || null)
+      }
       setRules(Array.isArray(rulesData) ? rulesData : [])
       // /api/leads responds with { success, leads: [...] }, not a bare array.
       const leadsArray: Lead[] = Array.isArray(leadsData)
@@ -330,6 +344,13 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
                 ))}
               </div>
 
+              {fxFetchedAt && (
+                <p className="text-[11px] text-muted-foreground">
+                  Live FX rates ({fxSource === 'live' ? 'auto-updated' : 'manually set'}, as of {new Date(fxFetchedAt).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}):{' '}
+                  {SUPPORTED_CURRENCIES.filter(c => c !== 'NGN').map(c => `1 ${c} = ${fmt(fxRates[c] || 0)}`).join('  ·  ')}
+                </p>
+              )}
+
               {loading ? (
                 <p className="text-sm text-muted-foreground text-center py-6">Loading deals...</p>
               ) : leads.length === 0 ? (
@@ -347,7 +368,9 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
                     <tbody>
                       {leads.filter(l => l.assignedTo || isAdmin).map(lead => {
                         const cat = PRODUCT_CATEGORIES.find(c => c.value === lead.productCategory)
-                        const gp = lead.mrr ? lead.mrr * ((lead.grossProfitMargin || 12) / 100) : 0
+                        const dealCurrency = lead.currency || currencyForCountry(lead.country)
+                        const mrrNGN = lead.mrr ? toNGN(lead.mrr, dealCurrency, fxRates) : 0
+                        const gp = mrrNGN ? mrrNGN * ((lead.grossProfitMargin || 12) / 100) : 0
                         const estCommission = gp * (cat?.confirmedRate || 0.10)
                         const canEdit = isAdmin || (!!userEmail && lead.assignedToEmail === userEmail)
                         return (
@@ -367,14 +390,26 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
                             </td>
                             <td className="px-4 py-3 text-xs">
                               {canEdit ? (
-                                <input
-                                  type="number"
-                                  value={lead.mrr ?? ''}
-                                  placeholder="₦/mo"
-                                  onChange={e => updateLeadDeal(lead._id, { mrr: e.target.value ? parseFloat(e.target.value) : undefined })}
-                                  className="w-20 rounded-md border border-border bg-white px-1.5 py-1 text-[11px]"
-                                />
-                              ) : (lead.mrr ? fmt(lead.mrr) : '—')}
+                                <div className="flex items-center gap-1">
+                                  <select
+                                    value={dealCurrency}
+                                    onChange={e => updateLeadDeal(lead._id, { currency: e.target.value })}
+                                    className="rounded-md border border-border bg-white px-1 py-1 text-[11px]"
+                                  >
+                                    {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+                                  </select>
+                                  <input
+                                    type="number"
+                                    value={lead.mrr ?? ''}
+                                    placeholder="/mo"
+                                    onChange={e => updateLeadDeal(lead._id, { mrr: e.target.value ? parseFloat(e.target.value) : undefined })}
+                                    className="w-16 rounded-md border border-border bg-white px-1.5 py-1 text-[11px]"
+                                  />
+                                </div>
+                              ) : (lead.mrr ? fmtCurrency(lead.mrr, dealCurrency) : '—')}
+                              {!!lead.mrr && dealCurrency !== 'NGN' && (
+                                <div className="text-[10px] text-muted-foreground mt-0.5">≈ {fmt(mrrNGN)}/mo</div>
+                              )}
                             </td>
                             <td className="px-4 py-3 text-xs">
                               {canEdit ? (
