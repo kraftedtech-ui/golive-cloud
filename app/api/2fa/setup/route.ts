@@ -4,21 +4,18 @@ import { User } from '@/models/User'
 import { generateSecret, generateURI } from 'otplib'
 import QRCode from 'qrcode'
 import bcrypt from 'bcryptjs'
-import { requireSession } from '@/lib/apiAuth'
 
-// POST /api/2fa/setup — generate a new secret + QR code for a user to scan
+// POST /api/2fa/setup — generate a new secret + QR code for a user to scan.
+// NOTE: this runs as part of first-time login for brand-new accounts, BEFORE
+// any session exists — it is intentionally gated by password verification
+// below instead of a session check. Do not add requireSession() here.
 export async function POST(req: NextRequest) {
-  const auth = await requireSession()
-  if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
     const { email, password } = await req.json()
 
     if (!email || !password) {
       return NextResponse.json({ success: false, error: 'Email and password are required' }, { status: 400 })
-    }
-    if (email.toLowerCase() !== auth.email?.toLowerCase()) {
-      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
     const user = await User.findOne({ email: email.toLowerCase(), active: true })
