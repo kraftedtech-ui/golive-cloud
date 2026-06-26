@@ -6,7 +6,7 @@ import {
   ArrowLeftRight, KanbanSquare, FileText, ListChecks,
   Users, ShieldCheck, LayoutDashboard, LogOut, BadgeCheck,
   BookOpen, Award, GraduationCap, ExternalLink, ChevronDown,
-  DollarSign, Bell, Settings,
+  DollarSign, Bell, Settings, Tags,
   type LucideIcon, Cloud,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -42,6 +42,7 @@ const sections: NavSection[] = [
     heading: "Admin",
     items: [
       { label: "Customer Accounts", icon: Users, key: "customers" },
+      { label: "Pricing Catalog", icon: Tags, key: "pricing", adminOnly: true },
       { label: "Team & Access", icon: ShieldCheck, key: "team", adminOnly: true },
       { label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
     ],

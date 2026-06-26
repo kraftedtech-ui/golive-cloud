@@ -15,6 +15,7 @@ import KnowledgeBase from '@/components/dashboard/KnowledgeBase'
 import LeadAssign from '@/components/dashboard/LeadAssign'
 import TransferAssign from '@/components/dashboard/TransferAssign'
 import AccountSettings from '@/components/dashboard/AccountSettings'
+import PricingCatalogAdmin from '@/components/dashboard/PricingCatalogAdmin'
 
 export const dynamic = 'force-dynamic'
 
@@ -350,6 +351,10 @@ export default function PortalPage() {
 
           {page === 'team' && isAdmin && (
             <TeamManagement users={users} loading={loading} onUpdate={fetchData} />
+          )}
+
+          {page === 'pricing' && isAdmin && (
+            <PricingCatalogAdmin userRole={role} />
           )}
 
           {page === 'pipeline' && <KanbanBoard />}
