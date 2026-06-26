@@ -8,7 +8,7 @@ import { StatCards } from '@/components/dashboard/stat-cards'
 import { KanbanBoard } from '@/components/dashboard/kanban-board'
 import { RecentLeads } from '@/components/dashboard/recent-leads'
 import { MrrCharts } from '@/components/dashboard/mrr-charts'
-import { SUPPORTED_CURRENCIES, currencyForCountry } from '@/lib/currency'
+import { SUPPORTED_CURRENCIES, currencyForCountry, CURRENCY_SYMBOLS, convertFromUSD } from '@/lib/currency'
 import CommissionDashboard from '@/components/dashboard/CommissionDashboard'
 import AnnouncementsPanel from '@/components/dashboard/AnnouncementsPanel'
 import KnowledgeBase from '@/components/dashboard/KnowledgeBase'
@@ -608,12 +608,72 @@ function TransfersView({ transfers, loading, onUpdate, isAdmin, userEmail, userN
   )
 }
 
+const NCE_OPTIONS = [
+  {
+    value: 'annual_upfront', label: 'Annual commitment — billed upfront', termDuration: 'P1Y', billingPlan: 'Annual',
+    periodsPerYear: 1,
+    note: 'Lowest total cost. 12-month term — licenses can be added anytime but the count cannot be reduced mid-term.',
+  },
+  {
+    value: 'annual_monthly', label: 'Annual commitment — billed monthly', termDuration: 'P1Y', billingPlan: 'Monthly',
+    periodsPerYear: 12,
+    note: 'Same 12-month term as upfront, paid in 12 instalments — a small financing premium versus paying upfront.',
+  },
+  {
+    value: 'flex_monthly', label: 'Monthly commitment — billed monthly', termDuration: 'P1M', billingPlan: 'Monthly',
+    periodsPerYear: 12,
+    note: 'Cancel anytime, no annual lock-in — costs about 20% more over a year than committing annually.',
+  },
+] as const
+
+type NceOptionValue = typeof NCE_OPTIONS[number]['value']
+
+// Maps a customer-facing package name to the real distributor SKU(s) that make
+// it up. "AI-Ready Enterprise" uses the actual Microsoft bundle SKU rather than
+// summing Business Premium + Copilot separately — the bundle is priced lower
+// than the sum of its parts, so this also gets the customer a better number.
+const PACKAGE_SKUS: Record<string, string[]> = {
+  'Starter Cloud Office': ['Microsoft 365 Business Basic'],
+  'Secure Business Cloud': ['Microsoft 365 Business Premium'],
+  'AI-Ready Enterprise': ['Microsoft 365 Business Premium and Microsoft 365 Copilot Business'],
+}
+
+const PROPOSAL_CUSTOMER_TYPE = 'corporate' // academic/charity pricing can be wired in later if needed
+
+interface CatalogPriceRow {
+  skuTitle: string
+  termDuration: string
+  billingPlan: string
+  retailUSD: number
+  marginUSD: number
+  marginPercent: number
+}
+
 function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin: boolean; userEmail: string }) {
   const [selectedLead, setSelectedLead] = useState('')
   const [pkg, setPkg] = useState('Secure Business Cloud')
   const [users, setUsers] = useState('10')
   const [currency, setCurrency] = useState('USD')
   const [setup, setSetup] = useState('300')
+  const [billingOption, setBillingOption] = useState<NceOptionValue>('annual_upfront')
+  const [catalogRows, setCatalogRows] = useState<CatalogPriceRow[]>([])
+  const [catalogLoading, setCatalogLoading] = useState(true)
+  const [fxRates, setFxRates] = useState<Record<string, number>>({ NGN: 1 })
+
+  useEffect(() => {
+    const allSkus = Array.from(new Set(Object.values(PACKAGE_SKUS).flat()))
+    const params = new URLSearchParams({ skuTitles: allSkus.join(','), customerType: PROPOSAL_CUSTOMER_TYPE, limit: '100' })
+    fetch(`/api/pricing-catalog?${params.toString()}`)
+      .then(r => r.json())
+      .then(data => setCatalogRows(Array.isArray(data?.items) ? data.items : []))
+      .catch(() => {})
+      .finally(() => setCatalogLoading(false))
+
+    fetch('/api/exchange-rates')
+      .then(r => r.json())
+      .then(data => { if (data?.success) setFxRates(data.rates || { NGN: 1 }) })
+      .catch(() => {})
+  }, [])
 
   const handleLeadSelect = (leadId: string) => {
     setSelectedLead(leadId)
@@ -625,8 +685,7 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
     const parsed = parseInt(userNum)
     if (!isNaN(parsed)) setUsers(String(parsed))
     // Auto-set currency based on country
-    const currencyMap: Record<string, string> = { Nigeria: 'NGN', Ghana: 'GHS', Kenya: 'KES', 'South Africa': 'ZAR' }
-    if (currencyMap[lead.country]) setCurrency(currencyMap[lead.country])
+    setCurrency(currencyForCountry(lead.country))
     // Auto-set setup fee based on likely package
     const emailProvider = (lead.services?.[0] || (lead as any).currentEmail || '').toLowerCase()
     if (emailProvider.includes('google')) { setPkg('Secure Business Cloud'); setSetup('300') }
@@ -634,23 +693,31 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
     else { setPkg('Secure Business Cloud'); setSetup('300') }
   }
 
-  const prices: Record<string, Record<string, number>> = {
-    'Starter Cloud Office': { USD: 6, NGN: 9600, GHS: 90, KES: 774, ZAR: 108 },
-    'Secure Business Cloud': { USD: 22, NGN: 35200, GHS: 330, KES: 2838, ZAR: 396 },
-    'AI-Ready Enterprise': { USD: 38, NGN: 60800, GHS: 570, KES: 4902, ZAR: 684 },
-  }
-  const symbols: Record<string, string> = { USD: '$', NGN: 'â‚¦', GHS: 'GHâ‚µ', KES: 'KSh', ZAR: 'R' }
   const pkgFeatures: Record<string, string[]> = {
     'Starter Cloud Office': ['Microsoft 365 Business Basic','Custom domain business email','1 TB OneDrive per user','Teams, Word, Excel & PowerPoint (web)','DNS setup & email migration','SPF / DKIM / DMARC configuration','30-day onboarding support'],
     'Secure Business Cloud': ['Microsoft 365 Business Premium','Microsoft Defender for Business','Desktop Office apps + 1 TB storage','Multi-Factor Authentication (MFA)','Conditional Access & data loss prevention','Email security hardening','Monthly managed support'],
     'AI-Ready Enterprise': ['Microsoft 365 + Copilot licensing','Azure cloud & infrastructure','Defender for Office, Endpoint & Cloud','Power Platform automation','Dedicated account manager','Architecture & compliance review','Premium managed support'],
   }
-  const pricePerUser = prices[pkg]?.[currency] || 0
+
+  const nce = NCE_OPTIONS.find(o => o.value === billingOption)!
+  const skusForPkg = PACKAGE_SKUS[pkg] || []
+
+  function findRow(skuTitle: string): CatalogPriceRow | undefined {
+    return catalogRows.find(r => r.skuTitle === skuTitle && r.termDuration === nce.termDuration && r.billingPlan === nce.billingPlan)
+  }
+
+  const pricePerUserUSD = skusForPkg.reduce((sum, sku) => sum + (findRow(sku)?.retailUSD || 0), 0)
+  const marginPerUserUSD = skusForPkg.reduce((sum, sku) => sum + (findRow(sku)?.marginUSD || 0), 0)
+  const blendedMarginPercent = pricePerUserUSD > 0 ? marginPerUserUSD / pricePerUserUSD : 0
+  const catalogMissing = !catalogLoading && skusForPkg.length > 0 && pricePerUserUSD === 0
+
+  const pricePerUserConverted = convertFromUSD(pricePerUserUSD, currency, fxRates)
   const userCount = parseInt(users) || 0
-  const monthlyTotal = pricePerUser * userCount
-  const annualTotal = monthlyTotal * 10
+  const periodTotal = pricePerUserConverted * userCount // amount per billed period (the period this NCE option actually bills in)
+  const annualTotal = periodTotal * nce.periodsPerYear
   const setupFee = parseInt(setup || '0')
-  const sym = symbols[currency]
+  const sym = CURRENCY_SYMBOLS[currency] || currency + ' '
+  const periodLabel = nce.periodsPerYear === 1 ? '/ user / year' : '/ user / month'
   const lead = leads.find(l => l._id === selectedLead)
   const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
   const expiry = new Date(Date.now() + 14 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -729,7 +796,7 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
           <div class="meta-card">
             <div class="meta-label">Package</div>
             <div class="meta-value">${pkg}</div>
-            <div style="font-size:12px;color:#5c7184;margin-top:2px">${userCount} users · Billed in ${currency}</div>
+            <div style="font-size:12px;color:#5c7184;margin-top:2px">${userCount} users · Billed in ${currency} · ${nce.label}</div>
             ${lead?.services?.[0] ? `<div style="font-size:11px;color:#0096c7;margin-top:4px">Migrating from: ${lead.services[0]}</div>` : ''}
           </div>
         </div>
@@ -737,12 +804,13 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
         <div class="section-title">Pricing Summary</div>
         <table class="pricing-table">
           <tr><td style="color:#5c7184">Package</td><td>${pkg}</td></tr>
+          <tr><td style="color:#5c7184">Billing plan</td><td>${nce.label}</td></tr>
           <tr><td style="color:#5c7184">Number of users</td><td>${userCount}</td></tr>
-          <tr><td style="color:#5c7184">Price per user / month</td><td>${sym}${pricePerUser.toLocaleString()}</td></tr>
-          <tr><td style="color:#5c7184">Monthly subscription total</td><td>${sym}${monthlyTotal.toLocaleString()}</td></tr>
-          <tr><td style="color:#5c7184">Annual plan (10 months — 2 months free)</td><td>${sym}${annualTotal.toLocaleString()}</td></tr>
+          <tr><td style="color:#5c7184">Price per user</td><td>${sym}${pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}</td></tr>
+          <tr><td style="color:#5c7184">${nce.periodsPerYear === 1 ? 'Annual subscription total' : 'Monthly subscription total'}</td><td>${sym}${periodTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          ${nce.periodsPerYear > 1 ? `<tr><td style="color:#5c7184">12-month subscription total</td><td>${sym}${annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
           <tr><td style="color:#5c7184">One-time setup & migration fee</td><td>${sym}${setupFee.toLocaleString()}</td></tr>
-          <tr class="total-row"><td>Total first year investment</td><td>${sym}${(annualTotal + setupFee).toLocaleString()}</td></tr>
+          <tr class="total-row"><td>Total first year investment</td><td>${sym}${(annualTotal + setupFee).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
         </table>
 
         <div class="section-title">What's Included</div>
@@ -751,7 +819,7 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
         </div>
 
         <div class="validity">
-          â± This proposal is valid for 14 days from ${today}. Annual plan discount (2 months free) applies when signed before ${expiry}.
+          ⏱ This proposal is valid for 14 days from ${today}. ${nce.note}
         </div>
 
         <div class="footer-box">
@@ -795,8 +863,15 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
         <div>
           <label className="mb-1.5 block text-xs font-medium text-foreground">Package</label>
           <select value={pkg} onChange={e => setPkg(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
-            <option>Starter Cloud Office</option><option>Secure Business Cloud</option><option>AI-Ready Enterprise</option>
+            {Object.keys(PACKAGE_SKUS).map(name => <option key={name}>{name}</option>)}
           </select>
+        </div>
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-foreground">Billing Plan (NCE)</label>
+          <select value={billingOption} onChange={e => setBillingOption(e.target.value as NceOptionValue)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
+            {NCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+          <p className="mt-1 text-[11px] text-muted-foreground">{nce.note}</p>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -806,15 +881,29 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
           <div>
             <label className="mb-1.5 block text-xs font-medium text-foreground">Currency</label>
             <select value={currency} onChange={e => setCurrency(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
-              {['USD','NGN','GHS','KES','ZAR'].map(c => <option key={c}>{c}</option>)}
+              {SUPPORTED_CURRENCIES.map(c => <option key={c}>{c}</option>)}
             </select>
           </div>
         </div>
         <div>
-          <label className="mb-1.5 block text-xs font-medium text-foreground">Setup Fee ({sym})</label>
+          <label className="mb-1.5 block text-xs font-medium text-foreground">Setup Fee ({sym.trim()})</label>
           <input type="number" value={setup} onChange={e => setSetup(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
         </div>
-        <button onClick={printProposal} disabled={!selectedLead}
+
+        {catalogLoading ? (
+          <p className="rounded-lg bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">Loading live pricing from the catalog…</p>
+        ) : catalogMissing ? (
+          <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+            No catalog price found for {pkg} under "{nce.label}". Check the SKU exists in the Pricing Catalog for this term/billing combination before quoting.
+          </p>
+        ) : (
+          <div className="rounded-lg bg-teal-50 border border-teal-200 px-3 py-2 text-[11px] text-teal-800">
+            📎 Live catalog price: {sym}{pricePerUserUSD === pricePerUserConverted ? pricePerUserUSD.toFixed(2) : `${pricePerUserUSD.toFixed(2)} USD`} per user {periodLabel}
+            {isAdmin && <span className="block mt-0.5 text-teal-600">Margin: {(blendedMarginPercent * 100).toFixed(1)}% — internal only, not shown on the proposal.</span>}
+          </div>
+        )}
+
+        <button onClick={printProposal} disabled={!selectedLead || catalogMissing}
           className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed">
           🖨️ Generate & Print PDF
         </button>
@@ -843,12 +932,15 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
         {lead && <div className="mb-3 rounded-lg bg-secondary/50 px-3 py-2 text-xs"><span className="text-muted-foreground">Prepared for: </span><strong>{lead.company}</strong> — {lead.contact}</div>}
         <div className="space-y-2 text-xs">
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Package</span><span className="font-medium">{pkg}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Billing plan</span><span className="font-medium">{nce.label}</span></div>
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Users</span><span className="font-medium">{users}</span></div>
-          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Per user / month</span><span className="font-medium">{sym}{pricePerUser.toLocaleString()}</span></div>
-          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Monthly total</span><span className="font-semibold text-sm">{sym}{monthlyTotal.toLocaleString()}</span></div>
-          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Annual (10 months)</span><span className="font-semibold">{sym}{annualTotal.toLocaleString()}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Per user {periodLabel}</span><span className="font-medium">{sym}{pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">{nce.periodsPerYear === 1 ? 'Annual total' : 'Monthly total'}</span><span className="font-semibold text-sm">{sym}{periodTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
+          {nce.periodsPerYear > 1 && (
+            <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">12-month total</span><span className="font-semibold">{sym}{annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
+          )}
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Setup fee</span><span className="font-medium">{sym}{setupFee.toLocaleString()}</span></div>
-          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">Total first year</span><span className="font-bold text-primary text-base">{sym}{(annualTotal + setupFee).toLocaleString()}</span></div>
+          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">Total first year</span><span className="font-bold text-primary text-base">{sym}{(annualTotal + setupFee).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
         </div>
         <div className="mt-3 rounded-lg bg-primary/10 p-2.5 text-[10px] text-primary">✓ Migration included &nbsp;·&nbsp; ✓ NDPA 2023 compliant &nbsp;·&nbsp; ✓ 30-day support</div>
       </div>

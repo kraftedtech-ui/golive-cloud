@@ -14,6 +14,7 @@ export async function GET(req: NextRequest) {
     const customerType = searchParams.get('customerType')
     const billingPlan = searchParams.get('billingPlan')
     const solutionArea = searchParams.get('solutionArea')
+    const skuTitlesParam = searchParams.get('skuTitles')
     const distinct = searchParams.get('distinct')
     const limit = Math.min(parseInt(searchParams.get('limit') || '200', 10) || 200, 500)
 
@@ -27,6 +28,9 @@ export async function GET(req: NextRequest) {
     if (billingPlan) filter.billingPlan = billingPlan
     if (solutionArea) filter.solutionArea = solutionArea
     if (q) filter.skuTitle = { $regex: q, $options: 'i' }
+    // Exact-match lookup for a known set of SKUs (e.g. the Proposal Generator
+    // pulling every term/billing-plan combination for a package's products).
+    if (skuTitlesParam) filter.skuTitle = { $in: skuTitlesParam.split(',').map((s) => s.trim()) }
 
     const [items, total, lastImport] = await Promise.all([
       PricingCatalog.find(filter).sort({ skuTitle: 1, billingPlan: 1 }).limit(limit),
