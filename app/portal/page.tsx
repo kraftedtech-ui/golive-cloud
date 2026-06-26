@@ -642,6 +642,19 @@ const PACKAGE_SKUS: Record<string, string[]> = {
   'AI-Ready Enterprise': ['Microsoft 365 Business Premium and Microsoft 365 Copilot Business'],
 }
 
+// Optional bolt-ons available on top of any package. These are real,
+// separately-licensed SKUs — not bundled into any package price above.
+// Azure is deliberately NOT here: it's consumption-billed (compute/storage
+// usage varies monthly), so it can't be flat-rated per user like these can.
+// It's surfaced as a manual "billed separately" note instead, further down.
+const ADD_ONS: { key: string; label: string; skuTitle: string; blurb: string }[] = [
+  { key: 'defenderOffice', label: 'Microsoft Defender for Office 365 (Plan 2)', skuTitle: 'Microsoft Defender for Office 365 (Plan 2)', blurb: 'Advanced anti-phishing, anti-malware & attack simulation for email' },
+  { key: 'defenderEndpoint', label: 'Microsoft Defender for Endpoint (P2)', skuTitle: 'Microsoft Defender for Endpoint P2', blurb: 'Advanced threat detection & response across devices' },
+  { key: 'defenderCloudApps', label: 'Microsoft Defender for Cloud Apps', skuTitle: 'Microsoft Defender for Cloud Apps', blurb: 'Visibility & control over third-party cloud app usage (shadow IT)' },
+  { key: 'powerAutomate', label: 'Power Automate (per user plan)', skuTitle: 'Power Automate per user plan', blurb: 'Workflow automation across Microsoft & third-party apps' },
+  { key: 'powerApps', label: 'Power Apps (per app plan)', skuTitle: 'Power Apps per app plan (1 app or website)', blurb: 'Build custom business apps with low-code tools' },
+]
+
 const PROPOSAL_CUSTOMER_TYPE = 'corporate' // academic/charity pricing can be wired in later if needed
 
 interface CatalogPriceRow {
@@ -663,9 +676,11 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
   const [catalogRows, setCatalogRows] = useState<CatalogPriceRow[]>([])
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [fxRates, setFxRates] = useState<Record<string, number>>({ NGN: 1 })
+  const [selectedAddOns, setSelectedAddOns] = useState<Record<string, boolean>>({})
+  const [azureNote, setAzureNote] = useState('')
 
   useEffect(() => {
-    const allSkus = Array.from(new Set(Object.values(PACKAGE_SKUS).flat()))
+    const allSkus = Array.from(new Set([...Object.values(PACKAGE_SKUS).flat(), ...ADD_ONS.map(a => a.skuTitle)]))
     const params = new URLSearchParams({ skuTitles: allSkus.join(','), customerType: PROPOSAL_CUSTOMER_TYPE, limit: '100' })
     fetch(`/api/pricing-catalog?${params.toString()}`)
       .then(r => r.json())
@@ -715,9 +730,18 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
   const blendedMarginPercent = pricePerUserUSD > 0 ? marginPerUserUSD / pricePerUserUSD : 0
   const catalogMissing = !catalogLoading && skusForPkg.length > 0 && pricePerUserUSD === 0
 
+  const activeAddOns = ADD_ONS.filter(a => selectedAddOns[a.key])
+  const addOnRows = activeAddOns.map(a => ({ ...a, row: findRow(a.skuTitle) }))
+  const addOnsMissing = !catalogLoading && addOnRows.some(a => !a.row)
+  const addOnsPerUserUSD = addOnRows.reduce((sum, a) => sum + (a.row?.retailUSD || 0), 0)
+  const addOnsMarginPerUserUSD = addOnRows.reduce((sum, a) => sum + (a.row?.marginUSD || 0), 0)
+  const addOnsPerUserConverted = convertFromUSD(addOnsPerUserUSD, currency, fxRates)
+
   const pricePerUserConverted = convertFromUSD(pricePerUserUSD, currency, fxRates)
   const userCount = parseInt(users) || 0
-  const periodTotal = pricePerUserConverted * userCount // amount per billed period (the period this NCE option actually bills in)
+  const packagePeriodTotal = pricePerUserConverted * userCount
+  const addOnsPeriodTotal = addOnsPerUserConverted * userCount
+  const periodTotal = packagePeriodTotal + addOnsPeriodTotal // amount per billed period (the period this NCE option actually bills in)
   const annualTotal = periodTotal * nce.periodsPerYear
   const setupFee = parseInt(setup || '0')
   const sym = CURRENCY_SYMBOLS[currency] || currency + ' '
@@ -810,16 +834,19 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
           <tr><td style="color:#5c7184">Package</td><td>${pkg}</td></tr>
           <tr><td style="color:#5c7184">Billing plan</td><td>${nce.label}</td></tr>
           <tr><td style="color:#5c7184">Number of users</td><td>${userCount}</td></tr>
-          <tr><td style="color:#5c7184">Price per user</td><td>${sym}${pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}</td></tr>
+          <tr><td style="color:#5c7184">Package price per user</td><td>${sym}${pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}</td></tr>
+          ${activeAddOns.length > 0 ? `<tr><td style="color:#5c7184">Add-ons: ${activeAddOns.map(a => a.label).join(', ')}</td><td>${sym}${addOnsPerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}</td></tr>` : ''}
           <tr><td style="color:#5c7184">${nce.periodsPerYear === 1 ? 'Annual subscription total' : 'Monthly subscription total'}</td><td>${sym}${periodTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
           ${nce.periodsPerYear > 1 ? `<tr><td style="color:#5c7184">12-month subscription total</td><td>${sym}${annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
           <tr><td style="color:#5c7184">One-time setup & migration fee</td><td>${sym}${setupFee.toLocaleString()}</td></tr>
           <tr class="total-row"><td>Total first year investment</td><td>${sym}${(annualTotal + setupFee).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
         </table>
+        ${azureNote.trim() ? `<div class="validity" style="margin-bottom:16px;">☁ Azure: ${azureNote} — billed separately and directly by Microsoft based on actual consumption. Not included in the totals above.</div>` : ''}
 
         <div class="section-title">What's Included</div>
         <div class="features">
           ${(pkgFeatures[pkg] || []).map(f => `<div class="feature"><span class="check">✓</span><span>${f}</span></div>`).join('')}
+          ${activeAddOns.map(a => `<div class="feature"><span class="check">✓</span><span>${a.label}</span></div>`).join('')}
         </div>
 
         <div class="validity">
@@ -894,21 +921,69 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
           <input type="number" value={setup} onChange={e => setSetup(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
         </div>
 
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-foreground">Add-ons (optional, priced separately from the package)</label>
+          <div className="space-y-1.5 rounded-lg border border-border p-2.5">
+            {ADD_ONS.map(addOn => {
+              const row = findRow(addOn.skuTitle)
+              return (
+                <label key={addOn.key} className="flex items-start gap-2 text-xs cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5"
+                    checked={!!selectedAddOns[addOn.key]}
+                    onChange={e => setSelectedAddOns(prev => ({ ...prev, [addOn.key]: e.target.checked }))}
+                  />
+                  <span className="flex-1">
+                    <span className="font-medium text-foreground">{addOn.label}</span>
+                    <span className="text-muted-foreground"> — {addOn.blurb}</span>
+                  </span>
+                  <span className="flex-shrink-0 text-muted-foreground">
+                    {row ? `${sym}${convertFromUSD(row.retailUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}` : catalogLoading ? '…' : 'n/a'}
+                  </span>
+                </label>
+              )
+            })}
+          </div>
+        </div>
+
+        <div>
+          <label className="mb-1.5 block text-xs font-medium text-foreground">Azure (optional note — billed separately, usage-based)</label>
+          <input
+            value={azureNote}
+            onChange={e => setAzureNote(e.target.value)}
+            placeholder='e.g. "Est. $80–120/mo for a small App Service + SQL DB — confirm with customer post-assessment"'
+            className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">Azure is metered by Microsoft directly. This is a free-text note only — it never affects the totals below.</p>
+        </div>
+
         {catalogLoading ? (
           <p className="rounded-lg bg-secondary/40 px-3 py-2 text-xs text-muted-foreground">Loading live pricing from the catalog…</p>
         ) : catalogMissing ? (
           <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
             No catalog price found for {pkg} under "{nce.label}". Check the SKU exists in the Pricing Catalog for this term/billing combination before quoting.
           </p>
+        ) : addOnsMissing ? (
+          <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-700">
+            One or more selected add-ons have no catalog price under "{nce.label}". Uncheck it or check the Pricing Catalog import.
+          </p>
         ) : (
           <div className="rounded-lg bg-teal-50 border border-teal-200 px-3 py-2 text-[11px] text-teal-800">
             📎 Live catalog price: ${pricePerUserUSD.toFixed(2)} USD per user {periodLabel}
-            {currency !== 'USD' && <span> · ≈ {sym}{pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} at today's FX rate</span>}
-            {isAdmin && <span className="block mt-0.5 text-teal-600">Margin: {(blendedMarginPercent * 100).toFixed(1)}% — internal only, not shown on the proposal.</span>}
+            {activeAddOns.length > 0 && <span> + ${addOnsPerUserUSD.toFixed(2)} USD in add-ons</span>}
+            {currency !== 'USD' && <span> · ≈ {sym}{(pricePerUserConverted + addOnsPerUserConverted).toLocaleString(undefined, { maximumFractionDigits: 2 })} at today's FX rate</span>}
+            {isAdmin && (
+              <span className="block mt-0.5 text-teal-600">
+                Margin: package {(blendedMarginPercent * 100).toFixed(1)}%
+                {activeAddOns.length > 0 && ` · add-ons ${((addOnsMarginPerUserUSD / addOnsPerUserUSD) * 100 || 0).toFixed(1)}%`}
+                {' '}— internal only, not shown on the proposal.
+              </span>
+            )}
           </div>
         )}
 
-        <button onClick={printProposal} disabled={!selectedLead || catalogMissing}
+        <button onClick={printProposal} disabled={!selectedLead || catalogMissing || addOnsMissing}
           className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed">
           🖨️ Generate & Print PDF
         </button>
@@ -939,7 +1014,10 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Package</span><span className="font-medium">{pkg}</span></div>
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Billing plan</span><span className="font-medium">{nce.label}</span></div>
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Users</span><span className="font-medium">{users}</span></div>
-          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Per user {periodLabel}</span><span className="font-medium">{sym}{pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Package price per user {periodLabel}</span><span className="font-medium">{sym}{pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
+          {activeAddOns.length > 0 && (
+            <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Add-ons ({activeAddOns.length}) per user {periodLabel}</span><span className="font-medium">{sym}{addOnsPerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
+          )}
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">{nce.periodsPerYear === 1 ? 'Annual total' : 'Monthly total'}</span><span className="font-semibold text-sm">{sym}{periodTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
           {nce.periodsPerYear > 1 && (
             <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">12-month total</span><span className="font-semibold">{sym}{annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
@@ -947,6 +1025,9 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Setup fee</span><span className="font-medium">{sym}{setupFee.toLocaleString()}</span></div>
           <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">Total first year</span><span className="font-bold text-primary text-base">{sym}{(annualTotal + setupFee).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
         </div>
+        {azureNote.trim() && (
+          <div className="mt-2 rounded-lg bg-sky-50 border border-sky-200 px-2.5 py-2 text-[10px] text-sky-800">☁ Azure: {azureNote} — billed separately by Microsoft, not included above.</div>
+        )}
         <div className="mt-3 rounded-lg bg-primary/10 p-2.5 text-[10px] text-primary">✓ Migration included &nbsp;·&nbsp; ✓ NDPA 2023 compliant &nbsp;·&nbsp; ✓ 30-day support</div>
       </div>
     </div>
