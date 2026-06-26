@@ -4,7 +4,7 @@ import crypto from 'crypto'
 import { connectDB } from '@/lib/mongodb'
 import { Lead } from '@/models/Lead'
 import { sendLeadNotification, sendLeadConfirmation } from '@/lib/email'
-import { requireSession } from '@/lib/apiAuth'
+import { requireSession, getSessionUser } from '@/lib/apiAuth'
 
 const LeadSchema = z.object({
   company: z.string().min(2, 'Company name required'),
@@ -21,6 +21,24 @@ const LeadSchema = z.object({
   notes: z.string().optional(),
   turnstileToken: z.string().min(1, 'Security verification required'),
   verificationToken: z.string().min(1, 'Email verification required'),
+})
+
+// Used when a logged-in team member adds a lead manually from inside the
+// portal (call, referral, event). No captcha or email-OTP step applies here
+// — the request is already authenticated by the NextAuth session cookie.
+const InternalLeadSchema = z.object({
+  company: z.string().min(2, 'Company name required'),
+  contact: z.string().min(2, 'Contact name required'),
+  email: z.string().email('Valid email required'),
+  phone: z.string().min(7, 'Phone/WhatsApp required'),
+  country: z.string().default('Nigeria'),
+  industry: z.string().default('General SME'),
+  users: z.string().default('1–5'),
+  currentEmail: z.string().default('cPanel / Webmail'),
+  domain: z.string().optional(),
+  services: z.array(z.string()).default([]),
+  billing: z.string().default('Monthly'),
+  notes: z.string().optional(),
 })
 
 function generateRef(): string {
@@ -70,6 +88,28 @@ function verifyEmailToken(token: string, email: string): boolean {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+    const sessionUser = await getSessionUser()
+
+    // Internal path: a logged-in rep adding a lead from inside the portal.
+    // No Turnstile/email-OTP — the NextAuth session is the trust boundary here.
+    if (sessionUser) {
+      const leadData = InternalLeadSchema.parse(body)
+      const ref = generateRef()
+      await connectDB()
+      const lead = await Lead.create({
+        ...leadData,
+        ref,
+        assignedTo: sessionUser.name || undefined,
+        assignedToEmail: sessionUser.email || undefined,
+      })
+
+      sendLeadNotification({ ...leadData, ref }).catch(console.error)
+
+      return NextResponse.json({ success: true, ref, leadId: lead._id }, { status: 201 })
+    }
+
+    // Public path: the marketing-site assessment form. Unchanged — still
+    // requires both Turnstile and email-OTP verification before anything touches the DB.
     const data = LeadSchema.parse(body)
 
     // 1. Verify email was actually OTP-verified

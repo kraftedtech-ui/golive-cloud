@@ -108,7 +108,11 @@ export default function PortalPage() {
         setNewLeadForm({ company: '', contact: '', email: '', phone: '', country: 'Nigeria', industry: '', users: '', currentEmail: '', notes: '' })
         setPage('assessments')
         fetchData()
-      } else setNewLeadError('Failed to save lead. Please try again.')
+      } else if (Array.isArray(data.errors) && data.errors.length > 0) {
+        setNewLeadError(data.errors.map((e: { message: string }) => e.message).join(' · '))
+      } else {
+        setNewLeadError(data.error || 'Failed to save lead. Please try again.')
+      }
     } catch { setNewLeadError('Network error. Please try again.') }
     setNewLeadLoading(false)
   }
@@ -140,7 +144,7 @@ export default function PortalPage() {
                     <h2 className="text-base font-semibold text-[#0d2233]">Add New Lead</h2>
                     <p className="text-xs text-[#5c7184]">Manually add a lead from a call, referral or event</p>
                   </div>
-                  <button onClick={() => setShowNewLead(false)} className="flex size-8 items-center justify-center rounded-lg hover:bg-[#f4f7fb] text-[#5c7184] text-lg">Ã—</button>
+                  <button onClick={() => setShowNewLead(false)} className="flex size-8 items-center justify-center rounded-lg hover:bg-[#f4f7fb] text-[#5c7184] text-lg">×</button>
                 </div>
                 <form onSubmit={submitNewLead} className="p-6 space-y-4">
                   <div className="grid grid-cols-2 gap-3">
@@ -537,7 +541,7 @@ function TransfersView({ transfers, loading, onUpdate, isAdmin, userEmail, userN
         <div className="w-80 shrink-0 rounded-2xl border border-border bg-white shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
             <h3 className="text-sm font-semibold text-foreground">Request Details</h3>
-            <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground text-lg leading-none">Ã—</button>
+            <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground text-lg leading-none">×</button>
           </div>
           <div className="p-5 space-y-4">
             <div>
@@ -1103,7 +1107,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#e3e9f0] px-6 py-4">
               <div><h2 className="text-base font-semibold text-[#0d2233]">Add Team Member</h2><p className="text-xs text-[#5c7184]">New member can log in immediately</p></div>
-              <button onClick={() => setShowAdd(false)} className="flex size-8 items-center justify-center rounded-lg text-[#5c7184] hover:bg-[#f4f7fb] text-lg">Ã—</button>
+              <button onClick={() => setShowAdd(false)} className="flex size-8 items-center justify-center rounded-lg text-[#5c7184] hover:bg-[#f4f7fb] text-lg">×</button>
             </div>
             <form onSubmit={addUser} className="p-6 space-y-4">
               <div><label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Full name *</label><input required className={inp} placeholder="e.g. Amara Okafor" value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} /></div>
@@ -1137,7 +1141,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
           <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-[#e3e9f0] px-6 py-4">
               <div><h2 className="text-base font-semibold text-[#0d2233]">Edit — {editUser.name}</h2><p className="text-xs text-[#5c7184]">Leave password blank to keep existing password</p></div>
-              <button onClick={() => setEditUser(null)} className="flex size-8 items-center justify-center rounded-lg text-[#5c7184] hover:bg-[#f4f7fb] text-lg">Ã—</button>
+              <button onClick={() => setEditUser(null)} className="flex size-8 items-center justify-center rounded-lg text-[#5c7184] hover:bg-[#f4f7fb] text-lg">×</button>
             </div>
             <form onSubmit={saveEdit} className="p-6 space-y-4">
               <div><label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Full name *</label><input required className={inp} value={editForm.name} onChange={e => setEditForm(f => ({...f, name: e.target.value}))} /></div>
@@ -1173,7 +1177,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(13,34,51,0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl p-6 text-center">
-            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-red-50 text-2xl">âš ️</div>
+            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-red-50 text-2xl">⚠️</div>
             <h2 className="text-base font-semibold text-[#0d2233] mb-1">Remove Team Member?</h2>
             <p className="text-sm text-[#5c7184] mb-1"><strong className="text-[#0d2233]">{confirmDelete.name}</strong> will be permanently removed.</p>
             <p className="text-xs text-[#5c7184] mb-6">They will no longer be able to log in. This cannot be undone.</p>
