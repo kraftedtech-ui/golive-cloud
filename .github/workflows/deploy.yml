@@ -183,6 +183,9 @@ jobs:
           npm install --legacy-peer-deps
           echo "=== Building ==="
           pkill -f "next dev" 2>/dev/null || true
+          pkill -f "next build" 2>/dev/null || true
+          sleep 2
+          rm -rf .next
           export NODE_ENV=production
           npm run build
           echo "=== Restarting server ==="
