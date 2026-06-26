@@ -1,5 +1,20 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
+export interface ICspOnboarding {
+  // true = customer already has an O365/onmicrosoft.com tenant (4Sight Option 1:
+  // they send an association link). false = brand-new tenant, needs the full
+  // "NEW CSP CUSTOMER INFORMATION REQUEST" 4Sight asks for (their Option 2).
+  hasExistingTenant: boolean
+  companyRegistrationId?: string
+  vatNumber?: string
+  preferredDomain?: string
+  secondChoiceDomain?: string
+  thirdChoiceDomain?: string
+  physicalAddress?: string
+  city?: string
+  postalCode?: string
+}
+
 export interface ICustomer extends Document {
   // Identity
   company: string
@@ -41,10 +56,26 @@ export interface ICustomer extends Document {
   closedByEmail?: string
   closedByName?: string
   distributor?: string
+  cspOnboarding?: ICspOnboarding
 
   createdAt: Date
   updatedAt: Date
 }
+
+const CspOnboardingSchema = new Schema<ICspOnboarding>(
+  {
+    hasExistingTenant: { type: Boolean, default: false },
+    companyRegistrationId: String,
+    vatNumber: String,
+    preferredDomain: String,
+    secondChoiceDomain: String,
+    thirdChoiceDomain: String,
+    physicalAddress: String,
+    city: String,
+    postalCode: String,
+  },
+  { _id: false }
+)
 
 const CustomerSchema = new Schema<ICustomer>(
   {
@@ -80,6 +111,7 @@ const CustomerSchema = new Schema<ICustomer>(
     closedByEmail: String,
     closedByName: String,
     distributor: String,
+    cspOnboarding: CspOnboardingSchema,
   },
   { timestamps: true }
 )

@@ -29,6 +29,12 @@ interface Customer {
   _id: string; company: string; tenantDomain: string; package: string
   users: number; mrr: number; arr: number; renewalDate: string
   healthScore: string; country: string; status: string
+  contact?: string; adminEmail?: string; phone?: string
+  cspOnboarding?: {
+    hasExistingTenant: boolean; companyRegistrationId?: string; vatNumber?: string
+    preferredDomain?: string; secondChoiceDomain?: string; thirdChoiceDomain?: string
+    physicalAddress?: string; city?: string; postalCode?: string
+  }
 }
 interface Transfer {
   _id: string; ref: string; transferType: string; company: string
@@ -53,6 +59,7 @@ export default function PortalPage() {
   const [deletingLead, setDeletingLead] = useState<Lead | null>(null)
   const [deletingLeadBusy, setDeletingLeadBusy] = useState(false)
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null)
+  const [viewingCspInfo, setViewingCspInfo] = useState<Customer | null>(null)
   const [deletingCustomerBusy, setDeletingCustomerBusy] = useState(false)
 
   useEffect(() => {
@@ -337,12 +344,20 @@ export default function PortalPage() {
                           <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${healthColors[c.healthScore] || 'bg-gray-50 text-gray-500'}`}>{c.healthScore}</span></td>
                           <td className="px-4 py-3 text-muted-foreground">{c.country}</td>
                           <td className="px-4 py-3">
-                            {isAdmin && (
-                              <button onClick={() => setDeletingCustomer(c)}
-                                className="rounded-lg bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-100 ring-1 ring-red-200">
-                                Delete
-                              </button>
-                            )}
+                            <div className="flex gap-1.5">
+                              {c.cspOnboarding && !c.cspOnboarding.hasExistingTenant && (
+                                <button onClick={() => setViewingCspInfo(c)}
+                                  className="rounded-lg bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-100 ring-1 ring-blue-200">
+                                  CSP Info
+                                </button>
+                              )}
+                              {isAdmin && (
+                                <button onClick={() => setDeletingCustomer(c)}
+                                  className="rounded-lg bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-100 ring-1 ring-red-200">
+                                  Delete
+                                </button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       )
@@ -452,6 +467,10 @@ export default function PortalPage() {
               </div>
             </div>
           </div>
+        )}
+
+        {viewingCspInfo && (
+          <CspInfoModal customer={viewingCspInfo} onClose={() => setViewingCspInfo(null)} />
         )}
 
         </main>
@@ -1562,6 +1581,50 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  // CSP onboarding (4Sight Dynamics Africa) — mirrors their two customer-add
+  // paths: an existing tenant (they send an association link) vs a brand-new
+  // tenant (needs the full "NEW CSP CUSTOMER INFORMATION REQUEST" fields).
+  const [hasExistingTenant, setHasExistingTenant] = useState(false)
+  const [companyRegistrationId, setCompanyRegistrationId] = useState('')
+  const [vatNumber, setVatNumber] = useState('')
+  const [preferredDomain, setPreferredDomain] = useState('')
+  const [secondChoiceDomain, setSecondChoiceDomain] = useState('')
+  const [thirdChoiceDomain, setThirdChoiceDomain] = useState('')
+  const [physicalAddress, setPhysicalAddress] = useState('')
+  const [city, setCity] = useState('')
+  const [postalCode, setPostalCode] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  const cspRequestText = [
+    'NEW CSP CUSTOMER INFORMATION REQUEST',
+    '',
+    `Country: ${lead.country || ''}`,
+    `Company Name: ${lead.company || ''}`,
+    `Company Registration ID: ${companyRegistrationId}`,
+    `VAT number (if applicable): ${vatNumber}`,
+    `Preferred onmicrosoft Domain: ${preferredDomain}`,
+    `Second Choice onmicrosoft Domain: ${secondChoiceDomain}`,
+    `Third Choice onmicrosoft Domain: ${thirdChoiceDomain}`,
+    `Full Physical Address: ${physicalAddress}`,
+    `City: ${city}`,
+    `Postal code: ${postalCode}`,
+    `Primary Contact Name & Last Name: ${lead.contact || ''}`,
+    `Primary Contact Email Address: ${adminEmail}`,
+    `Primary Contact Phone Number: ${lead.phone || ''}`,
+  ].join('\n')
+
+  const copyCspRequest = async () => {
+    try {
+      await navigator.clipboard.writeText(cspRequestText)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setError('Could not copy automatically — select the text box and copy manually.')
+    }
+  }
+
+  const mailtoHref = `mailto:annri.steyn@4sight.cloud?subject=${encodeURIComponent(`New CSP Customer: ${lead.company}`)}&body=${encodeURIComponent(cspRequestText)}`
+
   const handleSubmit = async () => {
     if (!tenantDomain.trim() || !adminEmail.trim() || !mrr.trim()) {
       setError('Domain, admin email, and MRR are required.')
@@ -1589,6 +1652,13 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
           startDate: new Date().toISOString(),
           leadRef: lead.ref,
           leadId: lead._id,
+          cspOnboarding: {
+            hasExistingTenant,
+            ...(hasExistingTenant ? {} : {
+              companyRegistrationId, vatNumber, preferredDomain, secondChoiceDomain,
+              thirdChoiceDomain, physicalAddress, city, postalCode,
+            }),
+          },
         }),
       })
       const data = await res.json()
@@ -1604,9 +1674,11 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
     }
   }
 
+  const inp = "w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl my-auto">
         <div className="border-b border-border px-5 py-4">
           <h2 className="text-base font-semibold text-foreground">Convert to Customer</h2>
           <p className="text-xs text-muted-foreground">{lead.company} — confirm tenant details</p>
@@ -1615,18 +1687,18 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">Tenant Domain</label>
             <input value={tenantDomain} onChange={e => setTenantDomain(e.target.value)} placeholder="company.onmicrosoft.com"
-              className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
+              className={inp} />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">Tenant Admin Email</label>
             <input value={adminEmail} onChange={e => setAdminEmail(e.target.value)} placeholder="admin@company.com"
-              className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
+              className={inp} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-foreground">Package</label>
               <select value={pkg} onChange={e => setPkg(e.target.value as any)}
-                className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
+                className={inp}>
                 <option value="starter">Starter Cloud Office</option>
                 <option value="secure">Secure Business Cloud</option>
                 <option value="ai">AI-Ready Enterprise</option>
@@ -1636,31 +1708,84 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
             <div>
               <label className="mb-1 block text-xs font-medium text-foreground">Users</label>
               <input type="number" min="1" value={users} onChange={e => setUsers(e.target.value)}
-                className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
+                className={inp} />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-foreground">MRR</label>
               <input type="number" min="0" value={mrr} onChange={e => setMrr(e.target.value)} placeholder="220"
-                className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
+                className={inp} />
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-foreground">Currency</label>
               <select value={currency} onChange={e => setCurrency(e.target.value as typeof currency)}
-                className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
+                className={inp}>
                 {SUPPORTED_CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-foreground">Billing Cycle</label>
               <select value={billingCycle} onChange={e => setBillingCycle(e.target.value as any)}
-                className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
+                className={inp}>
                 <option value="monthly">Monthly</option>
                 <option value="annual">Annual</option>
               </select>
             </div>
           </div>
+
+          <div className="rounded-xl border border-border bg-secondary/20 p-3">
+            <p className="mb-2 text-xs font-semibold text-foreground">4Sight Dynamics Africa (CSP) onboarding</p>
+            <div className="flex gap-2 mb-2">
+              <button type="button" onClick={() => setHasExistingTenant(false)}
+                className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition-colors ${!hasExistingTenant ? 'border-primary bg-primary text-white' : 'border-border text-foreground hover:bg-secondary'}`}>
+                New tenant
+              </button>
+              <button type="button" onClick={() => setHasExistingTenant(true)}
+                className={`flex-1 rounded-lg border py-1.5 text-xs font-medium transition-colors ${hasExistingTenant ? 'border-primary bg-primary text-white' : 'border-border text-foreground hover:bg-secondary'}`}>
+                Existing M365 tenant
+              </button>
+            </div>
+
+            {hasExistingTenant ? (
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Request a customer association link from Annri (4Sight PRO) — the customer or their admin accepts it,
+                then confirm with Annri once it shows up on the CSP portal. No further info needed here.
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <input value={companyRegistrationId} onChange={e => setCompanyRegistrationId(e.target.value)} placeholder="Company Reg. ID" className={inp + ' text-xs'} />
+                  <input value={vatNumber} onChange={e => setVatNumber(e.target.value)} placeholder="VAT number (if any)" className={inp + ' text-xs'} />
+                </div>
+                <p className="mb-1 text-[11px] font-medium text-muted-foreground">onmicrosoft.com domain choices</p>
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  <input value={preferredDomain} onChange={e => setPreferredDomain(e.target.value)} placeholder="1st choice" className={inp + ' text-xs'} />
+                  <input value={secondChoiceDomain} onChange={e => setSecondChoiceDomain(e.target.value)} placeholder="2nd choice" className={inp + ' text-xs'} />
+                  <input value={thirdChoiceDomain} onChange={e => setThirdChoiceDomain(e.target.value)} placeholder="3rd choice" className={inp + ' text-xs'} />
+                </div>
+                <input value={physicalAddress} onChange={e => setPhysicalAddress(e.target.value)} placeholder="Full physical address" className={inp + ' text-xs mb-2'} />
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <input value={city} onChange={e => setCity(e.target.value)} placeholder="City" className={inp + ' text-xs'} />
+                  <input value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="Postal code" className={inp + ' text-xs'} />
+                </div>
+
+                <div className="flex gap-2">
+                  <button type="button" onClick={copyCspRequest}
+                    className="flex-1 rounded-lg border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-secondary">
+                    {copied ? '✓ Copied!' : '📋 Copy request text'}
+                  </button>
+                  <a href={mailtoHref}
+                    className="flex-1 rounded-lg border border-border px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-secondary text-center">
+                    ✉️ Email Annri
+                  </a>
+                </div>
+                <textarea readOnly value={cspRequestText} rows={3}
+                  className="mt-2 w-full resize-none rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] font-mono text-muted-foreground" />
+              </>
+            )}
+          </div>
+
           {error && <p className="text-xs text-red-600">{error}</p>}
         </div>
         <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
@@ -1669,6 +1794,73 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
             className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
             {saving ? 'Converting...' : 'Convert to Customer'}
           </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CspInfoModal({ customer, onClose }: { customer: Customer; onClose: () => void }) {
+  const [copied, setCopied] = useState(false)
+  const c = customer.cspOnboarding
+
+  const requestText = [
+    'NEW CSP CUSTOMER INFORMATION REQUEST',
+    '',
+    `Country: ${customer.country || ''}`,
+    `Company Name: ${customer.company || ''}`,
+    `Company Registration ID: ${c?.companyRegistrationId || ''}`,
+    `VAT number (if applicable): ${c?.vatNumber || ''}`,
+    `Preferred onmicrosoft Domain: ${c?.preferredDomain || ''}`,
+    `Second Choice onmicrosoft Domain: ${c?.secondChoiceDomain || ''}`,
+    `Third Choice onmicrosoft Domain: ${c?.thirdChoiceDomain || ''}`,
+    `Full Physical Address: ${c?.physicalAddress || ''}`,
+    `City: ${c?.city || ''}`,
+    `Postal code: ${c?.postalCode || ''}`,
+    `Primary Contact Name & Last Name: ${customer.contact || ''}`,
+    `Primary Contact Email Address: ${customer.adminEmail || ''}`,
+    `Primary Contact Phone Number: ${customer.phone || ''}`,
+  ].join('\n')
+
+  const copyRequest = async () => {
+    try {
+      await navigator.clipboard.writeText(requestText)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch { /* clipboard permissions denied — textarea below still works */ }
+  }
+
+  const mailtoHref = `mailto:annri.steyn@4sight.cloud?subject=${encodeURIComponent(`New CSP Customer: ${customer.company}`)}&body=${encodeURIComponent(requestText)}`
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl my-auto">
+        <div className="border-b border-border px-5 py-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">CSP Onboarding Info</h2>
+            <p className="text-xs text-muted-foreground">{customer.company}</p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-lg">×</button>
+        </div>
+        <div className="px-5 py-4 space-y-3">
+          <p className="text-xs text-muted-foreground">
+            This is the same info captured at conversion — use it if you need to resend or follow up the request with Annri.
+          </p>
+          <textarea readOnly value={requestText} rows={9}
+            className="w-full resize-none rounded-lg border border-border bg-secondary/30 px-2.5 py-2 text-[11px] font-mono text-foreground" />
+          <div className="flex gap-2">
+            <button onClick={copyRequest}
+              className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary">
+              {copied ? '✓ Copied!' : '📋 Copy request text'}
+            </button>
+            <a href={mailtoHref}
+              className="flex-1 rounded-lg border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary text-center">
+              ✉️ Email Annri
+            </a>
+          </div>
+        </div>
+        <div className="flex justify-end border-t border-border px-5 py-4">
+          <button onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">Close</button>
         </div>
       </div>
     </div>
