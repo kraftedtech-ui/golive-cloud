@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import CertificationBonusPanel from './CertificationBonusPanel'
+import SkuMarginPicker from './SkuMarginPicker'
 import { SUPPORTED_CURRENCIES, fmtCurrency, currencyForCountry } from '@/lib/currency'
 
 interface CommissionRule { _id: string; type: 'do' | 'dont'; text: string; section: string }
@@ -42,7 +43,11 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
   const [calcCategory, setCalcCategory] = useState('m365_license')
   const [calcDealValue, setCalcDealValue] = useState('')
   const [calcGPMargin, setCalcGPMargin] = useState('12')
+  const [calcMarginSource, setCalcMarginSource] = useState<string | null>(null)
   const [calcPeriod, setCalcPeriod] = useState<'probation' | 'confirmed'>('probation')
+
+  // Shared SKU-margin picker — 'calculator' or a lead._id, or null when closed
+  const [pickerTarget, setPickerTarget] = useState<string | null>(null)
 
   // Admin rule management
   const [showAddRule, setShowAddRule] = useState(false)
@@ -126,6 +131,16 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
     })
+  }
+
+  function applyPickedMargin(marginPercent: number, summary: string) {
+    if (pickerTarget === 'calculator') {
+      setCalcGPMargin(String(marginPercent))
+      setCalcMarginSource(summary)
+    } else if (pickerTarget) {
+      updateLeadDeal(pickerTarget, { grossProfitMargin: marginPercent })
+    }
+    setPickerTarget(null)
   }
 
   return (
@@ -245,12 +260,25 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
                       placeholder="e.g. 500000" className="w-full rounded-lg border border-border px-3 py-2 text-sm" />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-muted-foreground mb-1">Gross Profit Margin % (your estimate)</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-xs font-medium text-muted-foreground">Gross Profit Margin % (your estimate)</label>
+                      <button
+                        type="button"
+                        onClick={() => setPickerTarget('calculator')}
+                        className="text-[11px] font-medium text-primary hover:underline"
+                      >
+                        🧮 Build from catalog
+                      </button>
+                    </div>
                     <div className="flex items-center gap-2">
-                      <input type="range" min="5" max="40" value={calcGPMargin} onChange={e => setCalcGPMargin(e.target.value)} className="flex-1" />
+                      <input type="range" min="5" max="40" value={calcGPMargin} onChange={e => { setCalcGPMargin(e.target.value); setCalcMarginSource(null) }} className="flex-1" />
                       <span className="text-sm font-semibold text-primary w-10 text-right">{calcGPMargin}%</span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground mt-1">M365 licences typically 8–15%. Services 25–40%.</p>
+                    {calcMarginSource ? (
+                      <p className="text-[10px] text-teal-700 mt-1 truncate">📎 From catalog: {calcMarginSource}</p>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground mt-1">M365 licences typically 8–15%. Services 25–40%. Use "Build from catalog" for the real figure.</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1">Your employment status</label>
@@ -421,7 +449,16 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
                                     onChange={e => updateLeadDeal(lead._id, { grossProfitMargin: e.target.value ? parseFloat(e.target.value) : undefined })}
                                     className="w-12 rounded-md border border-border bg-white px-1.5 py-1 text-[11px]"
                                   />
-                                  <span className="text-muted-foreground">% → {gp ? fmt(gp) : '—'}</span>
+                                  <span className="text-muted-foreground">%</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPickerTarget(lead._id)}
+                                    title="Build margin from pricing catalog"
+                                    className="text-[11px] text-primary hover:underline flex-shrink-0"
+                                  >
+                                    🧮
+                                  </button>
+                                  <span className="text-muted-foreground">→ {gp ? fmt(gp) : '—'}</span>
                                 </div>
                               ) : (gp ? fmt(gp) : '—')}
                             </td>
@@ -460,6 +497,12 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
           )}
         </div>
       </div>
+
+      <SkuMarginPicker
+        open={!!pickerTarget}
+        onClose={() => setPickerTarget(null)}
+        onApply={applyPickedMargin}
+      />
     </div>
   )
 }

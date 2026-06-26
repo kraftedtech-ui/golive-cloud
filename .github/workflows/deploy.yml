@@ -165,6 +165,7 @@ jobs:
           git show origin/main:components/dashboard/recent-leads.tsx > components/dashboard/recent-leads.tsx
           git show origin/main:components/dashboard/mrr-charts.tsx > components/dashboard/mrr-charts.tsx
           git show origin/main:components/dashboard/CommissionDashboard.tsx > components/dashboard/CommissionDashboard.tsx
+          git show origin/main:components/dashboard/SkuMarginPicker.tsx > components/dashboard/SkuMarginPicker.tsx
           git show origin/main:components/dashboard/CertificationBonusPanel.tsx > components/dashboard/CertificationBonusPanel.tsx
           git show origin/main:components/dashboard/AnnouncementsPanel.tsx > components/dashboard/AnnouncementsPanel.tsx
           git show origin/main:components/dashboard/KnowledgeBase.tsx > components/dashboard/KnowledgeBase.tsx
