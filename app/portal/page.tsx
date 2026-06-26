@@ -696,7 +696,7 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
   const pkgFeatures: Record<string, string[]> = {
     'Starter Cloud Office': ['Microsoft 365 Business Basic','Custom domain business email','1 TB OneDrive per user','Teams, Word, Excel & PowerPoint (web)','DNS setup & email migration','SPF / DKIM / DMARC configuration','30-day onboarding support'],
     'Secure Business Cloud': ['Microsoft 365 Business Premium','Microsoft Defender for Business','Desktop Office apps + 1 TB storage','Multi-Factor Authentication (MFA)','Conditional Access & data loss prevention','Email security hardening','Monthly managed support'],
-    'AI-Ready Enterprise': ['Microsoft 365 + Copilot licensing','Azure cloud & infrastructure','Defender for Office, Endpoint & Cloud','Power Platform automation','Dedicated account manager','Architecture & compliance review','Premium managed support'],
+    'AI-Ready Enterprise': ['Microsoft 365 Business Premium (desktop apps, Exchange, SharePoint, Teams)','Microsoft 365 Copilot in Word, Excel, PowerPoint, Outlook & Teams','Copilot Chat with web grounding','Microsoft Defender for Business','Multi-Factor Authentication & Conditional Access','Data loss prevention & email security hardening','Premium managed support'],
   }
 
   const nce = NCE_OPTIONS.find(o => o.value === billingOption)!
@@ -898,7 +898,8 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
           </p>
         ) : (
           <div className="rounded-lg bg-teal-50 border border-teal-200 px-3 py-2 text-[11px] text-teal-800">
-            📎 Live catalog price: {sym}{pricePerUserUSD === pricePerUserConverted ? pricePerUserUSD.toFixed(2) : `${pricePerUserUSD.toFixed(2)} USD`} per user {periodLabel}
+            📎 Live catalog price: ${pricePerUserUSD.toFixed(2)} USD per user {periodLabel}
+            {currency !== 'USD' && <span> · ≈ {sym}{pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} at today's FX rate</span>}
             {isAdmin && <span className="block mt-0.5 text-teal-600">Margin: {(blendedMarginPercent * 100).toFixed(1)}% — internal only, not shown on the proposal.</span>}
           </div>
         )}
