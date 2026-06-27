@@ -72,6 +72,7 @@ jobs:
           git show origin/main:models/EmailOTP.ts > models/EmailOTP.ts
           git show origin/main:models/ExchangeRate.ts > models/ExchangeRate.ts
           git show origin/main:models/PricingCatalog.ts > models/PricingCatalog.ts
+          git show origin/main:models/ProductMapping.ts > models/ProductMapping.ts
           git show origin/main:lib/pricelistParser.ts > lib/pricelistParser.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
           mkdir -p "app/api/auth/check-2fa" "app/api/2fa/setup" "app/api/2fa/confirm"
@@ -124,6 +125,10 @@ jobs:
           git show origin/main:app/api/pricing-catalog/route.ts > app/api/pricing-catalog/route.ts
           git show "origin/main:app/api/pricing-catalog/[id]/route.ts" > "app/api/pricing-catalog/[id]/route.ts"
           git show origin/main:app/api/pricing-catalog/import/route.ts > app/api/pricing-catalog/import/route.ts
+
+          mkdir -p app/api/product-mappings "app/api/product-mappings/[id]"
+          git show origin/main:app/api/product-mappings/route.ts > app/api/product-mappings/route.ts
+          git show "origin/main:app/api/product-mappings/[id]/route.ts" > "app/api/product-mappings/[id]/route.ts"
           mkdir -p public/images
           git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
           git show origin/main:public/images/logo-dark.png > public/images/logo-dark.png
@@ -173,6 +178,7 @@ jobs:
           git show origin/main:components/dashboard/TransferAssign.tsx > components/dashboard/TransferAssign.tsx
           git show origin/main:components/dashboard/AccountSettings.tsx > components/dashboard/AccountSettings.tsx
           git show origin/main:components/dashboard/PricingCatalogAdmin.tsx > components/dashboard/PricingCatalogAdmin.tsx
+          git show origin/main:components/dashboard/ProductMappingAdmin.tsx > components/dashboard/ProductMappingAdmin.tsx
           mkdir -p components/ui
           git show origin/main:components/ui/card.tsx > components/ui/card.tsx
           git show origin/main:components/ui/button.tsx > components/ui/button.tsx

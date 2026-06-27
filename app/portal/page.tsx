@@ -16,6 +16,7 @@ import LeadAssign from '@/components/dashboard/LeadAssign'
 import TransferAssign from '@/components/dashboard/TransferAssign'
 import AccountSettings from '@/components/dashboard/AccountSettings'
 import PricingCatalogAdmin from '@/components/dashboard/PricingCatalogAdmin'
+import ProductMappingAdmin from '@/components/dashboard/ProductMappingAdmin'
 
 export const dynamic = 'force-dynamic'
 
@@ -376,6 +377,10 @@ export default function PortalPage() {
             <PricingCatalogAdmin userRole={role} />
           )}
 
+          {page === 'product-mapping' && (
+            <ProductMappingAdmin isAdmin={isAdmin} />
+          )}
+
           {page === 'pipeline' && <KanbanBoard leads={leads} onUpdate={fetchData} />}
           {page === 'commissions' && <CommissionDashboard userRole={role} userName={(session?.user as any)?.name ?? ''} userEmail={session?.user?.email ?? ''} />}
           {page === 'account' && <AccountSettings />}
@@ -655,23 +660,12 @@ type NceOptionValue = typeof NCE_OPTIONS[number]['value']
 // it up. "AI-Ready Enterprise" uses the actual Microsoft bundle SKU rather than
 // summing Business Premium + Copilot separately — the bundle is priced lower
 // than the sum of its parts, so this also gets the customer a better number.
-const PACKAGE_SKUS: Record<string, string[]> = {
-  'Starter Cloud Office': ['Microsoft 365 Business Basic'],
-  'Secure Business Cloud': ['Microsoft 365 Business Premium'],
-  'AI-Ready Enterprise': ['Microsoft 365 Business Premium and Microsoft 365 Copilot Business'],
-}
-
-// Optional bolt-ons available on top of any package. These are real,
-// separately-licensed SKUs — not bundled into any package price above.
-// Azure is deliberately NOT here: it's consumption-billed (compute/storage
-// usage varies monthly), so it can't be flat-rated per user like these can.
-// It's surfaced as a manual "billed separately" note instead, further down.
-const ADD_ONS: { key: string; label: string; skuTitle: string; blurb: string }[] = [
-  { key: 'defenderOffice', label: 'Microsoft Defender for Office 365 (Plan 2)', skuTitle: 'Microsoft Defender for Office 365 (Plan 2)', blurb: 'Advanced anti-phishing, anti-malware & attack simulation for email' },
-  { key: 'defenderEndpoint', label: 'Microsoft Defender for Endpoint (P2)', skuTitle: 'Microsoft Defender for Endpoint P2', blurb: 'Advanced threat detection & response across devices' },
-  { key: 'defenderCloudApps', label: 'Microsoft Defender for Cloud Apps', skuTitle: 'Microsoft Defender for Cloud Apps', blurb: 'Visibility & control over third-party cloud app usage (shadow IT)' },
-  { key: 'powerAutomate', label: 'Power Automate (per user plan)', skuTitle: 'Power Automate per user plan', blurb: 'Workflow automation across Microsoft & third-party apps' },
-  { key: 'powerApps', label: 'Power Apps (per app plan)', skuTitle: 'Power Apps per app plan (1 app or website)', blurb: 'Build custom business apps with low-code tools' },
+// Fallback only — used if /api/product-mappings can't be reached. The real
+// source of truth is now the Product Mapping admin page, not this file.
+const FALLBACK_PACKAGES: ProductMappingItem[] = [
+  { key: 'starter', label: 'Starter Cloud Office', skuTitles: ['Microsoft 365 Business Basic'], features: ['Microsoft 365 Business Basic'] },
+  { key: 'secure', label: 'Secure Business Cloud', skuTitles: ['Microsoft 365 Business Premium'], features: ['Microsoft 365 Business Premium'] },
+  { key: 'ai', label: 'AI-Ready Enterprise', skuTitles: ['Microsoft 365 Business Premium and Microsoft 365 Copilot Business'], features: ['Microsoft 365 Business Premium + Copilot'] },
 ]
 
 const PROPOSAL_CUSTOMER_TYPE = 'corporate' // academic/charity pricing can be wired in later if needed
@@ -683,6 +677,14 @@ interface CatalogPriceRow {
   retailUSD: number
   marginUSD: number
   marginPercent: number
+}
+
+interface ProductMappingItem {
+  key: string
+  label: string
+  skuTitles: string[]
+  blurb?: string
+  features?: string[]
 }
 
 function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin: boolean; userEmail: string }) {
@@ -697,9 +699,30 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
   const [fxRates, setFxRates] = useState<Record<string, number>>({ NGN: 1 })
   const [selectedAddOns, setSelectedAddOns] = useState<Record<string, boolean>>({})
   const [azureNote, setAzureNote] = useState('')
+  const [packages, setPackages] = useState<ProductMappingItem[]>(FALLBACK_PACKAGES)
+  const [addOnDefs, setAddOnDefs] = useState<ProductMappingItem[]>([])
 
   useEffect(() => {
-    const allSkus = Array.from(new Set([...Object.values(PACKAGE_SKUS).flat(), ...ADD_ONS.map(a => a.skuTitle)]))
+    fetch('/api/product-mappings')
+      .then(r => r.json())
+      .then((items: any[]) => {
+        if (!Array.isArray(items) || items.length === 0) return // keep fallback
+        const pkgs = items.filter(m => m.type === 'package')
+        const addons = items.filter(m => m.type === 'addon')
+        if (pkgs.length > 0) setPackages(pkgs)
+        setAddOnDefs(addons)
+      })
+      .catch(() => {}) // keep fallback packages, addons stay empty
+
+      .finally(() => {
+        // Catalog/FX fetch depends on knowing which SKUs to ask for, so it
+        // runs as its own effect below once packages/addOnDefs are settled.
+      })
+  }, [])
+
+  useEffect(() => {
+    const allSkus = Array.from(new Set([...packages.flatMap(p => p.skuTitles), ...addOnDefs.flatMap(a => a.skuTitles)]))
+    if (allSkus.length === 0) return
     const params = new URLSearchParams({ skuTitles: allSkus.join(','), customerType: PROPOSAL_CUSTOMER_TYPE, limit: '100' })
     fetch(`/api/pricing-catalog?${params.toString()}`)
       .then(r => r.json())
@@ -711,7 +734,7 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
       .then(r => r.json())
       .then(data => { if (data?.success) setFxRates(data.rates || { NGN: 1 }) })
       .catch(() => {})
-  }, [])
+  }, [packages, addOnDefs])
 
   const handleLeadSelect = (leadId: string) => {
     setSelectedLead(leadId)
@@ -731,14 +754,10 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
     else { setPkg('Secure Business Cloud'); setSetup('300') }
   }
 
-  const pkgFeatures: Record<string, string[]> = {
-    'Starter Cloud Office': ['Microsoft 365 Business Basic','Custom domain business email','1 TB OneDrive per user','Teams, Word, Excel & PowerPoint (web)','DNS setup & email migration','SPF / DKIM / DMARC configuration','30-day onboarding support'],
-    'Secure Business Cloud': ['Microsoft 365 Business Premium','Microsoft Defender for Business','Desktop Office apps + 1 TB storage','Multi-Factor Authentication (MFA)','Conditional Access & data loss prevention','Email security hardening','Monthly managed support'],
-    'AI-Ready Enterprise': ['Microsoft 365 Business Premium (desktop apps, Exchange, SharePoint, Teams)','Microsoft 365 Copilot in Word, Excel, PowerPoint, Outlook & Teams','Copilot Chat with web grounding','Microsoft Defender for Business','Multi-Factor Authentication & Conditional Access','Data loss prevention & email security hardening','Premium managed support'],
-  }
+  const pkgFeatures: Record<string, string[]> = Object.fromEntries(packages.map(p => [p.label, p.features || []]))
 
   const nce = NCE_OPTIONS.find(o => o.value === billingOption)!
-  const skusForPkg = PACKAGE_SKUS[pkg] || []
+  const skusForPkg = packages.find(p => p.label === pkg)?.skuTitles || []
 
   function findRow(skuTitle: string): CatalogPriceRow | undefined {
     return catalogRows.find(r => r.skuTitle === skuTitle && r.termDuration === nce.termDuration && r.billingPlan === nce.billingPlan)
@@ -749,11 +768,16 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
   const blendedMarginPercent = pricePerUserUSD > 0 ? marginPerUserUSD / pricePerUserUSD : 0
   const catalogMissing = !catalogLoading && skusForPkg.length > 0 && pricePerUserUSD === 0
 
-  const activeAddOns = ADD_ONS.filter(a => selectedAddOns[a.key])
-  const addOnRows = activeAddOns.map(a => ({ ...a, row: findRow(a.skuTitle) }))
-  const addOnsMissing = !catalogLoading && addOnRows.some(a => !a.row)
-  const addOnsPerUserUSD = addOnRows.reduce((sum, a) => sum + (a.row?.retailUSD || 0), 0)
-  const addOnsMarginPerUserUSD = addOnRows.reduce((sum, a) => sum + (a.row?.marginUSD || 0), 0)
+  const activeAddOns = addOnDefs.filter(a => selectedAddOns[a.key])
+  const addOnRows = activeAddOns.map(a => ({
+    ...a,
+    retailUSD: a.skuTitles.reduce((sum, sku) => sum + (findRow(sku)?.retailUSD || 0), 0),
+    marginUSD: a.skuTitles.reduce((sum, sku) => sum + (findRow(sku)?.marginUSD || 0), 0),
+    resolved: a.skuTitles.every(sku => !!findRow(sku)),
+  }))
+  const addOnsMissing = !catalogLoading && addOnRows.some(a => !a.resolved)
+  const addOnsPerUserUSD = addOnRows.reduce((sum, a) => sum + a.retailUSD, 0)
+  const addOnsMarginPerUserUSD = addOnRows.reduce((sum, a) => sum + a.marginUSD, 0)
   const addOnsPerUserConverted = convertFromUSD(addOnsPerUserUSD, currency, fxRates)
 
   const pricePerUserConverted = convertFromUSD(pricePerUserUSD, currency, fxRates)
@@ -913,7 +937,7 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
         <div>
           <label className="mb-1.5 block text-xs font-medium text-foreground">Package</label>
           <select value={pkg} onChange={e => setPkg(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
-            {Object.keys(PACKAGE_SKUS).map(name => <option key={name}>{name}</option>)}
+            {packages.map(p => <option key={p.key} value={p.label}>{p.label}</option>)}
           </select>
         </div>
         <div>
@@ -943,8 +967,11 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
         <div>
           <label className="mb-1.5 block text-xs font-medium text-foreground">Add-ons (optional, priced separately from the package)</label>
           <div className="space-y-1.5 rounded-lg border border-border p-2.5">
-            {ADD_ONS.map(addOn => {
-              const row = findRow(addOn.skuTitle)
+            {addOnDefs.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-1">No add-ons defined yet — manage these in Tools → Product Mapping.</p>
+            ) : addOnDefs.map(addOn => {
+              const retailUSD = addOn.skuTitles.reduce((sum, sku) => sum + (findRow(sku)?.retailUSD || 0), 0)
+              const resolved = addOn.skuTitles.every(sku => !!findRow(sku))
               return (
                 <label key={addOn.key} className="flex items-start gap-2 text-xs cursor-pointer">
                   <input
@@ -958,7 +985,7 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
                     <span className="text-muted-foreground"> — {addOn.blurb}</span>
                   </span>
                   <span className="flex-shrink-0 text-muted-foreground">
-                    {row ? `${sym}${convertFromUSD(row.retailUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}` : catalogLoading ? '…' : 'n/a'}
+                    {resolved ? `${sym}${convertFromUSD(retailUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}` : catalogLoading ? '…' : 'n/a'}
                   </span>
                 </label>
               )

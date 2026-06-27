@@ -28,6 +28,7 @@ const sections: NavSection[] = [
     heading: "Tools",
     items: [
       { label: "Proposal Generator", icon: FileText, key: "proposals" },
+      { label: "Product Mapping", icon: Tags, key: "product-mapping" },
       { label: "Onboarding Checklist", icon: ListChecks, key: "onboarding" },
     ],
   },
