@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import mongoose, { Schema } from 'mongoose'
 import crypto from 'crypto'
-import { requireSession } from '@/lib/apiAuth'
+import { requireSession, requireAdmin } from '@/lib/apiAuth'
 
 function verifyEmailToken(token: string, email: string): boolean {
   try {
@@ -225,6 +225,22 @@ export async function PATCH(req: NextRequest) {
     }
 
     return NextResponse.json({ success: true, transfer })
+  } catch (err) {
+    console.error(err)
+    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+  try {
+    const id = new URL(req.url).searchParams.get('id')
+    if (!id) return NextResponse.json({ success: false, error: 'Missing id' }, { status: 400 })
+    await connectDB()
+    const deleted = await Transfer.findByIdAndDelete(id)
+    if (!deleted) return NextResponse.json({ success: false, error: 'Transfer not found' }, { status: 404 })
+    return NextResponse.json({ success: true })
   } catch (err) {
     console.error(err)
     return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 })
