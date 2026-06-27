@@ -8,7 +8,7 @@ import { StatCards } from '@/components/dashboard/stat-cards'
 import { KanbanBoard } from '@/components/dashboard/kanban-board'
 import { RecentLeads } from '@/components/dashboard/recent-leads'
 import { MrrCharts } from '@/components/dashboard/mrr-charts'
-import { SUPPORTED_CURRENCIES, currencyForCountry, CURRENCY_SYMBOLS, convertFromUSD } from '@/lib/currency'
+import { SUPPORTED_CURRENCIES, currencyForCountry, CURRENCY_SYMBOLS, convertFromUSD, convertToUSD } from '@/lib/currency'
 import CommissionDashboard from '@/components/dashboard/CommissionDashboard'
 import AnnouncementsPanel from '@/components/dashboard/AnnouncementsPanel'
 import KnowledgeBase from '@/components/dashboard/KnowledgeBase'
@@ -715,7 +715,8 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
   const [pkg, setPkg] = useState('Secure Business Cloud')
   const [users, setUsers] = useState('10')
   const [currency, setCurrency] = useState('USD')
-  const [setup, setSetup] = useState('300')
+  const [setupUSD, setSetupUSD] = useState(300) // source of truth — always USD, regardless of what's shown
+  const [setupInput, setSetupInput] = useState('300') // what's actually displayed/typed, in the selected currency
   const [billingOption, setBillingOption] = useState<NceOptionValue>('annual_upfront')
   const [catalogRows, setCatalogRows] = useState<CatalogPriceRow[]>([])
   const [catalogLoading, setCatalogLoading] = useState(true)
@@ -759,6 +760,22 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
       .catch(() => {})
   }, [packages, addOnDefs])
 
+  // The setup fee input is always shown in the selected currency, but the
+  // number it actually represents lives in setupUSD. Whenever the currency
+  // (or the live FX rate) changes, re-render the displayed figure from that
+  // stable base instead of leaving the same raw digits sitting under a
+  // different currency symbol.
+  useEffect(() => {
+    setSetupInput(Math.round(convertFromUSD(setupUSD, currency, fxRates)).toString())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currency, fxRates])
+
+  function handleSetupInputChange(value: string) {
+    setSetupInput(value)
+    const numeric = parseFloat(value) || 0
+    setSetupUSD(convertToUSD(numeric, currency, fxRates))
+  }
+
   const handleLeadSelect = (leadId: string) => {
     setSelectedLead(leadId)
     const lead = leads.find(l => l._id === leadId)
@@ -772,9 +789,9 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
     setCurrency(currencyForCountry(lead.country))
     // Auto-set setup fee based on likely package
     const emailProvider = (lead.services?.[0] || (lead as any).currentEmail || '').toLowerCase()
-    if (emailProvider.includes('google')) { setPkg('Secure Business Cloud'); setSetup('300') }
-    else if (emailProvider.includes('cpanel') || emailProvider.includes('webmail')) { setPkg('Starter Cloud Office'); setSetup('150') }
-    else { setPkg('Secure Business Cloud'); setSetup('300') }
+    if (emailProvider.includes('google')) { setPkg('Secure Business Cloud'); setSetupUSD(300) }
+    else if (emailProvider.includes('cpanel') || emailProvider.includes('webmail')) { setPkg('Starter Cloud Office'); setSetupUSD(150) }
+    else { setPkg('Secure Business Cloud'); setSetupUSD(300) }
   }
 
   const pkgFeatures: Record<string, string[]> = Object.fromEntries(packages.map(p => [p.label, p.features || []]))
@@ -809,7 +826,7 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
   const addOnsPeriodTotal = addOnsPerUserConverted * userCount
   const periodTotal = packagePeriodTotal + addOnsPeriodTotal // amount per billed period (the period this NCE option actually bills in)
   const annualTotal = periodTotal * nce.periodsPerYear
-  const setupFee = parseInt(setup || '0')
+  const setupFee = parseInt(setupInput || '0')
   const sym = CURRENCY_SYMBOLS[currency] || currency + ' '
   const periodLabel = nce.periodsPerYear === 1 ? '/ user / year' : '/ user / month'
   const lead = leads.find(l => l._id === selectedLead)
@@ -984,7 +1001,7 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-foreground">Setup Fee ({sym.trim()})</label>
-          <input type="number" value={setup} onChange={e => setSetup(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
+          <input type="number" value={setupInput} onChange={e => handleSetupInputChange(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
         </div>
 
         <div>

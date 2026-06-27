@@ -37,3 +37,14 @@ export function convertFromUSD(amountUSD: number, targetCurrency: string, ratesN
   if (!targetToNgn) return amountUSD
   return (amountUSD * usdToNgn) / targetToNgn
 }
+
+/** Inverse of convertFromUSD — used when a rep types a value directly into a
+ * field that's displayed in the selected currency but needs to be stored
+ * against a stable USD base (e.g. the Proposal Generator's setup fee), so the
+ * figure converts correctly if the currency dropdown changes afterward. */
+export function convertToUSD(amount: number, fromCurrency: string, ratesNGNPerUnit: Record<string, number>): number {
+  const usdToNgn = ratesNGNPerUnit['USD'] ?? 1
+  const fromToNgn = ratesNGNPerUnit[fromCurrency] ?? 1
+  if (!usdToNgn) return amount
+  return (amount * fromToNgn) / usdToNgn
+}
