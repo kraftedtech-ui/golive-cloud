@@ -68,6 +68,7 @@ export interface ICustomer extends Document {
   distributor?: string
   cspOnboarding?: ICspOnboarding
   agreement?: IAgreement
+  lastPaymentConfirmedDate?: Date
 
   createdAt: Date
   updatedAt: Date
@@ -137,6 +138,7 @@ const CustomerSchema = new Schema<ICustomer>(
     distributor: String,
     cspOnboarding: CspOnboardingSchema,
     agreement: { type: AgreementSchema, default: () => ({ status: 'pending' }) },
+    lastPaymentConfirmedDate: Date,
   },
   { timestamps: true }
 )

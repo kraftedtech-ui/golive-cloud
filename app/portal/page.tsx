@@ -17,6 +17,7 @@ import TransferAssign from '@/components/dashboard/TransferAssign'
 import AccountSettings from '@/components/dashboard/AccountSettings'
 import PricingCatalogAdmin from '@/components/dashboard/PricingCatalogAdmin'
 import ProductMappingAdmin from '@/components/dashboard/ProductMappingAdmin'
+import PaymentRiskPanel from '@/components/dashboard/PaymentRiskPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -398,6 +399,10 @@ export default function PortalPage() {
 
           {page === 'product-mapping' && (
             <ProductMappingAdmin isAdmin={isAdmin} />
+          )}
+
+          {page === 'payment-risk' && (
+            <PaymentRiskPanel isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} />
           )}
 
           {page === 'pipeline' && <KanbanBoard leads={leads} onUpdate={fetchData} />}

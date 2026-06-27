@@ -74,6 +74,7 @@ jobs:
           git show origin/main:models/PricingCatalog.ts > models/PricingCatalog.ts
           git show origin/main:models/ProductMapping.ts > models/ProductMapping.ts
           git show origin/main:lib/pricelistParser.ts > lib/pricelistParser.ts
+          git show origin/main:lib/suspensionRisk.ts > lib/suspensionRisk.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
           mkdir -p "app/api/auth/check-2fa" "app/api/2fa/setup" "app/api/2fa/confirm"
           git show "origin/main:app/api/auth/check-2fa/route.ts" > "app/api/auth/check-2fa/route.ts"
@@ -94,6 +95,8 @@ jobs:
           git show "origin/main:app/api/customers/[id]/route.ts" > "app/api/customers/[id]/route.ts"
           mkdir -p "app/api/customers/[id]/agreement"
           git show "origin/main:app/api/customers/[id]/agreement/route.ts" > "app/api/customers/[id]/agreement/route.ts"
+          mkdir -p "app/api/customers/[id]/payment-confirm"
+          git show "origin/main:app/api/customers/[id]/payment-confirm/route.ts" > "app/api/customers/[id]/payment-confirm/route.ts"
           mkdir -p app/api/exchange-rates
           git show origin/main:app/api/exchange-rates/route.ts > app/api/exchange-rates/route.ts
           mkdir -p "app/api/users/[id]"
@@ -181,6 +184,7 @@ jobs:
           git show origin/main:components/dashboard/AccountSettings.tsx > components/dashboard/AccountSettings.tsx
           git show origin/main:components/dashboard/PricingCatalogAdmin.tsx > components/dashboard/PricingCatalogAdmin.tsx
           git show origin/main:components/dashboard/ProductMappingAdmin.tsx > components/dashboard/ProductMappingAdmin.tsx
+          git show origin/main:components/dashboard/PaymentRiskPanel.tsx > components/dashboard/PaymentRiskPanel.tsx
           mkdir -p components/ui
           git show origin/main:components/ui/card.tsx > components/ui/card.tsx
           git show origin/main:components/ui/button.tsx > components/ui/button.tsx
