@@ -15,6 +15,16 @@ export interface ICspOnboarding {
   postalCode?: string
 }
 
+export interface IAgreement {
+  status: 'pending' | 'sent' | 'signed'
+  method?: 'foursign' | 'manual_sla' | 'other'
+  signedByName?: string
+  signedByEmail?: string
+  signedDate?: Date
+  proofUrl?: string
+  notes?: string
+}
+
 export interface ICustomer extends Document {
   // Identity
   company: string
@@ -57,10 +67,24 @@ export interface ICustomer extends Document {
   closedByName?: string
   distributor?: string
   cspOnboarding?: ICspOnboarding
+  agreement?: IAgreement
 
   createdAt: Date
   updatedAt: Date
 }
+
+const AgreementSchema = new Schema<IAgreement>(
+  {
+    status: { type: String, enum: ['pending', 'sent', 'signed'], default: 'pending' },
+    method: { type: String, enum: ['foursign', 'manual_sla', 'other'] },
+    signedByName: String,
+    signedByEmail: String,
+    signedDate: Date,
+    proofUrl: String,
+    notes: String,
+  },
+  { _id: false }
+)
 
 const CspOnboardingSchema = new Schema<ICspOnboarding>(
   {
@@ -112,6 +136,7 @@ const CustomerSchema = new Schema<ICustomer>(
     closedByName: String,
     distributor: String,
     cspOnboarding: CspOnboardingSchema,
+    agreement: { type: AgreementSchema, default: () => ({ status: 'pending' }) },
   },
   { timestamps: true }
 )

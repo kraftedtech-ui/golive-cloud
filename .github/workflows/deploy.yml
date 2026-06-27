@@ -92,6 +92,8 @@ jobs:
           mkdir -p "app/api/customers/[id]"
           git show origin/main:app/api/customers/route.ts > app/api/customers/route.ts
           git show "origin/main:app/api/customers/[id]/route.ts" > "app/api/customers/[id]/route.ts"
+          mkdir -p "app/api/customers/[id]/agreement"
+          git show "origin/main:app/api/customers/[id]/agreement/route.ts" > "app/api/customers/[id]/agreement/route.ts"
           mkdir -p app/api/exchange-rates
           git show origin/main:app/api/exchange-rates/route.ts > app/api/exchange-rates/route.ts
           mkdir -p "app/api/users/[id]"

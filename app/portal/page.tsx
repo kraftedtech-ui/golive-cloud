@@ -30,11 +30,15 @@ interface Customer {
   _id: string; company: string; tenantDomain: string; package: string
   users: number; mrr: number; arr: number; renewalDate: string
   healthScore: string; country: string; status: string
-  contact?: string; adminEmail?: string; phone?: string
+  contact?: string; adminEmail?: string; phone?: string; closedByEmail?: string
   cspOnboarding?: {
     hasExistingTenant: boolean; companyRegistrationId?: string; vatNumber?: string
     preferredDomain?: string; secondChoiceDomain?: string; thirdChoiceDomain?: string
     physicalAddress?: string; city?: string; postalCode?: string
+  }
+  agreement?: {
+    status: 'pending' | 'sent' | 'signed'; method?: 'foursign' | 'manual_sla' | 'other'
+    signedByName?: string; signedByEmail?: string; signedDate?: string; proofUrl?: string; notes?: string
   }
 }
 interface Transfer {
@@ -61,6 +65,7 @@ export default function PortalPage() {
   const [deletingLeadBusy, setDeletingLeadBusy] = useState(false)
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null)
   const [viewingCspInfo, setViewingCspInfo] = useState<Customer | null>(null)
+  const [editingAgreement, setEditingAgreement] = useState<Customer | null>(null)
   const [deletingCustomerBusy, setDeletingCustomerBusy] = useState(false)
 
   useEffect(() => {
@@ -323,13 +328,13 @@ export default function PortalPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border bg-secondary/30">
-                    {['Company','Tenant','Package','Users','MRR','Renewal','Health','Country','Action'].map(h => (
+                    {['Company','Tenant','Package','Users','MRR','Renewal','Health','Country','Agreement','Action'].map(h => (
                       <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>
                     ))}
                   </tr></thead>
                   <tbody>
-                    {loading ? <tr><td colSpan={9} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
-                    : customers.length === 0 ? <tr><td colSpan={9} className="py-12 text-center text-sm text-muted-foreground">No customers yet</td></tr>
+                    {loading ? <tr><td colSpan={10} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
+                    : customers.length === 0 ? <tr><td colSpan={10} className="py-12 text-center text-sm text-muted-foreground">No customers yet</td></tr>
                     : customers.map(c => {
                       const renewal = c.renewalDate ? new Date(c.renewalDate) : null
                       const daysLeft = renewal ? Math.ceil((renewal.getTime() - Date.now()) / 86400000) : null
@@ -344,6 +349,20 @@ export default function PortalPage() {
                           <td className="px-4 py-3 text-[11px]">{daysLeft !== null ? <span className={daysLeft <= 30 ? 'font-semibold text-red-600' : 'text-muted-foreground'}>{daysLeft <= 0 ? 'Expired' : `${daysLeft}d`}</span> : '—'}</td>
                           <td className="px-4 py-3"><span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${healthColors[c.healthScore] || 'bg-gray-50 text-gray-500'}`}>{c.healthScore}</span></td>
                           <td className="px-4 py-3 text-muted-foreground">{c.country}</td>
+                          <td className="px-4 py-3">
+                            {(() => {
+                              const status = c.agreement?.status || 'pending'
+                              const colors: Record<string, string> = { pending: 'bg-gray-50 text-gray-600', sent: 'bg-amber-50 text-amber-700', signed: 'bg-green-50 text-green-700' }
+                              const canEditAgreement = isAdmin || c.closedByEmail === session?.user?.email
+                              return (
+                                <button onClick={() => canEditAgreement && setEditingAgreement(c)} disabled={!canEditAgreement}
+                                  title={canEditAgreement ? 'Update agreement tracking' : 'Only an admin or the closing rep can update this'}
+                                  className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${colors[status]} ${canEditAgreement ? 'hover:opacity-80 cursor-pointer' : 'cursor-not-allowed opacity-70'}`}>
+                                  {status === 'pending' ? '○ Pending' : status === 'sent' ? '→ Sent' : '✓ Signed'}
+                                </button>
+                              )
+                            })()}
+                          </td>
                           <td className="px-4 py-3">
                             <div className="flex gap-1.5">
                               {c.cspOnboarding && !c.cspOnboarding.hasExistingTenant && (
@@ -476,6 +495,10 @@ export default function PortalPage() {
 
         {viewingCspInfo && (
           <CspInfoModal customer={viewingCspInfo} onClose={() => setViewingCspInfo(null)} />
+        )}
+
+        {editingAgreement && (
+          <AgreementModal customer={editingAgreement} onClose={() => setEditingAgreement(null)} onSaved={() => { setEditingAgreement(null); fetchData() }} />
         )}
 
         </main>
@@ -1888,6 +1911,113 @@ function CspInfoModal({ customer, onClose }: { customer: Customer; onClose: () =
         </div>
         <div className="flex justify-end border-t border-border px-5 py-4">
           <button onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">Close</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const AGREEMENT_METHODS: { value: string; label: string }[] = [
+  { value: 'foursign', label: '4Sign (via 4Sight Dynamics Africa / Annri)' },
+  { value: 'manual_sla', label: 'Included in our own sales contract / SLA' },
+  { value: 'other', label: 'Other (see notes)' },
+]
+
+function AgreementModal({ customer, onClose, onSaved }: { customer: Customer; onClose: () => void; onSaved: () => void }) {
+  const a = customer.agreement
+  const [status, setStatus] = useState<'pending' | 'sent' | 'signed'>(a?.status || 'pending')
+  const [method, setMethod] = useState(a?.method || '')
+  const [signedByName, setSignedByName] = useState(a?.signedByName || customer.contact || '')
+  const [signedByEmail, setSignedByEmail] = useState(a?.signedByEmail || customer.adminEmail || '')
+  const [signedDate, setSignedDate] = useState(a?.signedDate ? a.signedDate.slice(0, 10) : '')
+  const [proofUrl, setProofUrl] = useState(a?.proofUrl || '')
+  const [notes, setNotes] = useState(a?.notes || '')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const inp = "w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+
+  const save = async () => {
+    setSaving(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/customers/${customer._id}/agreement`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status, method: method || undefined, signedByName, signedByEmail,
+          signedDate: signedDate || undefined, proofUrl, notes,
+        }),
+      })
+      const data = await res.json()
+      if (!data.success) { setError(data.error || 'Failed to save.'); setSaving(false); return }
+      onSaved()
+    } catch {
+      setError('Network error. Please try again.')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-xl my-auto">
+        <div className="border-b border-border px-5 py-4">
+          <h2 className="text-base font-semibold text-foreground">Customer Agreement</h2>
+          <p className="text-xs text-muted-foreground">{customer.company} — partnership / MCA sign-off tracking</p>
+        </div>
+        <div className="space-y-3 px-5 py-4">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">Status</label>
+            <div className="flex gap-2">
+              {(['pending', 'sent', 'signed'] as const).map(s => (
+                <button key={s} type="button" onClick={() => setStatus(s)}
+                  className={`flex-1 rounded-lg border py-1.5 text-xs font-medium capitalize transition-colors ${status === s ? 'border-primary bg-primary text-white' : 'border-border text-foreground hover:bg-secondary'}`}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">Method</label>
+            <select value={method} onChange={e => setMethod(e.target.value as any)} className={inp}>
+              <option value="">Not yet decided</option>
+              {AGREEMENT_METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-foreground">Signed by (name)</label>
+              <input value={signedByName} onChange={e => setSignedByName(e.target.value)} className={inp} />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-foreground">Signed by (email)</label>
+              <input value={signedByEmail} onChange={e => setSignedByEmail(e.target.value)} className={inp} />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">Date signed</label>
+            <input type="date" value={signedDate} onChange={e => setSignedDate(e.target.value)} className={inp} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">Proof link (email thread, signed PDF, Drive link…)</label>
+            <input value={proofUrl} onChange={e => setProofUrl(e.target.value)} placeholder="https://…" className={inp} />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">Notes</label>
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={inp + ' resize-none'} />
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            This is a tracking record only — it doesn't send anything or capture a real signature yet. Useful for keeping proof of
+            acceptance on file in case Microsoft or 4Sight ever needs it.
+          </p>
+          {error && <p className="text-xs text-red-600">{error}</p>}
+        </div>
+        <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
+          <button onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">Cancel</button>
+          <button onClick={save} disabled={saving}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
+            {saving ? 'Saving...' : 'Save'}
+          </button>
         </div>
       </div>
     </div>
