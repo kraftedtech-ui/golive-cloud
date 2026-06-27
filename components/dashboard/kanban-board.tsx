@@ -1,11 +1,16 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { Users, Hash } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type PipelineStage = "New Lead" | "Assessment Done" | "Quote Sent" | "Negotiating" | "Won" | "Lost"
+
+interface KanbanLead {
+  _id: string; ref: string; company: string; contact: string; country: string; users: string
+  status: string; assignedTo?: string; assignedToEmail?: string
+}
 
 const STAGES: { id: PipelineStage; label: string; dot: string }[] = [
   { id: "New Lead", label: "New Lead", dot: "bg-[#b4cdf6]" },
@@ -21,7 +26,7 @@ function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
-function DealCard({ lead, onStageChange, isAdmin, userEmail }: { lead: any; onStageChange: (id: string, stage: string) => void; isAdmin: boolean; userEmail?: string | null }) {
+function DealCard({ lead, onStageChange, isAdmin, userEmail }: { lead: KanbanLead; onStageChange: (id: string, stage: string) => void; isAdmin: boolean; userEmail?: string | null }) {
   const initials = getInitials(lead.contact || lead.company || 'U')
   const colorIdx = lead.company?.charCodeAt(0) % ownerColors.length || 0
   const canEdit = isAdmin || (lead.assignedToEmail && lead.assignedToEmail === userEmail)
@@ -60,30 +65,27 @@ function DealCard({ lead, onStageChange, isAdmin, userEmail }: { lead: any; onSt
   )
 }
 
-export function KanbanBoard() {
+export function KanbanBoard({ leads, onUpdate }: { leads: KanbanLead[]; onUpdate: () => void }) {
   const { data: session } = useSession()
   const role = (session?.user as any)?.role || "viewer"
   const isAdmin = role === "admin"
   const userEmail = session?.user?.email
-  const [leads, setLeads] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const fetchLeads = () => {
-    fetch('/api/leads')
-      .then(r => r.json())
-      .then(d => { if (d.success) setLeads(d.leads || []); setLoading(false) })
-      .catch(() => setLoading(false))
-  }
-
-  useEffect(() => { fetchLeads() }, [])
+  const [updatingId, setUpdatingId] = useState<string | null>(null)
 
   const handleStageChange = async (id: string, status: string) => {
-    setLeads(prev => prev.map(l => l._id === id ? { ...l, status } : l))
-    await fetch(`/api/leads/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
+    setUpdatingId(id)
+    try {
+      await fetch(`/api/leads/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
+    } finally {
+      // Re-pull from the shared parent state so every other view (Assessments
+      // table, dashboard stat cards, recent leads) sees the change immediately
+      // too — this board no longer keeps its own separate copy of leads.
+      onUpdate()
+      setUpdatingId(null)
+    }
   }
 
   const activeLeads = leads.filter(l => l.status !== 'Lost')
-  const totalValue = activeLeads.length * 500 // estimated
 
   return (
     <section className="rounded-2xl border border-[#e3e9f0] bg-white p-5 shadow-sm">
@@ -97,34 +99,32 @@ export function KanbanBoard() {
           {leads.length} total leads
         </span>
       </div>
-      {loading ? (
-        <div className="py-12 text-center text-sm text-[#5c7184]">Loading pipeline...</div>
-      ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {STAGES.map(stage => {
-            const column = leads.filter(l => l.status === stage.id)
-            return (
-              <div key={stage.id} className="flex flex-col rounded-xl border border-[#e3e9f0]/60 bg-[#eaf0f7]/50 p-2.5">
-                <div className="mb-1 flex items-center justify-between px-1.5">
-                  <div className="flex items-center gap-2">
-                    <span className={cn("size-2 rounded-full", stage.dot)} />
-                    <span className="text-xs font-semibold text-[#0d2233]">{stage.label}</span>
-                  </div>
-                  <span className="flex size-5 items-center justify-center rounded-full bg-white text-[10px] font-semibold text-[#5c7184] ring-1 ring-[#e3e9f0]">{column.length}</span>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {STAGES.map(stage => {
+          const column = leads.filter(l => l.status === stage.id)
+          return (
+            <div key={stage.id} className="flex flex-col rounded-xl border border-[#e3e9f0]/60 bg-[#eaf0f7]/50 p-2.5">
+              <div className="mb-1 flex items-center justify-between px-1.5">
+                <div className="flex items-center gap-2">
+                  <span className={cn("size-2 rounded-full", stage.dot)} />
+                  <span className="text-xs font-semibold text-[#0d2233]">{stage.label}</span>
                 </div>
-                <div className="flex flex-1 flex-col gap-2.5 mt-2">
-                  {column.map(lead => (
-                    <DealCard key={lead._id} lead={lead} onStageChange={handleStageChange} isAdmin={isAdmin} userEmail={userEmail} />
-                  ))}
-                  {column.length === 0 && (
-                    <p className="rounded-lg border border-dashed border-[#e3e9f0] px-2 py-6 text-center text-[11px] text-[#5c7184]">No leads</p>
-                  )}
-                </div>
+                <span className="flex size-5 items-center justify-center rounded-full bg-white text-[10px] font-semibold text-[#5c7184] ring-1 ring-[#e3e9f0]">{column.length}</span>
               </div>
-            )
-          })}
-        </div>
-      )}
+              <div className="flex flex-1 flex-col gap-2.5 mt-2">
+                {column.map(lead => (
+                  <div key={lead._id} className={updatingId === lead._id ? 'opacity-50 pointer-events-none transition-opacity' : 'transition-opacity'}>
+                    <DealCard lead={lead} onStageChange={handleStageChange} isAdmin={isAdmin} userEmail={userEmail} />
+                  </div>
+                ))}
+                {column.length === 0 && (
+                  <p className="rounded-lg border border-dashed border-[#e3e9f0] px-2 py-6 text-center text-[11px] text-[#5c7184]">No leads</p>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </section>
   )
 }

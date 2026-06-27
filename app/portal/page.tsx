@@ -218,7 +218,7 @@ export default function PortalPage() {
           {page === 'dashboard' && (
             <>
               <StatCards isAdmin={isAdmin} />
-              <KanbanBoard />
+              <KanbanBoard leads={leads} onUpdate={fetchData} />
               <div className="grid grid-cols-1 gap-6">
                 <MrrCharts />
                 <RecentLeads />
@@ -376,7 +376,7 @@ export default function PortalPage() {
             <PricingCatalogAdmin userRole={role} />
           )}
 
-          {page === 'pipeline' && <KanbanBoard />}
+          {page === 'pipeline' && <KanbanBoard leads={leads} onUpdate={fetchData} />}
           {page === 'commissions' && <CommissionDashboard userRole={role} userName={(session?.user as any)?.name ?? ''} userEmail={session?.user?.email ?? ''} />}
           {page === 'account' && <AccountSettings />}
           {page === 'announcements' && <AnnouncementsPanel userRole={role} userName={(session?.user as any)?.name ?? ''} />}

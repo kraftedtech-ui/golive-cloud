@@ -33,12 +33,15 @@ export default function SkuMarginPicker({
   const [results, setResults] = useState<CatalogResult[]>([])
   const [searching, setSearching] = useState(false)
   const [lines, setLines] = useState<Line[]>([])
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const search = useCallback(async () => {
-    if (!q.trim()) { setResults([]); return }
     setSearching(true)
     try {
-      const params = new URLSearchParams({ q: q.trim(), customerType, limit: '15' })
+      // No query yet → still fetch a default browsable list (alphabetical,
+      // capped) rather than waiting for the rep to start typing.
+      const params = new URLSearchParams({ customerType, limit: q.trim() ? '15' : '30' })
+      if (q.trim()) params.set('q', q.trim())
       const res = await fetch(`/api/pricing-catalog?${params.toString()}`)
       const data = await res.json()
       setResults(Array.isArray(data?.items) ? data.items : [])
@@ -52,7 +55,7 @@ export default function SkuMarginPicker({
   }, [search])
 
   useEffect(() => {
-    if (!open) { setQ(''); setResults([]); setLines([]) }
+    if (!open) { setQ(''); setResults([]); setLines([]); setDropdownOpen(false) }
   }, [open])
 
   if (!open) return null
@@ -61,7 +64,8 @@ export default function SkuMarginPicker({
     if (lines.some(l => l._id === item._id)) return
     setLines(prev => [...prev, { ...item, qty: 1 }])
     setQ('')
-    setResults([])
+    // Keep the dropdown open and re-fetch the default list so the rep can
+    // immediately pick the next SKU for the same deal without refocusing.
   }
 
   function setQty(id: string, qty: number) {
@@ -98,28 +102,38 @@ export default function SkuMarginPicker({
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search SKU (e.g. Business Premium, Dynamics 365 Customer Insights)…"
+            onFocus={() => setDropdownOpen(true)}
+            onBlur={() => setTimeout(() => setDropdownOpen(false), 150)}
+            placeholder="Search SKU, or click to browse (e.g. Business Premium, Dynamics 365 Customer Insights)…"
             className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
           />
-          {q.trim() && (
+          {dropdownOpen && (
             <div className="absolute z-10 mt-1 w-full max-h-56 overflow-y-auto rounded-lg border border-border bg-white shadow-lg">
+              {!q.trim() && (
+                <p className="px-3 py-1.5 text-[10px] uppercase tracking-wide text-muted-foreground border-b border-border">Browsing all SKUs — type to narrow down</p>
+              )}
               {searching ? (
-                <p className="px-3 py-2.5 text-xs text-muted-foreground">Searching…</p>
+                <p className="px-3 py-2.5 text-xs text-muted-foreground">{q.trim() ? 'Searching…' : 'Loading catalog…'}</p>
               ) : results.length === 0 ? (
                 <p className="px-3 py-2.5 text-xs text-muted-foreground">No matching SKUs.</p>
-              ) : results.map((item) => (
-                <button
-                  key={item._id}
-                  onClick={() => addLine(item)}
-                  className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-secondary/40"
-                >
-                  <span>
-                    <span className="font-medium text-foreground">{item.skuTitle}</span>
-                    <span className="text-muted-foreground"> · {TERM_LABEL[item.termDuration] || item.termDuration} · {item.billingPlan}</span>
-                  </span>
-                  <span className="flex-shrink-0 font-medium text-foreground">{fmtCurrency(item.retailUSD, 'USD')}</span>
-                </button>
-              ))}
+              ) : results.map((item) => {
+                const already = lines.some(l => l._id === item._id)
+                return (
+                  <button
+                    key={item._id}
+                    onMouseDown={(e) => { e.preventDefault(); if (!already) addLine(item) }}
+                    disabled={already}
+                    className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs ${already ? 'opacity-40 cursor-not-allowed' : 'hover:bg-secondary/40'}`}
+                  >
+                    <span>
+                      <span className="font-medium text-foreground">{item.skuTitle}</span>
+                      <span className="text-muted-foreground"> · {TERM_LABEL[item.termDuration] || item.termDuration} · {item.billingPlan}</span>
+                      {already && <span className="text-teal-600"> · added</span>}
+                    </span>
+                    <span className="flex-shrink-0 font-medium text-foreground">{fmtCurrency(item.retailUSD, 'USD')}</span>
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>
