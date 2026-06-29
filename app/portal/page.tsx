@@ -1735,7 +1735,7 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
     }
   }
 
-  const mailtoHref = `mailto:annri.steyn@4sight.cloud?subject=${encodeURIComponent(`New CSP Customer: ${lead.company}`)}&body=${encodeURIComponent(cspRequestText)}`
+  const mailtoHref = `mailto:annri.steyn@4sight.cloud?cc=csp@golivecompany.com&subject=${encodeURIComponent(`New CSP Customer: ${lead.company}`)}&body=${encodeURIComponent(cspRequestText)}`
 
   const handleSubmit = async () => {
     if (!tenantDomain.trim() || !adminEmail.trim() || !mrr.trim()) {
@@ -1892,6 +1892,7 @@ function ConvertModal({ lead, onClose, onConverted }: { lead: Lead; onClose: () 
                     ✉️ Email Annri
                   </a>
                 </div>
+                <p className="mt-1 text-[10px] text-muted-foreground">CC's csp@golivecompany.com automatically, so onboarding stays visible to the whole team.</p>
                 <textarea readOnly value={cspRequestText} rows={3}
                   className="mt-2 w-full resize-none rounded-lg border border-border bg-white px-2 py-1.5 text-[10px] font-mono text-muted-foreground" />
               </>
@@ -1942,7 +1943,7 @@ function CspInfoModal({ customer, onClose }: { customer: Customer; onClose: () =
     } catch { /* clipboard permissions denied — textarea below still works */ }
   }
 
-  const mailtoHref = `mailto:annri.steyn@4sight.cloud?subject=${encodeURIComponent(`New CSP Customer: ${customer.company}`)}&body=${encodeURIComponent(requestText)}`
+  const mailtoHref = `mailto:annri.steyn@4sight.cloud?cc=csp@golivecompany.com&subject=${encodeURIComponent(`New CSP Customer: ${customer.company}`)}&body=${encodeURIComponent(requestText)}`
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
@@ -1970,6 +1971,7 @@ function CspInfoModal({ customer, onClose }: { customer: Customer; onClose: () =
               ✉️ Email Annri
             </a>
           </div>
+          <p className="text-[10px] text-muted-foreground">CC's csp@golivecompany.com automatically, so onboarding stays visible to the whole team.</p>
         </div>
         <div className="flex justify-end border-t border-border px-5 py-4">
           <button onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">Close</button>
