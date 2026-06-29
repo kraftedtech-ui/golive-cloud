@@ -8,15 +8,23 @@ import { Migration } from "@/components/migration"
 import { Markets } from "@/components/markets"
 import { AssessmentSection } from "@/components/assessment-section"
 import { Footer } from "@/components/footer"
+import { getPublicPackages, getPublicFxRates } from "@/lib/publicProductData"
 
-export default function Page() {
+// Pricing/FX data is server-fetched and cached for an hour rather than hit on
+// every single visitor's page load — it only changes when the catalog or the
+// FX feed updates (FX itself refreshes at most every 6h), so this is plenty fresh.
+export const revalidate = 3600
+
+export default async function Page() {
+  const [packages, fxRates] = await Promise.all([getPublicPackages(), getPublicFxRates()])
+
   return (
-    <CurrencyProvider>
+    <CurrencyProvider liveRates={fxRates}>
       <Navbar />
       <main>
         <Hero />
         <TrustBar />
-        <Packages />
+        <Packages packages={packages} />
         <Verticals />
         <Migration />
         <Markets />

@@ -48,6 +48,7 @@ jobs:
           git show origin/main:app/portal/page.tsx > app/portal/page.tsx
           mkdir -p app/migrate
           git show origin/main:app/migrate/page.tsx > app/migrate/page.tsx
+          git show origin/main:app/migrate/MigrateClient.tsx > app/migrate/MigrateClient.tsx
           mkdir -p app/terms
           git show origin/main:app/terms/page.tsx > app/terms/page.tsx
           mkdir -p app/privacy
@@ -75,6 +76,7 @@ jobs:
           git show origin/main:models/ProductMapping.ts > models/ProductMapping.ts
           git show origin/main:lib/pricelistParser.ts > lib/pricelistParser.ts
           git show origin/main:lib/suspensionRisk.ts > lib/suspensionRisk.ts
+          git show origin/main:lib/publicProductData.ts > lib/publicProductData.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
           mkdir -p "app/api/auth/check-2fa" "app/api/2fa/setup" "app/api/2fa/confirm"
           git show "origin/main:app/api/auth/check-2fa/route.ts" > "app/api/auth/check-2fa/route.ts"

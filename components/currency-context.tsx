@@ -11,6 +11,9 @@ type CurrencyInfo = {
   rate: number
 }
 
+// The `rate` fields below are now only a fallback for if live rates fail to
+// load — real conversion uses liveRates (NGN per 1 unit of currency, same
+// feed the internal portal uses), passed in from the server.
 export const CURRENCIES: Record<CurrencyCode, CurrencyInfo> = {
   USD: { code: "USD", symbol: "$",   label: "🇺🇸 USD — US Dollar",           rate: 1 },
   NGN: { code: "NGN", symbol: "₦",   label: "🇳🇬 NGN — Nigerian Naira",      rate: 1600 },
@@ -27,7 +30,7 @@ type CurrencyContextValue = {
 
 const CurrencyContext = createContext<CurrencyContextValue | null>(null)
 
-export function CurrencyProvider({ children }: { children: ReactNode }) {
+export function CurrencyProvider({ children, liveRates }: { children: ReactNode; liveRates?: Record<string, number> }) {
   const [currency, setCurrency] = useState<CurrencyCode>("USD")
 
   const value = useMemo<CurrencyContextValue>(() => {
@@ -36,13 +39,17 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
       currency,
       setCurrency,
       format: (usd: number) => {
-        const converted = usd * info.rate
-        const rounded = info.rate === 1 ? converted : Math.round(converted)
-        const formatted = rounded.toLocaleString("en-US", { maximumFractionDigits: 0 })
+        // liveRates are NGN-per-unit (e.g. liveRates.USD = how many NGN per $1).
+        // Converting USD -> target currency: usd * liveRates.USD / liveRates[target].
+        const usdToNgn = liveRates?.USD
+        const targetToNgn = liveRates?.[currency]
+        const converted = usdToNgn && targetToNgn ? (usd * usdToNgn) / targetToNgn : usd * info.rate
+        const rounded = currency === "USD" ? converted : Math.round(converted)
+        const formatted = rounded.toLocaleString("en-US", { maximumFractionDigits: currency === "USD" ? 2 : 0 })
         return `${info.symbol}${formatted}`
       },
     }
-  }, [currency])
+  }, [currency, liveRates])
 
   return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>
 }
