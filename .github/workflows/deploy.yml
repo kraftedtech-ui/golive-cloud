@@ -161,6 +161,11 @@ jobs:
           # against a fresh clone), so pulling it unconditionally broke every
           # deploy past this point. If this route is meant to exist, it needs
           # to be built and committed first, then re-added here.
+          # The first fix here only stopped re-pulling it — it didn't clean
+          # up the empty file already on this server from an earlier deploy,
+          # which kept failing the TypeScript "is not a module" check on its
+          # own. Removing it outright now; nothing else lives under app/api/public.
+          rm -rf app/api/public
           mkdir -p public/images
           git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
           git show origin/main:public/images/logo-dark.png > public/images/logo-dark.png
@@ -227,6 +232,17 @@ jobs:
           pkill -f "next build" 2>/dev/null || true
           sleep 2
           rm -rf .next
+
+          # Safety net: Next.js hard-fails the TypeScript build on any
+          # empty .ts/.tsx file under app/ ("is not a module"). This has
+          # already broken two separate deploys from stale/abandoned files
+          # (app/assess/[ref], app/api/public/lead-assessment) that were
+          # pulled once, then later dropped from the pull list above without
+          # being cleaned up from disk. Rather than keep finding these one at
+          # a time, sweep and remove any zero-byte source file right before
+          # every build so this category of failure can't recur.
+          find app -type f \( -name "*.ts" -o -name "*.tsx" \) -empty -print -delete
+
           export NODE_ENV=production
           npm run build
           echo "=== Restarting server ==="
