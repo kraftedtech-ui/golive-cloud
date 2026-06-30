@@ -44,11 +44,17 @@ jobs:
           git show origin/main:app/layout.tsx > app/layout.tsx
           git show origin/main:app/SessionWrapper.tsx > app/SessionWrapper.tsx
           git show origin/main:app/page.tsx > app/page.tsx
+          mkdir -p app/discovery
+          git show origin/main:app/discovery/page.tsx > app/discovery/page.tsx
           git show origin/main:app/portal/login/page.tsx > app/portal/login/page.tsx
           git show origin/main:app/portal/page.tsx > app/portal/page.tsx
           mkdir -p app/migrate
           git show origin/main:app/migrate/page.tsx > app/migrate/page.tsx
           git show origin/main:app/migrate/MigrateClient.tsx > app/migrate/MigrateClient.tsx
+
+          mkdir -p "app/assess/[ref]"
+          git show "origin/main:app/assess/[ref]/page.tsx" > "app/assess/[ref]/page.tsx"
+          git show "origin/main:app/assess/[ref]/AssessClient.tsx" > "app/assess/[ref]/AssessClient.tsx"
           mkdir -p app/terms
           git show origin/main:app/terms/page.tsx > app/terms/page.tsx
           mkdir -p app/privacy
@@ -79,6 +85,7 @@ jobs:
           git show origin/main:lib/suspensionRisk.ts > lib/suspensionRisk.ts
           git show origin/main:lib/publicProductData.ts > lib/publicProductData.ts
           git show origin/main:lib/discoveryRecommendation.ts > lib/discoveryRecommendation.ts
+          git show origin/main:lib/publicVerification.ts > lib/publicVerification.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
           mkdir -p "app/api/auth/check-2fa" "app/api/2fa/setup" "app/api/2fa/confirm"
           git show "origin/main:app/api/auth/check-2fa/route.ts" > "app/api/auth/check-2fa/route.ts"
@@ -142,6 +149,11 @@ jobs:
           mkdir -p app/api/discovery-assessments "app/api/discovery-assessments/[id]"
           git show origin/main:app/api/discovery-assessments/route.ts > app/api/discovery-assessments/route.ts
           git show "origin/main:app/api/discovery-assessments/[id]/route.ts" > "app/api/discovery-assessments/[id]/route.ts"
+          mkdir -p app/api/discovery-assessments/public
+          git show origin/main:app/api/discovery-assessments/public/route.ts > app/api/discovery-assessments/public/route.ts
+
+          mkdir -p app/api/public/lead-assessment
+          git show origin/main:app/api/public/lead-assessment/route.ts > app/api/public/lead-assessment/route.ts
           mkdir -p public/images
           git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
           git show origin/main:public/images/logo-dark.png > public/images/logo-dark.png
@@ -156,6 +168,7 @@ jobs:
           mkdir -p components
           git show origin/main:components/assessment-form.tsx > components/assessment-form.tsx
           git show origin/main:components/assessment-section.tsx > components/assessment-section.tsx
+          git show origin/main:components/public-discovery-form.tsx > components/public-discovery-form.tsx
           git show origin/main:components/cta-link.tsx > components/cta-link.tsx
           git show origin/main:components/currency-context.tsx > components/currency-context.tsx
           git show origin/main:components/footer.tsx > components/footer.tsx

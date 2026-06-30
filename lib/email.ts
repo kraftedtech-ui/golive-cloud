@@ -157,3 +157,52 @@ export async function sendTransferConfirmation(transfer: {
     `
   })
 }
+
+// ── Public Discovery Questionnaire notification ──────────────────────────────
+export async function sendDiscoveryNotification(data: {
+  ref: string; company: string; contact: string; email: string; phone: string
+  isExistingM365Customer: boolean; employeeCount: string
+  painPointLabels: string[]
+  recommendedPackageLabel?: string; recommendedAddOnLabels?: string[]
+  needsOfflineConsult: boolean; consultReasons?: string[]
+}) {
+  const consultBanner = data.needsOfflineConsult
+    ? `<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:14px 16px;margin-bottom:16px">
+         <p style="margin:0;color:#92400e;font-weight:700;font-size:13px">⚠ Needs an offline consult</p>
+         <ul style="margin:6px 0 0;padding-left:18px;color:#92400e;font-size:12px">
+           ${(data.consultReasons || []).map(r => `<li>${r}</li>`).join('')}
+         </ul>
+       </div>`
+    : ''
+
+  await resend.emails.send({
+    from: FROM,
+    to: NOTIFY,
+    subject: `New Discovery Questionnaire — ${data.company}${data.needsOfflineConsult ? ' (needs consult)' : ''}`,
+    html: `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f4f7fb;padding:24px;border-radius:12px">
+        <div style="background:#0d2233;border-radius:8px;padding:20px 24px;margin-bottom:24px">
+          <h1 style="color:#00c8c8;margin:0;font-size:20px">Customer Self-Submitted Discovery Questionnaire</h1>
+          <p style="color:rgba(255,255,255,0.6);margin:4px 0 0;font-size:13px">Ref: ${data.ref}</p>
+        </div>
+        <div style="background:white;border-radius:8px;padding:20px 24px;border:1px solid #e3e9f0">
+          ${consultBanner}
+          <table style="width:100%;border-collapse:collapse;font-size:14px">
+            <tr><td style="padding:8px 0;color:#5c7184;width:140px">Company</td><td style="padding:8px 0;font-weight:600;color:#0d2233">${data.company}</td></tr>
+            <tr><td style="padding:8px 0;color:#5c7184">Contact</td><td style="padding:8px 0;color:#0d2233">${data.contact}</td></tr>
+            <tr><td style="padding:8px 0;color:#5c7184">Email</td><td style="padding:8px 0"><a href="mailto:${data.email}" style="color:#0096c7">${data.email}</a></td></tr>
+            <tr><td style="padding:8px 0;color:#5c7184">Phone</td><td style="padding:8px 0;color:#0d2233">${data.phone}</td></tr>
+            <tr><td style="padding:8px 0;color:#5c7184">M365 status</td><td style="padding:8px 0;color:#0d2233">${data.isExistingM365Customer ? 'Existing M365 customer' : 'Not yet on M365'}</td></tr>
+            <tr><td style="padding:8px 0;color:#5c7184">Employees</td><td style="padding:8px 0;color:#0d2233">${data.employeeCount}</td></tr>
+            <tr><td style="padding:8px 0;color:#5c7184">Pain points</td><td style="padding:8px 0;color:#0d2233">${data.painPointLabels.join(', ') || '—'}</td></tr>
+            <tr><td style="padding:8px 0;color:#5c7184">Recommended</td><td style="padding:8px 0;color:#0d2233">${data.recommendedPackageLabel || '—'}${data.recommendedAddOnLabels?.length ? ' + ' + data.recommendedAddOnLabels.join(', ') : ''}</td></tr>
+          </table>
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e3e9f0">
+            <a href="https://cloud.golivecompany.com/portal" style="display:inline-block;background:#0096c7;color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">View full answers in Portal →</a>
+          </div>
+        </div>
+        <p style="color:#5c7184;font-size:11px;text-align:center;margin-top:16px">The GoLive Digital Solutions Company Ltd. · RC1644767 · contact@golivecompany.com</p>
+      </div>
+    `
+  })
+}

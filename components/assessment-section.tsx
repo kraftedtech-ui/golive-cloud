@@ -31,6 +31,9 @@ export function AssessmentSection() {
         </div>
         <div className="text-[#0d2233]">
           <AssessmentForm variant="section" />
+          <p className="mt-4 text-center text-xs text-white/60 lg:text-left">
+            Already know your setup well? <a href="/discovery" className="font-semibold text-[#00c8c8] hover:underline">Take the full needs assessment →</a>
+          </p>
         </div>
       </div>
     </section>
