@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
       startDate,
       renewalDate,
       nextInvoiceDate,
+      leadId: leadId || undefined,
       // Attribute the customer to whoever the lead was assigned to (the rep who
       // actually closed it). Falls back to whoever clicked "Convert" if the lead
       // had no assignment recorded.

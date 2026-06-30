@@ -19,6 +19,8 @@ import PricingCatalogAdmin from '@/components/dashboard/PricingCatalogAdmin'
 import ProductMappingAdmin from '@/components/dashboard/ProductMappingAdmin'
 import PaymentRiskPanel from '@/components/dashboard/PaymentRiskPanel'
 import DiscoveryAssessmentTool from '@/components/dashboard/DiscoveryAssessmentTool'
+import DeploymentChecklistTool from '@/components/dashboard/DeploymentChecklistTool'
+import SetupFeeCatalogAdmin from '@/components/dashboard/SetupFeeCatalogAdmin'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,7 +34,7 @@ interface Customer {
   _id: string; company: string; tenantDomain: string; package: string
   users: number; mrr: number; arr: number; renewalDate: string
   healthScore: string; country: string; status: string
-  contact?: string; adminEmail?: string; phone?: string; closedByEmail?: string
+  contact?: string; adminEmail?: string; phone?: string; closedByEmail?: string; leadId?: string; leadRef?: string
   cspOnboarding?: {
     hasExistingTenant: boolean; companyRegistrationId?: string; vatNumber?: string
     preferredDomain?: string; secondChoiceDomain?: string; thirdChoiceDomain?: string
@@ -67,6 +69,13 @@ export default function PortalPage() {
   const [deletingLeadBusy, setDeletingLeadBusy] = useState(false)
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null)
   const [viewingCspInfo, setViewingCspInfo] = useState<Customer | null>(null)
+  const [viewingChecklist, setViewingChecklist] = useState<Customer | null>(null)
+  const [proposalPrefill, setProposalPrefill] = useState<{ leadId: string; packageKey: string; addOnKeys: string[] } | null>(null)
+
+  function useDiscoveryInProposal(leadId: string, packageKey: string, addOnKeys: string[]) {
+    setProposalPrefill({ leadId, packageKey, addOnKeys })
+    setPage('proposals')
+  }
   const [editingAgreement, setEditingAgreement] = useState<Customer | null>(null)
   // Set when a topbar search result is clicked — lets the matching table row
   // scroll into view and flash, since leads/customers don't otherwise have
@@ -391,6 +400,10 @@ export default function PortalPage() {
                                   CSP Info
                                 </button>
                               )}
+                              <button onClick={() => setViewingChecklist(c)}
+                                className="rounded-lg bg-teal-50 px-3 py-1 text-[11px] font-semibold text-teal-700 hover:bg-teal-100 ring-1 ring-teal-200">
+                                Checklist
+                              </button>
                               {isAdmin && (
                                 <button onClick={() => setDeletingCustomer(c)}
                                   className="rounded-lg bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-100 ring-1 ring-red-200">
@@ -416,6 +429,10 @@ export default function PortalPage() {
             <PricingCatalogAdmin userRole={role} />
           )}
 
+          {page === 'setup-fees' && isAdmin && (
+            <SetupFeeCatalogAdmin isAdmin={isAdmin} />
+          )}
+
           {page === 'product-mapping' && (
             <ProductMappingAdmin isAdmin={isAdmin} />
           )}
@@ -437,7 +454,7 @@ export default function PortalPage() {
                 <h2 className="mt-0.5 text-base font-semibold text-foreground">Discovery Questionnaire</h2>
                 <p className="text-xs text-muted-foreground">Capture a lead's current setup and pain points — get a real package/add-on recommendation before quoting.</p>
               </div>
-              <DiscoveryAssessmentTool leads={leads} isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} />
+              <DiscoveryAssessmentTool leads={leads} isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} onUseInProposal={useDiscoveryInProposal} />
             </div>
           )}
 
@@ -447,7 +464,7 @@ export default function PortalPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Tools</p>
                 <h2 className="mt-0.5 text-base font-semibold text-foreground">Proposal Generator</h2>
               </div>
-              <ProposalContent leads={leads} isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} />
+              <ProposalContent leads={leads} isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} prefill={proposalPrefill} onPrefillConsumed={() => setProposalPrefill(null)} />
             </div>
           )}
 
@@ -530,6 +547,17 @@ export default function PortalPage() {
 
         {viewingCspInfo && (
           <CspInfoModal customer={viewingCspInfo} onClose={() => setViewingCspInfo(null)} />
+        )}
+
+        {viewingChecklist && (
+          <DeploymentChecklistTool
+            customerId={viewingChecklist._id}
+            leadId={viewingChecklist.leadId}
+            leadRef={viewingChecklist.leadRef}
+            company={viewingChecklist.company}
+            userCountDefault={viewingChecklist.users || 1}
+            onClose={() => setViewingChecklist(null)}
+          />
         )}
 
         {editingAgreement && (
@@ -793,7 +821,11 @@ interface ProductMappingItem {
   features?: string[]
 }
 
-function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin: boolean; userEmail: string }) {
+function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed }: {
+  leads: Lead[]; isAdmin: boolean; userEmail: string
+  prefill?: { leadId: string; packageKey: string; addOnKeys: string[] } | null
+  onPrefillConsumed?: () => void
+}) {
   const [selectedLead, setSelectedLead] = useState('')
   const [pkg, setPkg] = useState('Secure Business Cloud')
   const [users, setUsers] = useState('10')
@@ -876,6 +908,19 @@ function ProposalContent({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin
     else if (emailProvider.includes('cpanel') || emailProvider.includes('webmail')) { setPkg('Starter Cloud Office'); setSetupUSD(150) }
     else { setPkg('Secure Business Cloud'); setSetupUSD(300) }
   }
+
+  // Pulled in from the Discovery Questionnaire's "Use in Proposal Generator"
+  // action. Waits for packages to be loaded so the package key can resolve
+  // to the label string the <select> below actually uses.
+  useEffect(() => {
+    if (!prefill || packages.length === 0) return
+    handleLeadSelect(prefill.leadId)
+    const matchedPkg = packages.find(p => p.key === prefill.packageKey)
+    if (matchedPkg) setPkg(matchedPkg.label)
+    setSelectedAddOns(Object.fromEntries(prefill.addOnKeys.map(k => [k, true])))
+    onPrefillConsumed?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill, packages])
 
   const pkgFeatures: Record<string, string[]> = Object.fromEntries(packages.map(p => [p.label, p.features || []]))
 

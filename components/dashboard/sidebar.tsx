@@ -46,6 +46,7 @@ const sections: NavSection[] = [
       { label: "Customer Accounts", icon: Users, key: "customers" },
       { label: "Payment Risk", icon: AlertTriangle, key: "payment-risk" },
       { label: "Pricing Catalog", icon: Tags, key: "pricing", adminOnly: true },
+      { label: "Setup Fee Catalog", icon: Tags, key: "setup-fees", adminOnly: true },
       { label: "Team & Access", icon: ShieldCheck, key: "team", adminOnly: true },
       { label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
     ],

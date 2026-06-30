@@ -63,6 +63,7 @@ export interface ICustomer extends Document {
 
   // Source
   leadRef?: string
+  leadId?: string
   closedByEmail?: string
   closedByName?: string
   distributor?: string
@@ -133,6 +134,7 @@ const CustomerSchema = new Schema<ICustomer>(
     healthScore: { type: String, enum: ['green', 'amber', 'red'], default: 'green' },
     notes: String,
     leadRef: String,
+    leadId: String,
     closedByEmail: String,
     closedByName: String,
     distributor: String,

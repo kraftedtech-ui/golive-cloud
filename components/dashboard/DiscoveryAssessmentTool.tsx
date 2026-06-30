@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { DISCOVERY_PAIN_POINTS, computeRecommendation } from '@/lib/discoveryRecommendation'
+import { DISCOVERY_PAIN_POINTS, DISCOVERY_PAIN_POINT_HELP, computeRecommendation } from '@/lib/discoveryRecommendation'
 
 interface Lead { _id: string; ref: string; company: string; country: string; status: string; assignedToEmail?: string }
 interface ProductMappingItem { type: 'package' | 'addon'; key: string; label: string; blurb?: string; active?: boolean }
@@ -11,6 +11,7 @@ interface Assessment {
   leadRef: string
   company: string
   completedByName?: string
+  source: 'sales' | 'customer'
   isExistingM365Customer: boolean
   currentPlan?: string
   employeeCount: string
@@ -43,7 +44,7 @@ function toggle(arr: string[], val: string) {
   return arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val]
 }
 
-export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail }: { leads: Lead[]; isAdmin: boolean; userEmail: string }) {
+export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onUseInProposal }: { leads: Lead[]; isAdmin: boolean; userEmail: string; onUseInProposal?: (leadId: string, packageKey: string, addOnKeys: string[]) => void }) {
   const [selectedLeadId, setSelectedLeadId] = useState('')
   const [form, setForm] = useState(emptyForm)
   const [mappings, setMappings] = useState<ProductMappingItem[]>([])
@@ -53,6 +54,7 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail }: {
   const [savedMsg, setSavedMsg] = useState('')
   const [error, setError] = useState('')
   const [viewing, setViewing] = useState<Assessment | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   useEffect(() => {
     fetch('/api/product-mappings').then(r => r.json()).then(items => { if (Array.isArray(items)) setMappings(items) }).catch(() => {})
@@ -85,6 +87,16 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail }: {
   const leadAssessments = selectedLeadId ? assessments.filter(a => a.leadId === selectedLeadId) : []
 
   function resetForm() { setForm(emptyForm) }
+
+  async function copyCustomerLink() {
+    if (!selectedLead) return
+    const url = `${window.location.origin}/assess/${selectedLead.ref}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch { /* clipboard permission denied — nothing else to do here */ }
+  }
 
   async function save() {
     if (!selectedLeadId || !selectedLead) { setError('Select a lead first.'); return }
@@ -138,6 +150,16 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail }: {
               <p className="mt-1.5 text-[11px] text-amber-600">No assigned leads yet — ask your admin to assign you one first.</p>
             )}
           </div>
+
+          {selectedLeadId && (
+            <div className="flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2">
+              <p className="text-[11px] text-muted-foreground">Want the customer to fill this in themselves instead?</p>
+              <button type="button" onClick={copyCustomerLink}
+                className="rounded-lg border border-border bg-white px-3 py-1.5 text-[11px] font-medium text-foreground hover:bg-secondary flex-shrink-0">
+                {linkCopied ? '✓ Copied!' : '🔗 Copy customer link'}
+              </button>
+            </div>
+          )}
 
           {selectedLeadId && (
             <>
@@ -274,7 +296,10 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail }: {
                   {DISCOVERY_PAIN_POINTS.map(p => (
                     <label key={p.key} className="flex items-start gap-2 text-xs cursor-pointer">
                       <input type="checkbox" className="mt-0.5" checked={form.painPoints.includes(p.key)} onChange={() => setForm(f => ({ ...f, painPoints: toggle(f.painPoints, p.key) }))} />
-                      <span className="flex-1">{p.label}</span>
+                      <span className="flex-1">
+                        {p.label}
+                        <span className="block text-[10px] text-muted-foreground font-normal">{DISCOVERY_PAIN_POINT_HELP[p.key]}</span>
+                      </span>
                       {p.alwaysConsult && <span className="flex-shrink-0 text-[10px] text-amber-600 font-medium">needs consult</span>}
                     </label>
                   ))}
@@ -347,7 +372,15 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail }: {
                     </ul>
                   </div>
                 )}
-                <p className="mt-3 text-[10px] text-muted-foreground">Updates live as you answer. Once saved, use this package/add-on combination in the Proposal Generator for {selectedLead?.company}.</p>
+                <p className="mt-3 text-[10px] text-muted-foreground">Updates live as you answer.</p>
+                {onUseInProposal && (
+                  <button
+                    onClick={() => onUseInProposal(selectedLeadId, recommendation.packageKey, recommendation.addOnKeys)}
+                    className="mt-2 w-full rounded-lg bg-primary py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                  >
+                    Use this in Proposal Generator →
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -365,9 +398,12 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail }: {
               <p className="px-4 py-6 text-center text-xs text-muted-foreground">No assessments yet.</p>
             ) : (selectedLeadId ? leadAssessments : assessments).map(a => (
               <button key={a._id} onClick={() => setViewing(a)} className="block w-full px-4 py-3 text-left hover:bg-secondary/30">
-                <div className="flex items-center justify-between">
-                  <p className="text-xs font-medium text-foreground">{a.company}</p>
-                  <span className="text-[10px] text-muted-foreground">{new Date(a.createdAt).toLocaleDateString()}</span>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium text-foreground truncate">{a.company}</p>
+                  <span className={`flex-shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${a.source === 'customer' ? 'bg-teal-50 text-teal-700' : 'bg-secondary text-muted-foreground'}`}>
+                    {a.source === 'customer' ? 'Customer' : 'Sales'}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground flex-shrink-0">{new Date(a.createdAt).toLocaleDateString()}</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground">
                   {a.isExistingM365Customer ? 'Existing M365' : 'Net new'} · {a.employeeCount} · {a.painPoints.length} pain point{a.painPoints.length !== 1 ? 's' : ''}
@@ -385,7 +421,7 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail }: {
             <div className="border-b border-border px-5 py-4 flex items-center justify-between">
               <div>
                 <h2 className="text-base font-semibold text-foreground">{viewing.company}</h2>
-                <p className="text-xs text-muted-foreground">{viewing.leadRef} · {new Date(viewing.createdAt).toLocaleString()} · by {viewing.completedByName || 'unknown'}</p>
+                <p className="text-xs text-muted-foreground">{viewing.leadRef} · {new Date(viewing.createdAt).toLocaleString()} · {viewing.source === 'customer' ? 'submitted by customer' : `by ${viewing.completedByName || 'unknown'}`}</p>
               </div>
               <button onClick={() => setViewing(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
             </div>
@@ -411,7 +447,15 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail }: {
                 </div>
               )}
             </div>
-            <div className="flex justify-end border-t border-border px-5 py-4">
+            <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
+              {onUseInProposal && (
+                <button
+                  onClick={() => { onUseInProposal(viewing.leadId, viewing.recommendedPackageKey || '', viewing.recommendedAddOnKeys || []); setViewing(null) }}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+                >
+                  Use in Proposal Generator →
+                </button>
+              )}
               <button onClick={() => setViewing(null)} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">Close</button>
             </div>
           </div>

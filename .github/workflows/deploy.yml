@@ -85,11 +85,14 @@ jobs:
           git show origin/main:models/PricingCatalog.ts > models/PricingCatalog.ts
           git show origin/main:models/ProductMapping.ts > models/ProductMapping.ts
           git show origin/main:models/DiscoveryAssessment.ts > models/DiscoveryAssessment.ts
+          git show origin/main:models/SetupFeeCatalog.ts > models/SetupFeeCatalog.ts
+          git show origin/main:models/DeploymentChecklist.ts > models/DeploymentChecklist.ts
           git show origin/main:lib/pricelistParser.ts > lib/pricelistParser.ts
           git show origin/main:lib/suspensionRisk.ts > lib/suspensionRisk.ts
           git show origin/main:lib/publicProductData.ts > lib/publicProductData.ts
           git show origin/main:lib/discoveryRecommendation.ts > lib/discoveryRecommendation.ts
           git show origin/main:lib/publicVerification.ts > lib/publicVerification.ts
+          git show origin/main:lib/deploymentRecommendation.ts > lib/deploymentRecommendation.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
           mkdir -p "app/api/auth/check-2fa" "app/api/2fa/setup" "app/api/2fa/confirm"
           git show "origin/main:app/api/auth/check-2fa/route.ts" > "app/api/auth/check-2fa/route.ts"
@@ -156,6 +159,14 @@ jobs:
           mkdir -p app/api/discovery-assessments/public
           git show origin/main:app/api/discovery-assessments/public/route.ts > app/api/discovery-assessments/public/route.ts
 
+          mkdir -p app/api/setup-fee-catalog "app/api/setup-fee-catalog/[id]"
+          git show origin/main:app/api/setup-fee-catalog/route.ts > app/api/setup-fee-catalog/route.ts
+          git show "origin/main:app/api/setup-fee-catalog/[id]/route.ts" > "app/api/setup-fee-catalog/[id]/route.ts"
+
+          mkdir -p app/api/deployment-checklists "app/api/deployment-checklists/[id]"
+          git show origin/main:app/api/deployment-checklists/route.ts > app/api/deployment-checklists/route.ts
+          git show "origin/main:app/api/deployment-checklists/[id]/route.ts" > "app/api/deployment-checklists/[id]/route.ts"
+
           # NOTE: app/api/public/lead-assessment/route.ts was removed here —
           # that path was never actually committed to the repo (confirmed
           # against a fresh clone), so pulling it unconditionally broke every
@@ -219,6 +230,8 @@ jobs:
           git show origin/main:components/dashboard/ProductMappingAdmin.tsx > components/dashboard/ProductMappingAdmin.tsx
           git show origin/main:components/dashboard/PaymentRiskPanel.tsx > components/dashboard/PaymentRiskPanel.tsx
           git show origin/main:components/dashboard/DiscoveryAssessmentTool.tsx > components/dashboard/DiscoveryAssessmentTool.tsx
+          git show origin/main:components/dashboard/DeploymentChecklistTool.tsx > components/dashboard/DeploymentChecklistTool.tsx
+          git show origin/main:components/dashboard/SetupFeeCatalogAdmin.tsx > components/dashboard/SetupFeeCatalogAdmin.tsx
           mkdir -p components/ui
           git show origin/main:components/ui/card.tsx > components/ui/card.tsx
           git show origin/main:components/ui/button.tsx > components/ui/button.tsx
