@@ -18,6 +18,7 @@ import AccountSettings from '@/components/dashboard/AccountSettings'
 import PricingCatalogAdmin from '@/components/dashboard/PricingCatalogAdmin'
 import ProductMappingAdmin from '@/components/dashboard/ProductMappingAdmin'
 import PaymentRiskPanel from '@/components/dashboard/PaymentRiskPanel'
+import DiscoveryAssessmentTool from '@/components/dashboard/DiscoveryAssessmentTool'
 
 export const dynamic = 'force-dynamic'
 
@@ -410,6 +411,17 @@ export default function PortalPage() {
           {page === 'account' && <AccountSettings />}
           {page === 'announcements' && <AnnouncementsPanel userRole={role} userName={(session?.user as any)?.name ?? ''} />}
           {page === 'knowledge' && <KnowledgeBase userRole={role} userName={(session?.user as any)?.name ?? ''} />}
+
+          {page === 'discovery' && (
+            <div className="rounded-2xl border border-border bg-white shadow-sm">
+              <div className="border-b border-border px-5 py-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Tools</p>
+                <h2 className="mt-0.5 text-base font-semibold text-foreground">Discovery Questionnaire</h2>
+                <p className="text-xs text-muted-foreground">Capture a lead's current setup and pain points — get a real package/add-on recommendation before quoting.</p>
+              </div>
+              <DiscoveryAssessmentTool leads={leads} isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} />
+            </div>
+          )}
 
           {page === 'proposals' && (
             <div className="rounded-2xl border border-border bg-white shadow-sm">

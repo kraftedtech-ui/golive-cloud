@@ -6,7 +6,7 @@ import {
   ArrowLeftRight, KanbanSquare, FileText, ListChecks,
   Users, ShieldCheck, LayoutDashboard, LogOut, BadgeCheck,
   BookOpen, Award, GraduationCap, ExternalLink, ChevronDown,
-  DollarSign, Bell, Settings, Tags, AlertTriangle,
+  DollarSign, Bell, Settings, Tags, AlertTriangle, ClipboardList,
   type LucideIcon, Cloud,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -27,6 +27,7 @@ const sections: NavSection[] = [
   {
     heading: "Tools",
     items: [
+      { label: "Discovery Questionnaire", icon: ClipboardList, key: "discovery" },
       { label: "Proposal Generator", icon: FileText, key: "proposals" },
       { label: "Product Mapping", icon: Tags, key: "product-mapping" },
       { label: "Onboarding Checklist", icon: ListChecks, key: "onboarding" },

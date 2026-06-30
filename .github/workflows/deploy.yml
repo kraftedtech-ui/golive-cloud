@@ -74,9 +74,11 @@ jobs:
           git show origin/main:models/ExchangeRate.ts > models/ExchangeRate.ts
           git show origin/main:models/PricingCatalog.ts > models/PricingCatalog.ts
           git show origin/main:models/ProductMapping.ts > models/ProductMapping.ts
+          git show origin/main:models/DiscoveryAssessment.ts > models/DiscoveryAssessment.ts
           git show origin/main:lib/pricelistParser.ts > lib/pricelistParser.ts
           git show origin/main:lib/suspensionRisk.ts > lib/suspensionRisk.ts
           git show origin/main:lib/publicProductData.ts > lib/publicProductData.ts
+          git show origin/main:lib/discoveryRecommendation.ts > lib/discoveryRecommendation.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
           mkdir -p "app/api/auth/check-2fa" "app/api/2fa/setup" "app/api/2fa/confirm"
           git show "origin/main:app/api/auth/check-2fa/route.ts" > "app/api/auth/check-2fa/route.ts"
@@ -136,6 +138,10 @@ jobs:
           mkdir -p app/api/product-mappings "app/api/product-mappings/[id]"
           git show origin/main:app/api/product-mappings/route.ts > app/api/product-mappings/route.ts
           git show "origin/main:app/api/product-mappings/[id]/route.ts" > "app/api/product-mappings/[id]/route.ts"
+
+          mkdir -p app/api/discovery-assessments "app/api/discovery-assessments/[id]"
+          git show origin/main:app/api/discovery-assessments/route.ts > app/api/discovery-assessments/route.ts
+          git show "origin/main:app/api/discovery-assessments/[id]/route.ts" > "app/api/discovery-assessments/[id]/route.ts"
           mkdir -p public/images
           git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
           git show origin/main:public/images/logo-dark.png > public/images/logo-dark.png
@@ -187,6 +193,7 @@ jobs:
           git show origin/main:components/dashboard/PricingCatalogAdmin.tsx > components/dashboard/PricingCatalogAdmin.tsx
           git show origin/main:components/dashboard/ProductMappingAdmin.tsx > components/dashboard/ProductMappingAdmin.tsx
           git show origin/main:components/dashboard/PaymentRiskPanel.tsx > components/dashboard/PaymentRiskPanel.tsx
+          git show origin/main:components/dashboard/DiscoveryAssessmentTool.tsx > components/dashboard/DiscoveryAssessmentTool.tsx
           mkdir -p components/ui
           git show origin/main:components/ui/card.tsx > components/ui/card.tsx
           git show origin/main:components/ui/button.tsx > components/ui/button.tsx
