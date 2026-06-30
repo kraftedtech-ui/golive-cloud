@@ -30,7 +30,7 @@ const sections: NavSection[] = [
       { label: "Discovery Questionnaire", icon: ClipboardList, key: "discovery" },
       { label: "Proposal Generator", icon: FileText, key: "proposals" },
       { label: "Product Mapping", icon: Tags, key: "product-mapping" },
-      { label: "Onboarding Checklist", icon: ListChecks, key: "onboarding" },
+      { label: "Deployment Workflow", icon: ListChecks, key: "onboarding" },
     ],
   },
   {

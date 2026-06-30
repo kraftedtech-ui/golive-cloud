@@ -482,8 +482,8 @@ export default function PortalPage() {
             <div className="rounded-2xl border border-border bg-white shadow-sm">
               <div className="border-b border-border px-5 py-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Tools</p>
-                <h2 className="mt-0.5 text-base font-semibold text-foreground">Deployment & Onboarding Checklist</h2>
-                <p className="text-xs text-muted-foreground">Plan the deployment scope, fee, and BRD need — then run the resulting execution checklist — both in one place per customer.</p>
+                <h2 className="mt-0.5 text-base font-semibold text-foreground">Deployment Workflow</h2>
+                <p className="text-xs text-muted-foreground">Scope, price, and BRD-check a deployment, then run the execution checklist it generates — both phases, one place, per customer.</p>
               </div>
               <OnboardingChecklist customers={customers} onOpenDeploymentChecklist={(c) => setViewingChecklist(c)} />
             </div>
