@@ -120,6 +120,18 @@ export default function PortalPage() {
 
   useEffect(() => { fetchData() }, [status])
 
+  const [showNewLead, setShowNewLead] = useState(false)
+  const [newLeadForm, setNewLeadForm] = useState({ company: '', contact: '', email: '', phone: '', country: 'Nigeria', industry: '', users: '', currentEmail: '', notes: '' })
+  const [newLeadLoading, setNewLeadLoading] = useState(false)
+  const [newLeadError, setNewLeadError] = useState('')
+
+  // IMPORTANT: every hook in this component must be declared above this
+  // point. `status` starts as 'loading' on first render and flips to
+  // 'authenticated' moments later — if any hook sits below these early
+  // returns, the component calls a different number of hooks between those
+  // two renders of the same instance, and React throws "Rendered more hooks
+  // than during the previous render" (error #310), crashing the whole page.
+  // This is exactly what was happening on every hard refresh of /portal.
   if (status === 'loading') return (
     <div className="flex min-h-screen items-center justify-center bg-[#f4f7fb]">
       <div className="text-sm text-[#5c7184]">Loading portal...</div>
@@ -129,11 +141,6 @@ export default function PortalPage() {
 
   const role = (session?.user as any)?.role || 'viewer'
   const isAdmin = role === 'admin'
-
-  const [showNewLead, setShowNewLead] = useState(false)
-  const [newLeadForm, setNewLeadForm] = useState({ company: '', contact: '', email: '', phone: '', country: 'Nigeria', industry: '', users: '', currentEmail: '', notes: '' })
-  const [newLeadLoading, setNewLeadLoading] = useState(false)
-  const [newLeadError, setNewLeadError] = useState('')
 
   const submitNewLead = async (e: React.FormEvent) => {
     e.preventDefault()
