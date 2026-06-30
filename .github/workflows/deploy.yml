@@ -152,8 +152,11 @@ jobs:
           mkdir -p app/api/discovery-assessments/public
           git show origin/main:app/api/discovery-assessments/public/route.ts > app/api/discovery-assessments/public/route.ts
 
-          mkdir -p app/api/public/lead-assessment
-          git show origin/main:app/api/public/lead-assessment/route.ts > app/api/public/lead-assessment/route.ts
+          # NOTE: app/api/public/lead-assessment/route.ts was removed here —
+          # that path was never actually committed to the repo (confirmed
+          # against a fresh clone), so pulling it unconditionally broke every
+          # deploy past this point. If this route is meant to exist, it needs
+          # to be built and committed first, then re-added here.
           mkdir -p public/images
           git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
           git show origin/main:public/images/logo-dark.png > public/images/logo-dark.png
