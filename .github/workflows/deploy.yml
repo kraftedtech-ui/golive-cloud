@@ -52,9 +52,13 @@ jobs:
           git show origin/main:app/migrate/page.tsx > app/migrate/page.tsx
           git show origin/main:app/migrate/MigrateClient.tsx > app/migrate/MigrateClient.tsx
 
-          mkdir -p "app/assess/[ref]"
-          git show "origin/main:app/assess/[ref]/page.tsx" > "app/assess/[ref]/page.tsx"
-          git show "origin/main:app/assess/[ref]/AssessClient.tsx" > "app/assess/[ref]/AssessClient.tsx"
+          # NOTE: app/assess/[ref] was removed from the pull list — both
+          # page.tsx and AssessClient.tsx are committed as empty (0-byte)
+          # files on origin/main (an abandoned, never-linked feature), and
+          # Next.js now hard-fails the build on an empty page.tsx ("is not
+          # a module"). The directory is also deleted below to clear out
+          # the stale empty copy already on this server from earlier pulls.
+          rm -rf "app/assess"
           mkdir -p app/terms
           git show origin/main:app/terms/page.tsx > app/terms/page.tsx
           mkdir -p app/privacy
