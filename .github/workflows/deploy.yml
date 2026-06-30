@@ -232,6 +232,7 @@ jobs:
           git show origin/main:components/dashboard/DiscoveryAssessmentTool.tsx > components/dashboard/DiscoveryAssessmentTool.tsx
           git show origin/main:components/dashboard/DeploymentChecklistTool.tsx > components/dashboard/DeploymentChecklistTool.tsx
           git show origin/main:components/dashboard/SetupFeeCatalogAdmin.tsx > components/dashboard/SetupFeeCatalogAdmin.tsx
+          git show origin/main:components/dashboard/CurrencyOverviewWidget.tsx > components/dashboard/CurrencyOverviewWidget.tsx
           mkdir -p components/ui
           git show origin/main:components/ui/card.tsx > components/ui/card.tsx
           git show origin/main:components/ui/button.tsx > components/ui/button.tsx

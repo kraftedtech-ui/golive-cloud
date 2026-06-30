@@ -48,3 +48,13 @@ export function convertToUSD(amount: number, fromCurrency: string, ratesNGNPerUn
   if (!usdToNgn) return amount
   return (amount * fromToNgn) / usdToNgn
 }
+
+/**
+ * Sums MRR across customers who may each be billed in a different currency
+ * (Customer.currency is per-record, not global) — converts every figure to
+ * USD first via the live FX feed, rather than naively adding raw numbers
+ * that could be a mix of NGN, GHS, USD, etc.
+ */
+export function sumMrrAsUSD(customers: { mrr?: number; currency?: string }[], ratesNGNPerUnit: Record<string, number>): number {
+  return customers.reduce((sum, c) => sum + convertToUSD(c.mrr || 0, c.currency || 'USD', ratesNGNPerUnit), 0)
+}

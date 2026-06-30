@@ -21,6 +21,7 @@ import PaymentRiskPanel from '@/components/dashboard/PaymentRiskPanel'
 import DiscoveryAssessmentTool from '@/components/dashboard/DiscoveryAssessmentTool'
 import DeploymentChecklistTool from '@/components/dashboard/DeploymentChecklistTool'
 import SetupFeeCatalogAdmin from '@/components/dashboard/SetupFeeCatalogAdmin'
+import CurrencyOverviewWidget from '@/components/dashboard/CurrencyOverviewWidget'
 
 export const dynamic = 'force-dynamic'
 
@@ -253,6 +254,7 @@ export default function PortalPage() {
           {page === 'dashboard' && (
             <>
               <StatCards isAdmin={isAdmin} />
+              {isAdmin && <CurrencyOverviewWidget />}
               <KanbanBoard leads={leads} onUpdate={fetchData} />
               <div className="grid grid-cols-1 gap-6">
                 <MrrCharts />

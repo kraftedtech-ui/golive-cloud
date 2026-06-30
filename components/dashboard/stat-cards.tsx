@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { TrendingUp, AlertTriangle, DollarSign, Users, UserPlus } from "lucide-react"
 import { Area, AreaChart, ResponsiveContainer } from "recharts"
+import { sumMrrAsUSD } from "@/lib/currency"
 
 export function StatCards({ isAdmin = true }: { isAdmin?: boolean }) {
   const [data, setData] = useState({
@@ -13,11 +14,17 @@ export function StatCards({ isAdmin = true }: { isAdmin?: boolean }) {
     Promise.all([
       fetch('/api/leads').then(r => r.json()),
       fetch('/api/customers').then(r => r.json()),
-    ]).then(([leads, customers]) => {
+      fetch('/api/exchange-rates').then(r => r.json()),
+    ]).then(([leads, customers, fx]) => {
       const allLeads = leads.leads || []
       const allCustomers = customers.customers || []
+      const fxRates = fx?.success ? fx.rates : { NGN: 1, USD: 1600 }
 
-      const totalMRR = allCustomers.reduce((s: number, c: any) => s + (c.mrr || 0), 0)
+      // Each customer's MRR is stored in that customer's own billing
+      // currency (Customer.currency), not a single shared currency — so a
+      // naive sum across customers silently mixes NGN, USD, GHS, etc.
+      // together. Convert every figure to USD via the live FX feed first.
+      const totalMRR = sumMrrAsUSD(allCustomers, fxRates)
       const activeCustomers = allCustomers.filter((c: any) => c.status !== 'churned').length
 
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
