@@ -6,6 +6,10 @@ export interface IDiscoveryAssessment extends Document {
   company: string
   completedByName?: string
   completedByEmail?: string
+  // Which form actually produced this record — drives whether the internal
+  // Discovery Questionnaire tool offers to run again for this lead, and is
+  // shown as a badge wherever assessments are listed.
+  source: 'internal' | 'public'
 
   // Branch point: changes which follow-up section applies
   isExistingM365Customer: boolean
@@ -32,6 +36,11 @@ export interface IDiscoveryAssessment extends Document {
   painPoints: string[] // keys from DISCOVERY_PAIN_POINTS
   otherPainPointNotes?: string
 
+  // What needs to move, and how tolerant they are of downtime — both feed
+  // directly into the Deployment Checklist once a deal is Won.
+  dataScope?: string[]
+  cutoverTolerance?: 'zero_downtime' | 'maintenance_window' | 'flexible'
+
   budgetRange?: string
   decisionTimeline?: string
   additionalNotes?: string
@@ -55,6 +64,7 @@ const DiscoveryAssessmentSchema = new Schema<IDiscoveryAssessment>(
     company: { type: String, required: true },
     completedByName: String,
     completedByEmail: String,
+    source: { type: String, enum: ['internal', 'public'], default: 'internal' },
 
     isExistingM365Customer: { type: Boolean, required: true },
 
@@ -76,6 +86,9 @@ const DiscoveryAssessmentSchema = new Schema<IDiscoveryAssessment>(
 
     painPoints: [{ type: String }],
     otherPainPointNotes: String,
+
+    dataScope: [{ type: String }],
+    cutoverTolerance: { type: String, enum: ['zero_downtime', 'maintenance_window', 'flexible'] },
 
     budgetRange: String,
     decisionTimeline: String,

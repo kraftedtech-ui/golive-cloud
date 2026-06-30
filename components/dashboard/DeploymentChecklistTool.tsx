@@ -11,6 +11,8 @@ interface DiscoveryAssessment {
   handlesSensitiveData: boolean
   painPoints: string[]
   budgetRange?: string
+  dataScope?: string[]
+  cutoverTolerance?: string
   recommendedPackageKey?: string
   recommendedAddOnKeys?: string[]
   createdAt: string
@@ -113,6 +115,8 @@ export default function DeploymentChecklistTool({ customerId, leadId, leadRef, c
               sourcePlatform: latestDiscovery.currentEmailProvider || undefined,
               discoveryAssessmentId: latestDiscovery._id,
               scopeOfWork: suggested,
+              dataScope: latestDiscovery.dataScope?.length ? latestDiscovery.dataScope : prev.dataScope,
+              cutoverTolerance: latestDiscovery.cutoverTolerance || prev.cutoverTolerance,
             }))
           }
         }

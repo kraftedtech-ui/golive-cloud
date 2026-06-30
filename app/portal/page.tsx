@@ -9,6 +9,7 @@ import { KanbanBoard } from '@/components/dashboard/kanban-board'
 import { RecentLeads } from '@/components/dashboard/recent-leads'
 import { MrrCharts } from '@/components/dashboard/mrr-charts'
 import { SUPPORTED_CURRENCIES, currencyForCountry, CURRENCY_SYMBOLS, convertFromUSD, convertToUSD } from '@/lib/currency'
+import { deriveDeploymentTags, suggestScopeKeys, computeSetupFeeLineItems, type SetupFeeCatalogItem } from '@/lib/deploymentRecommendation'
 import CommissionDashboard from '@/components/dashboard/CommissionDashboard'
 import AnnouncementsPanel from '@/components/dashboard/AnnouncementsPanel'
 import KnowledgeBase from '@/components/dashboard/KnowledgeBase'
@@ -453,7 +454,7 @@ export default function PortalPage() {
             <div className="rounded-2xl border border-border bg-white shadow-sm">
               <div className="border-b border-border px-5 py-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Tools</p>
-                <h2 className="mt-0.5 text-base font-semibold text-foreground">Discovery Questionnaire</h2>
+                <h2 className="mt-0.5 text-base font-semibold text-foreground">Discovery Questionnaire (Internal Assessment)</h2>
                 <p className="text-xs text-muted-foreground">Capture a lead's current setup and pain points — get a real package/add-on recommendation before quoting.</p>
               </div>
               <DiscoveryAssessmentTool leads={leads} isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} onUseInProposal={useDiscoveryInProposal} />
@@ -834,6 +835,12 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const [currency, setCurrency] = useState('USD')
   const [setupUSD, setSetupUSD] = useState(300) // source of truth — always USD, regardless of what's shown
   const [setupInput, setSetupInput] = useState('300') // what's actually displayed/typed, in the selected currency
+  const [setupFeeSource, setSetupFeeSource] = useState<string | null>(null) // non-null = "computed from Discovery scope: <summary>"
+  const [feeCatalog, setFeeCatalog] = useState<SetupFeeCatalogItem[]>([])
+
+  useEffect(() => {
+    fetch('/api/setup-fee-catalog').then(r => r.json()).then(data => { if (Array.isArray(data)) setFeeCatalog(data) }).catch(() => {})
+  }, [])
   const [billingOption, setBillingOption] = useState<NceOptionValue>('annual_upfront')
   const [catalogRows, setCatalogRows] = useState<CatalogPriceRow[]>([])
   const [catalogLoading, setCatalogLoading] = useState(true)
@@ -885,7 +892,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   useEffect(() => {
     setSetupInput(Math.round(convertFromUSD(setupUSD, currency, fxRates)).toString())
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currency, fxRates])
+  }, [currency, fxRates, setupUSD])
 
   function handleSetupInputChange(value: string) {
     setSetupInput(value)
@@ -893,7 +900,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
     setSetupUSD(convertToUSD(numeric, currency, fxRates))
   }
 
-  const handleLeadSelect = (leadId: string) => {
+  const handleLeadSelect = async (leadId: string) => {
     setSelectedLead(leadId)
     const lead = leads.find(l => l._id === leadId)
     if (!lead) return
@@ -901,10 +908,34 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
     const userRange = lead.users || ''
     const userNum = userRange.includes('–') ? userRange.split('–')[1] : userRange.replace('+', '')
     const parsed = parseInt(userNum)
+    const userCount = !isNaN(parsed) ? parsed : 1
     if (!isNaN(parsed)) setUsers(String(parsed))
     // Auto-set currency based on country
     setCurrency(currencyForCountry(lead.country))
-    // Auto-set setup fee based on likely package
+
+    // Real path: if this lead has a Discovery Assessment on file, derive the
+    // setup fee from the same catalog the Deployment Checklist uses, instead
+    // of guessing a flat $150/$300 from the lead's old email provider field.
+    setSetupFeeSource(null)
+    try {
+      const discRes = await fetch(`/api/discovery-assessments?leadId=${leadId}`)
+      const discData = await discRes.json()
+      const latestDiscovery = discData?.items?.[0]
+      if (latestDiscovery && feeCatalog.length > 0) {
+        const tags = deriveDeploymentTags(latestDiscovery)
+        const suggestedKeys = suggestScopeKeys(tags, feeCatalog)
+        const { lines, totalUSD } = computeSetupFeeLineItems(suggestedKeys, userCount, feeCatalog)
+        if (lines.length > 0) {
+          setPkg(latestDiscovery.isExistingM365Customer ? 'Secure Business Cloud' : 'Starter Cloud Office')
+          setSetupUSD(totalUSD)
+          setSetupFeeSource(`Computed from Discovery scope: ${lines.map(l => l.label).join(', ')}`)
+          return
+        }
+      }
+    } catch (e) { console.error(e) }
+
+    // Fallback: no discovery data available for this lead — keep the old
+    // rough guess so the field is never left blank.
     const emailProvider = (lead.services?.[0] || (lead as any).currentEmail || '').toLowerCase()
     if (emailProvider.includes('google')) { setPkg('Secure Business Cloud'); setSetupUSD(300) }
     else if (emailProvider.includes('cpanel') || emailProvider.includes('webmail')) { setPkg('Starter Cloud Office'); setSetupUSD(150) }
@@ -1131,7 +1162,12 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
         </div>
         <div>
           <label className="mb-1.5 block text-xs font-medium text-foreground">Setup Fee ({sym.trim()})</label>
-          <input type="number" value={setupInput} onChange={e => handleSetupInputChange(e.target.value)} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
+          <input type="number" value={setupInput} onChange={e => { handleSetupInputChange(e.target.value); setSetupFeeSource(null) }} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
+          {setupFeeSource ? (
+            <p className="mt-1 text-[10px] text-teal-700">📎 {setupFeeSource}</p>
+          ) : (
+            <p className="mt-1 text-[10px] text-muted-foreground">No Discovery Assessment on file for this lead — using a rough default. Run one first for an accurate, scope-based fee.</p>
+          )}
         </div>
 
         <div>

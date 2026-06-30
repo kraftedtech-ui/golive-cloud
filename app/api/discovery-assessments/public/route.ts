@@ -35,6 +35,9 @@ const PublicDiscoverySchema = z.object({
   painPoints: z.array(z.string()).default([]),
   otherPainPointNotes: z.string().optional(),
 
+  dataScope: z.array(z.string()).default([]),
+  cutoverTolerance: z.string().optional(),
+
   budgetRange: z.string().optional(),
   decisionTimeline: z.string().optional(),
   additionalNotes: z.string().optional(),
@@ -106,6 +109,7 @@ export async function POST(req: NextRequest) {
       leadId: String(lead._id),
       leadRef: lead.ref,
       company: data.company,
+      source: 'public',
       completedByName: data.contact,
       completedByEmail: data.email,
       contractRenewalDate: data.contractRenewalDate || undefined,

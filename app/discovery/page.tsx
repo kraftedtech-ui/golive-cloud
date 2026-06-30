@@ -20,7 +20,10 @@ export default function DiscoveryPage() {
           <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#0096c7]">
             <span className="h-px w-6 bg-[#0096c7]/40" />Free needs assessment<span className="h-px w-6 bg-[#0096c7]/40" />
           </span>
-          <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#0d2233] sm:text-4xl">Tell us about your business — we'll tell you what fits</h1>
+          <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#0d2233] sm:text-4xl">
+            Tell us about your business.
+            <span className="block">We'll tell you what fits</span>
+          </h1>
           <p className="mt-4 leading-relaxed text-[#5a7a8a]">
             Whether you're already on Microsoft 365 or starting from scratch, answer a few questions and we'll point you to the right package —
             and flag anything that's worth a real conversation instead of guessing.

@@ -9,7 +9,7 @@ const PAGE_LABELS: Record<string, { section: string; title: string }> = {
   transfers:    { section: "Sales",  title: "Transfer Requests" },
   pipeline:     { section: "Sales",  title: "CRM Pipeline" },
   commissions:  { section: "Sales",  title: "Commissions" },
-  discovery:    { section: "Tools",  title: "Discovery Questionnaire" },
+  discovery:    { section: "Tools",  title: "Discovery Questionnaire (Internal Assessment)" },
   proposals:    { section: "Tools",  title: "Proposal Generator" },
   "product-mapping": { section: "Tools", title: "Product Mapping" },
   onboarding:   { section: "Tools",  title: "Onboarding Checklist" },

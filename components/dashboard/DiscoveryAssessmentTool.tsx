@@ -11,7 +11,7 @@ interface Assessment {
   leadRef: string
   company: string
   completedByName?: string
-  source: 'sales' | 'customer'
+  source: 'internal' | 'public'
   isExistingM365Customer: boolean
   currentPlan?: string
   employeeCount: string
@@ -54,6 +54,7 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
   const [savedMsg, setSavedMsg] = useState('')
   const [error, setError] = useState('')
   const [viewing, setViewing] = useState<Assessment | null>(null)
+  const [overrideLock, setOverrideLock] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
 
   useEffect(() => {
@@ -85,6 +86,8 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
   const selectableLeads = leads.filter(l => isAdmin || l.assignedToEmail === userEmail)
   const selectedLead = leads.find(l => l._id === selectedLeadId)
   const leadAssessments = selectedLeadId ? assessments.filter(a => a.leadId === selectedLeadId) : []
+  const publicAssessment = leadAssessments.find(a => a.source === 'public')
+  const isLocked = !!publicAssessment && !overrideLock
 
   function resetForm() { setForm(emptyForm) }
 
@@ -142,7 +145,7 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
         <div className="rounded-2xl border border-border bg-white shadow-sm p-5 space-y-4">
           <div>
             <label className={label}>Lead</label>
-            <select value={selectedLeadId} onChange={e => setSelectedLeadId(e.target.value)} className={inp}>
+            <select value={selectedLeadId} onChange={e => { setSelectedLeadId(e.target.value); setOverrideLock(false) }} className={inp}>
               <option value="">Select a lead...</option>
               {selectableLeads.map(l => <option key={l._id} value={l._id}>{l.company} — {l.country} ({l.status})</option>)}
             </select>
@@ -163,12 +166,25 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
 
           {selectedLeadId && (
             <>
-              {leadAssessments.length > 0 && (
+              {leadAssessments.length > 0 && !isLocked && (
                 <div className="rounded-lg bg-secondary/30 px-3 py-2 text-[11px] text-muted-foreground">
                   {leadAssessments.length} previous assessment{leadAssessments.length > 1 ? 's' : ''} on file for this lead — see the list on the right. Submitting below adds a new one (doesn't overwrite).
                 </div>
               )}
 
+              {isLocked ? (
+                <div className="rounded-xl border-2 border-teal-200 bg-teal-50 p-4">
+                  <p className="text-sm font-semibold text-teal-800">🌐 This lead already completed the public Discovery Questionnaire</p>
+                  <p className="mt-1 text-xs text-teal-700">
+                    They filled it in themselves on {publicAssessment && new Date(publicAssessment.createdAt).toLocaleDateString()} — view it in Saved Assessments on the right.
+                    Running the internal version again usually isn't necessary unless their needs have genuinely changed.
+                  </p>
+                  <button onClick={() => setOverrideLock(true)} className="mt-2 text-xs font-medium text-teal-700 underline hover:text-teal-900">
+                    Start an internal assessment anyway →
+                  </button>
+                </div>
+              ) : (
+              <>
               <div className="rounded-xl border border-border bg-secondary/20 p-3">
                 <p className="mb-2 text-xs font-semibold text-foreground">Are they already using Microsoft 365?</p>
                 <div className="flex gap-2">
@@ -341,6 +357,8 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
                 className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-50">
                 {saving ? 'Saving...' : 'Save Assessment'}
               </button>
+              </>
+              )}
             </>
           )}
         </div>
@@ -348,7 +366,7 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
 
       {/* RECOMMENDATION + HISTORY */}
       <div className="space-y-4">
-        {selectedLeadId && (
+        {selectedLeadId && !isLocked && (
           <div className="rounded-2xl border border-border bg-white shadow-sm p-5 sticky top-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary mb-2">Live Recommendation</p>
             {packages.length === 0 ? (
@@ -400,8 +418,8 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
               <button key={a._id} onClick={() => setViewing(a)} className="block w-full px-4 py-3 text-left hover:bg-secondary/30">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-medium text-foreground truncate">{a.company}</p>
-                  <span className={`flex-shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${a.source === 'customer' ? 'bg-teal-50 text-teal-700' : 'bg-secondary text-muted-foreground'}`}>
-                    {a.source === 'customer' ? 'Customer' : 'Sales'}
+                  <span className={`flex-shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide ${a.source === 'public' ? 'bg-teal-50 text-teal-700' : 'bg-secondary text-muted-foreground'}`}>
+                    {a.source === 'public' ? '🌐 External' : '🧑‍💼 Internal'}
                   </span>
                   <span className="text-[10px] text-muted-foreground flex-shrink-0">{new Date(a.createdAt).toLocaleDateString()}</span>
                 </div>
@@ -421,7 +439,7 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
             <div className="border-b border-border px-5 py-4 flex items-center justify-between">
               <div>
                 <h2 className="text-base font-semibold text-foreground">{viewing.company}</h2>
-                <p className="text-xs text-muted-foreground">{viewing.leadRef} · {new Date(viewing.createdAt).toLocaleString()} · {viewing.source === 'customer' ? 'submitted by customer' : `by ${viewing.completedByName || 'unknown'}`}</p>
+                <p className="text-xs text-muted-foreground">{viewing.leadRef} · {new Date(viewing.createdAt).toLocaleString()} · {viewing.source === 'public' ? '🌐 submitted by customer themselves' : `🧑‍💼 by ${viewing.completedByName || 'unknown'} (internal)`}</p>
               </div>
               <button onClick={() => setViewing(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
             </div>

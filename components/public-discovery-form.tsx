@@ -8,6 +8,12 @@ const COUNTRIES = ["Nigeria", "Ghana", "Kenya", "South Africa", "Tanzania", "Uga
 const EMPLOYEE_BANDS = ["1–5", "6–20", "21–50", "51–200", "200+"]
 const DEVICE_TYPES = ["Windows laptops/desktops", "Mac", "Mobile (iOS/Android)", "Shared/kiosk devices"]
 const SENSITIVE_DATA_TYPES = ["Financial / payment data", "Health records", "Legal / contracts", "Personal customer data"]
+const DATA_SCOPE_OPTIONS = ["Email", "Calendar & contacts", "Files / shared drives", "Teams or Slack history", "Apps connected to your current email"]
+const CUTOVER_OPTIONS = [
+  { value: "zero_downtime", label: "We can't have any downtime — needs a careful parallel switch" },
+  { value: "maintenance_window", label: "A short planned downtime window is fine" },
+  { value: "flexible", label: "We're flexible on timing" },
+]
 const SWITCH_REASONS = ["Cost", "Poor support from current provider", "Billing not in local currency", "Want bundled security/services", "Other"]
 const BUDGET_RANGES = ["Not sure yet", "Under $500/mo", "$500–2,000/mo", "$2,000–10,000/mo", "$10,000+/mo"]
 const TIMELINES = ["Right away (this month)", "Next 1–3 months", "Next 3–6 months", "Just exploring options"]
@@ -91,6 +97,8 @@ export function PublicDiscoveryForm() {
   const [budgetRange, setBudgetRange] = useState("")
   const [decisionTimeline, setDecisionTimeline] = useState("")
   const [additionalNotes, setAdditionalNotes] = useState("")
+  const [dataScope, setDataScope] = useState<string[]>([])
+  const [cutoverTolerance, setCutoverTolerance] = useState("")
 
   useEffect(() => {
     if (document.getElementById("turnstile-script")) {
@@ -226,6 +234,7 @@ export function PublicDiscoveryForm() {
           painPoints, otherPainPointNotes: otherPainPointNotes || undefined,
           budgetRange: budgetRange || undefined, decisionTimeline: decisionTimeline || undefined,
           additionalNotes: additionalNotes || undefined,
+          dataScope, cutoverTolerance: cutoverTolerance || undefined,
           turnstileToken, verificationToken,
         }),
       })
@@ -465,6 +474,24 @@ export function PublicDiscoveryForm() {
             </div>
           </div>
         )}
+        <div className="mt-4">
+          <label className="mb-1.5 block text-sm font-medium text-[#0d2233]">What needs to move over? <span className="font-normal text-[#5a7a8a]">(only matters if you're already on email/files somewhere)</span></label>
+          <div className="flex flex-wrap gap-2">
+            {DATA_SCOPE_OPTIONS.map(d => (
+              <button key={d} type="button" onClick={() => setDataScope(s => toggle(s, d))}
+                className={`rounded-full px-3 py-1.5 text-xs font-medium ring-1 ${dataScope.includes(d) ? "bg-[#0096c7] text-white ring-[#0096c7]" : "bg-white text-[#0d2233] ring-[#c8e6f0]"}`}>
+                {d}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="mt-4">
+          <label className="mb-1.5 block text-sm font-medium text-[#0d2233]">How much downtime can you tolerate during the switch?</label>
+          <select value={cutoverTolerance} onChange={e => setCutoverTolerance(e.target.value)} className={fieldClasses}>
+            <option value="">Select...</option>
+            {CUTOVER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        </div>
       </div>
 
       <div>

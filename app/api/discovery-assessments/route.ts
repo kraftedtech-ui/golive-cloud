@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const item = await DiscoveryAssessment.create({
       ...body,
+      source: 'internal',
       completedByName: auth.name || body.completedByName,
       completedByEmail: auth.email || body.completedByEmail,
     })
