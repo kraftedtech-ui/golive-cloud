@@ -21,6 +21,7 @@ export interface IDeploymentChecklist extends Document {
   mfaApproach?: 'enforced_day_one' | 'grace_period'
 
   scopeOfWork: string[]
+  completedTaskKeys: string[]
   setupFeeLines: { key: string; label: string; unit: string; amountUSD: number; quantity: number; lineTotalUSD: number }[]
   setupFeeTotalUSD: number
   setupFeeOverrideUSD?: number
@@ -66,6 +67,7 @@ const DeploymentChecklistSchema = new Schema<IDeploymentChecklist>(
     mfaApproach: { type: String, enum: ['enforced_day_one', 'grace_period'] },
 
     scopeOfWork: [{ type: String }],
+    completedTaskKeys: [{ type: String }],
     setupFeeLines: [{ key: String, label: String, unit: String, amountUSD: Number, quantity: Number, lineTotalUSD: Number }],
     setupFeeTotalUSD: { type: Number, default: 0 },
     setupFeeOverrideUSD: Number,

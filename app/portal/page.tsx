@@ -9,7 +9,7 @@ import { KanbanBoard } from '@/components/dashboard/kanban-board'
 import { RecentLeads } from '@/components/dashboard/recent-leads'
 import { MrrCharts } from '@/components/dashboard/mrr-charts'
 import { SUPPORTED_CURRENCIES, currencyForCountry, CURRENCY_SYMBOLS, convertFromUSD, convertToUSD } from '@/lib/currency'
-import { deriveDeploymentTags, suggestScopeKeys, computeSetupFeeLineItems, type SetupFeeCatalogItem } from '@/lib/deploymentRecommendation'
+import { deriveDeploymentTags, suggestScopeKeys, computeSetupFeeLineItems, generateDeploymentTasks, type SetupFeeCatalogItem } from '@/lib/deploymentRecommendation'
 import CommissionDashboard from '@/components/dashboard/CommissionDashboard'
 import AnnouncementsPanel from '@/components/dashboard/AnnouncementsPanel'
 import KnowledgeBase from '@/components/dashboard/KnowledgeBase'
@@ -477,7 +477,7 @@ export default function PortalPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Tools</p>
                 <h2 className="mt-0.5 text-base font-semibold text-foreground">Customer Onboarding Checklist</h2>
               </div>
-              <OnboardingChecklist />
+              <OnboardingChecklist customers={customers} onOpenDeploymentChecklist={(c) => setViewingChecklist(c)} />
             </div>
           )}
 
@@ -1286,13 +1286,6 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   )
 }
 
-const CHECKLIST = [
-  { phase: 'Setup (Days 1-2)', items: ['Create Microsoft 365 tenant','Verify custom domain','Create all user accounts','Configure Teams and SharePoint','Set up shared mailboxes'] },
-  { phase: 'Migration (Days 3-5)', items: ['Back up existing emails','Import emails to Microsoft 365','Update MX records','Configure SPF record','Configure DKIM signing','Configure DMARC policy'] },
-  { phase: 'Security (Days 5-6)', items: ['Enable MFA for all users','Configure Conditional Access','Set up Microsoft Defender','Configure anti-phishing policies','Review Microsoft Secure Score'] },
-  { phase: 'Training (Days 7-14)', items: ['Run staff Outlook training','Run Teams training session','Run OneDrive training','Admin training session','Hand over credentials and docs','Schedule 30-day check-in'] },
-]
-
 function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: boolean; onUpdate: () => void }) {
   const [showAdd, setShowAdd] = useState(false)
   const [editUser, setEditUser] = useState<User | null>(null)
@@ -1766,39 +1759,114 @@ function CertificationPage({ role }: { role: string }) {
   )
 }
 
-function OnboardingChecklist() {
-  const [checked, setChecked] = useState<Set<string>>(new Set())
-  const total = CHECKLIST.reduce((s, p) => s + p.items.length, 0)
-  const done = checked.size
+function OnboardingChecklist({ customers, onOpenDeploymentChecklist }: { customers: Customer[]; onOpenDeploymentChecklist: (customer: Customer) => void }) {
+  const [selectedCustomerId, setSelectedCustomerId] = useState('')
+  const [checklist, setChecklist] = useState<any | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const selectedCustomer = customers.find(c => c._id === selectedCustomerId)
+
+  useEffect(() => {
+    if (!selectedCustomerId) { setChecklist(null); return }
+    setLoading(true)
+    fetch(`/api/deployment-checklists?customerId=${selectedCustomerId}`)
+      .then(r => r.json())
+      .then(data => setChecklist(data?.items?.[0] || null))
+      .catch(() => setChecklist(null))
+      .finally(() => setLoading(false))
+  }, [selectedCustomerId])
+
+  const tasks = checklist ? generateDeploymentTasks({
+    migrationType: checklist.migrationType,
+    scopeOfWork: checklist.scopeOfWork || [],
+    dataScope: checklist.dataScope || [],
+  }) : []
+  const completedSet = new Set<string>(checklist?.completedTaskKeys || [])
+  const total = tasks.length
+  const done = tasks.filter(t => completedSet.has(t.key)).length
+
+  async function toggleTask(key: string) {
+    if (!checklist) return
+    const next = completedSet.has(key)
+      ? (checklist.completedTaskKeys || []).filter((k: string) => k !== key)
+      : [...(checklist.completedTaskKeys || []), key]
+    setChecklist((prev: any) => ({ ...prev, completedTaskKeys: next })) // optimistic — feels instant
+    setSaving(true)
+    try {
+      await fetch(`/api/deployment-checklists/${checklist._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completedTaskKeys: next }),
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const grouped = tasks.reduce((acc: Record<string, typeof tasks>, t) => {
+    (acc[t.phase] ||= []).push(t)
+    return acc
+  }, {})
+
   return (
-    <div className="p-5">
-      <div className="mb-4 flex items-center gap-3">
-        <p className="text-xs text-muted-foreground">{done}/{total} tasks completed</p>
-        <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
-          <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${(done/total)*100}%` }} />
+    <div className="p-5 space-y-4">
+      <div>
+        <label className="mb-1.5 block text-xs font-medium text-foreground">Customer</label>
+        <select value={selectedCustomerId} onChange={e => setSelectedCustomerId(e.target.value)}
+          className="w-full max-w-md rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
+          <option value="">Select a customer...</option>
+          {customers.map(c => <option key={c._id} value={c._id}>{c.company}</option>)}
+        </select>
+        <p className="mt-1 text-[11px] text-muted-foreground">Tasks below are generated from this customer's Deployment Checklist scope — irrelevant steps (e.g. email migration for a net-new customer) are automatically left out.</p>
+      </div>
+
+      {!selectedCustomerId ? (
+        <p className="text-sm text-muted-foreground">Pick a customer to see their onboarding checklist.</p>
+      ) : loading ? (
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      ) : !checklist ? (
+        <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-5">
+          <p className="text-sm font-semibold text-amber-800">No deployment scope set yet for {selectedCustomer?.company}</p>
+          <p className="mt-1 text-xs text-amber-700">This checklist's tasks are generated from the migration type and scope of work selected in the Deployment Checklist — set that first.</p>
+          <button onClick={() => selectedCustomer && onOpenDeploymentChecklist(selectedCustomer)}
+            className="mt-3 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90">
+            Open Deployment Checklist →
+          </button>
         </div>
-      </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {CHECKLIST.map(phase => (
-          <div key={phase.phase} className="rounded-xl border border-border bg-secondary/30 p-4">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">{phase.phase}</h3>
-            <ul className="space-y-2">
-              {phase.items.map(item => {
-                const key = `${phase.phase}-${item}`
-                const isDone = checked.has(key)
-                return (
-                  <li key={item} className="flex cursor-pointer items-center gap-3" onClick={() => { const n = new Set(checked); isDone ? n.delete(key) : n.add(key); setChecked(n) }}>
-                    <div className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ${isDone ? 'border-primary bg-primary' : 'border-border bg-card'}`}>
-                      {isDone && <svg className="size-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
-                    </div>
-                    <span className={`text-sm ${isDone ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{item}</span>
-                  </li>
-                )
-              })}
-            </ul>
+      ) : (
+        <>
+          <div className="flex items-center gap-3">
+            <p className="text-xs text-muted-foreground flex-shrink-0">{done}/{total} tasks completed{saving && ' · saving…'}</p>
+            <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
+              <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+            </div>
+            <button onClick={() => selectedCustomer && onOpenDeploymentChecklist(selectedCustomer)} className="flex-shrink-0 text-xs text-primary hover:underline">
+              Edit scope →
+            </button>
           </div>
-        ))}
-      </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {Object.entries(grouped).map(([phase, items]) => (
+              <div key={phase} className="rounded-xl border border-border bg-secondary/30 p-4">
+                <h3 className="mb-3 text-sm font-semibold text-foreground">{phase}</h3>
+                <ul className="space-y-2">
+                  {items.map(item => {
+                    const isDone = completedSet.has(item.key)
+                    return (
+                      <li key={item.key} className="flex cursor-pointer items-center gap-3" onClick={() => toggleTask(item.key)}>
+                        <div className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ${isDone ? 'border-primary bg-primary' : 'border-border bg-card'}`}>
+                          {isDone && <svg className="size-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                        </div>
+                        <span className={`text-sm ${isDone ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{item.label}</span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }
