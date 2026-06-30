@@ -1,7 +1,7 @@
 'use client'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { Topbar } from '@/components/dashboard/topbar'
 import { StatCards } from '@/components/dashboard/stat-cards'
@@ -482,7 +482,8 @@ export default function PortalPage() {
             <div className="rounded-2xl border border-border bg-white shadow-sm">
               <div className="border-b border-border px-5 py-4">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Tools</p>
-                <h2 className="mt-0.5 text-base font-semibold text-foreground">Customer Onboarding Checklist</h2>
+                <h2 className="mt-0.5 text-base font-semibold text-foreground">Deployment & Onboarding Checklist</h2>
+                <p className="text-xs text-muted-foreground">Plan the deployment scope, fee, and BRD need — then run the resulting execution checklist — both in one place per customer.</p>
               </div>
               <OnboardingChecklist customers={customers} onOpenDeploymentChecklist={(c) => setViewingChecklist(c)} />
             </div>
@@ -1771,10 +1772,11 @@ function OnboardingChecklist({ customers, onOpenDeploymentChecklist }: { custome
   const [checklist, setChecklist] = useState<any | null>(null)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [phase, setPhase] = useState<'planning' | 'execution'>('planning')
 
   const selectedCustomer = customers.find(c => c._id === selectedCustomerId)
 
-  useEffect(() => {
+  const fetchChecklist = useCallback(() => {
     if (!selectedCustomerId) { setChecklist(null); return }
     setLoading(true)
     fetch(`/api/deployment-checklists?customerId=${selectedCustomerId}`)
@@ -1783,6 +1785,14 @@ function OnboardingChecklist({ customers, onOpenDeploymentChecklist }: { custome
       .catch(() => setChecklist(null))
       .finally(() => setLoading(false))
   }, [selectedCustomerId])
+
+  useEffect(() => { fetchChecklist() }, [fetchChecklist])
+
+  // A customer with no checklist yet has nothing to execute — start them on
+  // the Planning phase automatically rather than showing an empty Execution tab.
+  useEffect(() => {
+    if (selectedCustomerId && !loading && !checklist) setPhase('planning')
+  }, [selectedCustomerId, loading, checklist])
 
   const tasks = checklist ? generateDeploymentTasks({
     migrationType: checklist.migrationType,
@@ -1820,58 +1830,76 @@ function OnboardingChecklist({ customers, onOpenDeploymentChecklist }: { custome
     <div className="p-5 space-y-4">
       <div>
         <label className="mb-1.5 block text-xs font-medium text-foreground">Customer</label>
-        <select value={selectedCustomerId} onChange={e => setSelectedCustomerId(e.target.value)}
+        <select value={selectedCustomerId} onChange={e => { setSelectedCustomerId(e.target.value); setPhase('planning') }}
           className="w-full max-w-md rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30">
           <option value="">Select a customer...</option>
           {customers.map(c => <option key={c._id} value={c._id}>{c.company}</option>)}
         </select>
-        <p className="mt-1 text-[11px] text-muted-foreground">Tasks below are generated from this customer's Deployment Checklist scope — irrelevant steps (e.g. email migration for a net-new customer) are automatically left out.</p>
       </div>
 
       {!selectedCustomerId ? (
-        <p className="text-sm text-muted-foreground">Pick a customer to see their onboarding checklist.</p>
-      ) : loading ? (
-        <p className="text-sm text-muted-foreground">Loading…</p>
-      ) : !checklist ? (
-        <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-5">
-          <p className="text-sm font-semibold text-amber-800">No deployment scope set yet for {selectedCustomer?.company}</p>
-          <p className="mt-1 text-xs text-amber-700">This checklist's tasks are generated from the migration type and scope of work selected in the Deployment Checklist — set that first.</p>
-          <button onClick={() => selectedCustomer && onOpenDeploymentChecklist(selectedCustomer)}
-            className="mt-3 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90">
-            Open Deployment Checklist →
-          </button>
-        </div>
+        <p className="text-sm text-muted-foreground">Pick a customer to plan and run their onboarding.</p>
       ) : (
         <>
-          <div className="flex items-center gap-3">
-            <p className="text-xs text-muted-foreground flex-shrink-0">{done}/{total} tasks completed{saving && ' · saving…'}</p>
-            <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
-              <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
-            </div>
-            <button onClick={() => selectedCustomer && onOpenDeploymentChecklist(selectedCustomer)} className="flex-shrink-0 text-xs text-primary hover:underline">
-              Edit scope →
+          {/* Phase switcher — one record, two moments in the same workflow */}
+          <div className="inline-flex rounded-lg border border-border bg-secondary/30 p-1">
+            <button onClick={() => setPhase('planning')}
+              className={`rounded-md px-4 py-1.5 text-xs font-semibold transition-colors ${phase === 'planning' ? 'bg-white text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+              1. Planning {checklist && <span className="ml-1 text-teal-600">✓</span>}
+            </button>
+            <button onClick={() => checklist && setPhase('execution')} disabled={!checklist}
+              className={`rounded-md px-4 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${phase === 'execution' ? 'bg-white text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
+              2. Execution {checklist && `(${done}/${total})`}
             </button>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {Object.entries(grouped).map(([phase, items]) => (
-              <div key={phase} className="rounded-xl border border-border bg-secondary/30 p-4">
-                <h3 className="mb-3 text-sm font-semibold text-foreground">{phase}</h3>
-                <ul className="space-y-2">
-                  {items.map(item => {
-                    const isDone = completedSet.has(item.key)
-                    return (
-                      <li key={item.key} className="flex cursor-pointer items-center gap-3" onClick={() => toggleTask(item.key)}>
-                        <div className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ${isDone ? 'border-primary bg-primary' : 'border-border bg-card'}`}>
-                          {isDone && <svg className="size-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
-                        </div>
-                        <span className={`text-sm ${isDone ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{item.label}</span>
-                      </li>
-                    )
-                  })}
-                </ul>
+
+          {loading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : phase === 'planning' ? (
+            <DeploymentChecklistTool
+              variant="inline"
+              customerId={selectedCustomerId}
+              leadId={selectedCustomer?.leadId}
+              leadRef={selectedCustomer?.leadRef}
+              company={selectedCustomer?.company || ''}
+              userCountDefault={selectedCustomer?.users || 1}
+              onSaved={() => { fetchChecklist(); setPhase('execution') }}
+            />
+          ) : !checklist ? (
+            <div className="rounded-xl border-2 border-amber-200 bg-amber-50 p-5">
+              <p className="text-sm font-semibold text-amber-800">No deployment scope set yet for {selectedCustomer?.company}</p>
+              <p className="mt-1 text-xs text-amber-700">Switch to the Planning phase first — execution tasks are generated from the scope set there.</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-3">
+                <p className="text-xs text-muted-foreground flex-shrink-0">{done}/{total} tasks completed{saving && ' · saving…'}</p>
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
+                  <div className="h-2 rounded-full bg-primary transition-all" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+                </div>
               </div>
-            ))}
-          </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {Object.entries(grouped).map(([phaseName, items]) => (
+                  <div key={phaseName} className="rounded-xl border border-border bg-secondary/30 p-4">
+                    <h3 className="mb-3 text-sm font-semibold text-foreground">{phaseName}</h3>
+                    <ul className="space-y-2">
+                      {items.map(item => {
+                        const isDone = completedSet.has(item.key)
+                        return (
+                          <li key={item.key} className="flex cursor-pointer items-center gap-3" onClick={() => toggleTask(item.key)}>
+                            <div className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-all ${isDone ? 'border-primary bg-primary' : 'border-border bg-card'}`}>
+                              {isDone && <svg className="size-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                            </div>
+                            <span className={`text-sm ${isDone ? 'text-muted-foreground line-through' : 'text-foreground'}`}>{item.label}</span>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

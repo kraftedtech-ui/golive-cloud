@@ -74,8 +74,17 @@ function toggle(arr: string[], val: string) {
   return arr.includes(val) ? arr.filter(v => v !== val) : [...arr, val]
 }
 
-export default function DeploymentChecklistTool({ customerId, leadId, leadRef, company, userCountDefault, onClose }: {
-  customerId: string; leadId?: string; leadRef?: string; company: string; userCountDefault: number; onClose: () => void
+export default function DeploymentChecklistTool({ customerId, leadId, leadRef, company, userCountDefault, onClose, variant = 'modal', onSaved }: {
+  customerId: string; leadId?: string; leadRef?: string; company: string; userCountDefault: number; onClose?: () => void
+  // 'modal' (default) = existing popup behaviour, unchanged everywhere it's
+  // already used (e.g. the Customer Accounts "Checklist" button).
+  // 'inline' = renders just the form content with no backdrop/close button,
+  // for embedding directly inside a page (e.g. the merged Onboarding page).
+  variant?: 'modal' | 'inline'
+  // Fired after a successful save, in addition to the usual in-place update —
+  // lets an embedding page (e.g. switch to the Execution tab) react to a save
+  // without needing to poll or duplicate the save logic itself.
+  onSaved?: () => void
 }) {
   const [catalog, setCatalog] = useState<SetupFeeCatalogItem[]>([])
   const [discovery, setDiscovery] = useState<DiscoveryAssessment | null>(null)
@@ -168,6 +177,7 @@ export default function DeploymentChecklistTool({ customerId, leadId, leadRef, c
       if (!existingId) setExistingId(data.item._id)
       setChecklist(data.item)
       setSavedMsg('Saved.')
+      onSaved?.()
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -178,24 +188,12 @@ export default function DeploymentChecklistTool({ customerId, leadId, leadRef, c
   const inp = "w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
   const label = "mb-1.5 block text-xs font-medium text-foreground"
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
-      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl my-auto">
-        <div className="border-b border-border px-5 py-4 flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Deployment Checklist</p>
-            <h2 className="mt-0.5 text-base font-semibold text-foreground">{company}</h2>
-            {discovery && (
-              <p className="text-[11px] text-teal-700">📎 Pre-filled from Discovery Assessment ({new Date(discovery.createdAt).toLocaleDateString()})</p>
-            )}
-          </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-lg">×</button>
-        </div>
-
+  const bodyContent = (
+    <>
         {loading ? (
           <p className="px-5 py-12 text-center text-sm text-muted-foreground">Loading…</p>
         ) : (
-          <div className="max-h-[75vh] overflow-y-auto px-5 py-4 space-y-5">
+          <div className={variant === 'inline' ? 'space-y-5' : 'max-h-[75vh] overflow-y-auto px-5 py-4 space-y-5'}>
 
             <div className="rounded-xl border border-border p-3.5 space-y-3">
               <p className="text-xs font-semibold text-foreground">Migration profile</p>
@@ -389,7 +387,46 @@ export default function DeploymentChecklistTool({ customerId, leadId, leadRef, c
             {savedMsg && <p className="text-xs text-green-600">{savedMsg}</p>}
           </div>
         )}
+    </>
+  )
 
+  if (variant === 'inline') {
+    return (
+      <div className="rounded-2xl border border-border bg-white shadow-sm">
+        <div className="border-b border-border px-5 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Deployment Checklist — Planning</p>
+          <h2 className="mt-0.5 text-base font-semibold text-foreground">{company}</h2>
+          {discovery && (
+            <p className="text-[11px] text-teal-700">📎 Pre-filled from Discovery Assessment ({new Date(discovery.createdAt).toLocaleDateString()})</p>
+          )}
+        </div>
+        <div className="px-5 py-4">
+          {bodyContent}
+        </div>
+        <div className="flex justify-end border-t border-border px-5 py-4">
+          <button onClick={save} disabled={saving || loading}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50">
+            {saving ? 'Saving...' : existingId ? 'Save Changes' : 'Create Checklist'}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-6 overflow-y-auto">
+      <div className="w-full max-w-3xl rounded-2xl bg-white shadow-xl my-auto">
+        <div className="border-b border-border px-5 py-4 flex items-center justify-between">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-primary">Deployment Checklist</p>
+            <h2 className="mt-0.5 text-base font-semibold text-foreground">{company}</h2>
+            {discovery && (
+              <p className="text-[11px] text-teal-700">📎 Pre-filled from Discovery Assessment ({new Date(discovery.createdAt).toLocaleDateString()})</p>
+            )}
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-lg">×</button>
+        </div>
+        {bodyContent}
         <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
           <button onClick={onClose} className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary">Close</button>
           <button onClick={save} disabled={saving || loading}

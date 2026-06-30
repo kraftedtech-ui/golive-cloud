@@ -12,7 +12,7 @@ const PAGE_LABELS: Record<string, { section: string; title: string }> = {
   discovery:    { section: "Tools",  title: "Discovery Questionnaire (Internal Assessment)" },
   proposals:    { section: "Tools",  title: "Proposal Generator" },
   "product-mapping": { section: "Tools", title: "Product Mapping" },
-  onboarding:   { section: "Tools",  title: "Onboarding Checklist" },
+  onboarding:   { section: "Tools",  title: "Deployment & Onboarding Checklist" },
   announcements:{ section: "Team",   title: "Announcements" },
   knowledge:    { section: "Team",   title: "Knowledge Base" },
   customers:    { section: "Admin",  title: "Customer Accounts" },
