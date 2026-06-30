@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useSearchParams } from "next/navigation"
 import { CheckCircle2, ShieldCheck, Sparkles } from "lucide-react"
 import { DISCOVERY_PAIN_POINTS } from "@/lib/discoveryRecommendation"
 
@@ -48,17 +49,22 @@ function toggle(arr: string[], val: string) {
 }
 
 export function PublicDiscoveryForm() {
+  const searchParams = useSearchParams()
+  const prefillCompany = searchParams.get('company') || ''
+  const prefillContact = searchParams.get('contact') || ''
+  const prefillEmail = searchParams.get('email') || ''
+
   const [submitted, setSubmitted] = useState(false)
   const [ref, setRef] = useState("")
   const [result, setResult] = useState<{ packageLabel: string; addOnLabels: string[]; needsOfflineConsult: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const [company, setCompany] = useState("")
-  const [contact, setContact] = useState("")
+  const [company, setCompany] = useState(prefillCompany)
+  const [contact, setContact] = useState(prefillContact)
   const [phone, setPhone] = useState("")
   const [country, setCountry] = useState("Nigeria")
-  const [email, setEmail] = useState("")
+  const [email, setEmail] = useState(prefillEmail)
   const [emailVerified, setEmailVerified] = useState(false)
   const [verificationToken, setVerificationToken] = useState("")
   const [otpSent, setOtpSent] = useState(false)
@@ -293,6 +299,11 @@ export function PublicDiscoveryForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {(prefillCompany || prefillContact) && (
+        <div className="rounded-lg bg-[#e8f4fb] border border-[#c8e6f0] px-4 py-2.5 text-xs text-[#0d2233]">
+          We've pre-filled a few details from your conversation with GoLive — check they're right before continuing.
+        </div>
+      )}
       <div>
         <h2 className={sectionTitle}>About your business</h2>
         <p className={helpText}>Takes about 5 minutes. The more detail you give, the more accurate our recommendation — and anything that needs a real conversation, we'll flag and follow up on personally rather than guess.</p>

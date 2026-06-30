@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { DISCOVERY_PAIN_POINTS, DISCOVERY_PAIN_POINT_HELP, computeRecommendation } from '@/lib/discoveryRecommendation'
 
-interface Lead { _id: string; ref: string; company: string; country: string; status: string; assignedToEmail?: string }
+interface Lead { _id: string; ref: string; company: string; contact?: string; email?: string; country: string; status: string; assignedToEmail?: string }
 interface ProductMappingItem { type: 'package' | 'addon'; key: string; label: string; blurb?: string; active?: boolean }
 
 interface Assessment {
@@ -86,6 +86,11 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
   const selectableLeads = leads.filter(l => isAdmin || l.assignedToEmail === userEmail)
   const selectedLead = leads.find(l => l._id === selectedLeadId)
   const leadAssessments = selectedLeadId ? assessments.filter(a => a.leadId === selectedLeadId) : []
+  // Defensive filter: a deleted lead's assessments should cascade-delete
+  // server-side now, but this also cleans up any already-orphaned records
+  // from before that fix existed, so they stop appearing under "All leads".
+  const liveLeadIds = new Set(leads.map(l => l._id))
+  const visibleAssessments = selectedLeadId ? leadAssessments : assessments.filter(a => liveLeadIds.has(a.leadId))
   const publicAssessment = leadAssessments.find(a => a.source === 'public')
   const isLocked = !!publicAssessment && !overrideLock
 
@@ -93,7 +98,12 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
 
   async function copyCustomerLink() {
     if (!selectedLead) return
-    const url = `${window.location.origin}/assess/${selectedLead.ref}`
+    const params = new URLSearchParams({
+      company: selectedLead.company || '',
+      contact: selectedLead.contact || '',
+      email: selectedLead.email || '',
+    })
+    const url = `${window.location.origin}/discovery?${params.toString()}`
     try {
       await navigator.clipboard.writeText(url)
       setLinkCopied(true)
@@ -412,9 +422,9 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
           <div className="divide-y divide-border max-h-[420px] overflow-y-auto">
             {loadingAssessments ? (
               <p className="px-4 py-6 text-center text-xs text-muted-foreground">Loading…</p>
-            ) : (selectedLeadId ? leadAssessments : assessments).length === 0 ? (
+            ) : visibleAssessments.length === 0 ? (
               <p className="px-4 py-6 text-center text-xs text-muted-foreground">No assessments yet.</p>
-            ) : (selectedLeadId ? leadAssessments : assessments).map(a => (
+            ) : visibleAssessments.map(a => (
               <button key={a._id} onClick={() => setViewing(a)} className="block w-full px-4 py-3 text-left hover:bg-secondary/30">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-xs font-medium text-foreground truncate">{a.company}</p>

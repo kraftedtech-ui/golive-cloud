@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import { Lead } from '@/models/Lead'
 import { Notification } from '@/models/Notification'
+import { DiscoveryAssessment } from '@/models/DiscoveryAssessment'
+import { DeploymentChecklist } from '@/models/DeploymentChecklist'
 import { Resend } from 'resend'
 import { requireSession, requireAdmin } from '@/lib/apiAuth'
 
@@ -104,6 +106,14 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   try {
     await connectDB()
     await Lead.findByIdAndDelete(id)
+    // Without this, Discovery Assessments and Deployment Checklists tied to
+    // this lead become permanent orphans — they keep showing up in lists
+    // (e.g. "Saved Assessments — All leads") referencing a lead that no
+    // longer exists, with no way to clean them up from the UI.
+    await Promise.all([
+      DiscoveryAssessment.deleteMany({ leadId: id }),
+      DeploymentChecklist.deleteMany({ leadId: id }),
+    ])
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: 'Failed to delete lead' }, { status: 500 })

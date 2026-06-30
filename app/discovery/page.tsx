@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { PublicDiscoveryForm } from "@/components/public-discovery-form"
 import { ShieldCheck, Sparkles, Clock } from "lucide-react"
 
@@ -40,7 +41,9 @@ export default function DiscoveryPage() {
 
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <div className="rounded-2xl border border-[#c8e6f0] bg-white p-6 shadow-sm sm:p-8">
-          <PublicDiscoveryForm />
+          <Suspense fallback={<p className="text-sm text-[#5a7a8a]">Loading…</p>}>
+            <PublicDiscoveryForm />
+          </Suspense>
         </div>
         <p className="mt-6 text-center text-xs text-[#5a7a8a]">
           Prefer to talk it through? <a href="https://wa.me/2348083587801" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#0096c7]">Message us on WhatsApp</a> instead.
