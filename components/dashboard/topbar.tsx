@@ -44,7 +44,18 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(diff / 86400)}d ago`
 }
 
-export function Topbar({ page = "dashboard", onNavigate, onNewLead }: { page?: string; onNavigate?: (page: string) => void; onNewLead?: () => void }) {
+interface SearchLead { _id: string; ref: string; company: string; email: string; contact: string }
+interface SearchCustomer { _id: string; company: string; tenantDomain: string }
+interface SearchTransfer { _id: string; ref: string; company: string; domain: string }
+
+export function Topbar({
+  page = "dashboard", onNavigate, onNewLead,
+  leads = [], customers = [], transfers = [], onSelectResult,
+}: {
+  page?: string; onNavigate?: (page: string) => void; onNewLead?: () => void
+  leads?: SearchLead[]; customers?: SearchCustomer[]; transfers?: SearchTransfer[]
+  onSelectResult?: (type: 'lead' | 'customer' | 'transfer', id: string) => void
+}) {
   const info = PAGE_LABELS[page] || PAGE_LABELS.dashboard
   const { data: session } = useSession()
   const userEmail = session?.user?.email
@@ -52,6 +63,10 @@ export function Topbar({ page = "dashboard", onNavigate, onNewLead }: { page?: s
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
 
   const fetchNotifications = () => {
     if (!userEmail) return
@@ -70,10 +85,30 @@ export function Topbar({ page = "dashboard", onNavigate, onNewLead }: { page?: s
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
+
+  const q = searchQuery.trim().toLowerCase()
+  const matchedLeads = q.length < 2 ? [] : leads.filter(l =>
+    l.ref?.toLowerCase().includes(q) || l.company?.toLowerCase().includes(q) ||
+    l.email?.toLowerCase().includes(q) || l.contact?.toLowerCase().includes(q)
+  ).slice(0, 5)
+  const matchedCustomers = q.length < 2 ? [] : customers.filter(c =>
+    c.company?.toLowerCase().includes(q) || c.tenantDomain?.toLowerCase().includes(q)
+  ).slice(0, 5)
+  const matchedTransfers = q.length < 2 ? [] : transfers.filter(t =>
+    t.ref?.toLowerCase().includes(q) || t.company?.toLowerCase().includes(q) || t.domain?.toLowerCase().includes(q)
+  ).slice(0, 5)
+  const hasResults = matchedLeads.length + matchedCustomers.length + matchedTransfers.length > 0
+
+  function selectResult(type: 'lead' | 'customer' | 'transfer', id: string) {
+    onSelectResult?.(type, id)
+    setSearchQuery("")
+    setSearchOpen(false)
+  }
 
   async function markAsRead(id: string) {
     setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n))
@@ -100,10 +135,63 @@ export function Topbar({ page = "dashboard", onNavigate, onNewLead }: { page?: s
         <h1 className="truncate text-base font-semibold tracking-tight text-[#0d2233] md:text-lg">{info.title}</h1>
       </div>
       <div className="ml-auto flex items-center gap-2 md:gap-3">
-        <div className="relative hidden md:block">
+        <div className="relative hidden md:block" ref={searchRef}>
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#5c7184]" />
-          <input type="search" placeholder="Search customers, refs…" aria-label="Search"
-            className="h-9 w-56 rounded-lg border border-[#e3e9f0] bg-white pl-9 pr-3 text-sm text-[#0d2233] shadow-xs outline-none transition-colors placeholder:text-[#5c7184] focus:border-[#0096c7] focus:ring-2 focus:ring-[#0096c7]/30" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true) }}
+            onFocus={() => setSearchOpen(true)}
+            placeholder="Search customers, refs…"
+            aria-label="Search"
+            className="h-9 w-56 rounded-lg border border-[#e3e9f0] bg-white pl-9 pr-3 text-sm text-[#0d2233] shadow-xs outline-none transition-colors placeholder:text-[#5c7184] focus:border-[#0096c7] focus:ring-2 focus:ring-[#0096c7]/30"
+          />
+          {searchOpen && q.length >= 2 && (
+            <div className="absolute right-0 z-30 mt-2 w-80 overflow-hidden rounded-lg border border-[#e3e9f0] bg-white shadow-lg">
+              {!hasResults ? (
+                <p className="px-4 py-3 text-xs text-[#5c7184]">No matches for "{searchQuery}"</p>
+              ) : (
+                <div className="max-h-80 overflow-y-auto py-1">
+                  {matchedLeads.length > 0 && (
+                    <div>
+                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[#5c7184]">Leads</p>
+                      {matchedLeads.map(l => (
+                        <button key={l._id} onClick={() => selectResult('lead', l._id)}
+                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-[#f4f7fb]">
+                          <span className="truncate"><span className="font-medium text-[#0d2233]">{l.company}</span> <span className="text-[#5c7184]">— {l.contact}</span></span>
+                          <span className="flex-shrink-0 font-mono text-[10px] text-[#0096c7]">{l.ref}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {matchedCustomers.length > 0 && (
+                    <div>
+                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[#5c7184]">Customers</p>
+                      {matchedCustomers.map(c => (
+                        <button key={c._id} onClick={() => selectResult('customer', c._id)}
+                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-[#f4f7fb]">
+                          <span className="truncate font-medium text-[#0d2233]">{c.company}</span>
+                          <span className="flex-shrink-0 font-mono text-[10px] text-[#5c7184]">{c.tenantDomain}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {matchedTransfers.length > 0 && (
+                    <div>
+                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[#5c7184]">Transfers</p>
+                      {matchedTransfers.map(t => (
+                        <button key={t._id} onClick={() => selectResult('transfer', t._id)}
+                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-[#f4f7fb]">
+                          <span className="truncate"><span className="font-medium text-[#0d2233]">{t.company}</span> <span className="text-[#5c7184]">— {t.domain}</span></span>
+                          <span className="flex-shrink-0 font-mono text-[10px] text-[#0096c7]">{t.ref}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <button className="hidden h-9 items-center gap-1.5 rounded-lg border border-[#e3e9f0] bg-white px-3 text-sm font-normal text-[#5c7184] shadow-xs lg:inline-flex">
           Last 30 days

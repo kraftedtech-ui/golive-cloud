@@ -68,6 +68,23 @@ export default function PortalPage() {
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null)
   const [viewingCspInfo, setViewingCspInfo] = useState<Customer | null>(null)
   const [editingAgreement, setEditingAgreement] = useState<Customer | null>(null)
+  // Set when a topbar search result is clicked — lets the matching table row
+  // scroll into view and flash, since leads/customers don't otherwise have
+  // a "selected row" concept the way Transfers does.
+  const [highlightId, setHighlightId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!highlightId) return
+    const el = document.getElementById(`row-${highlightId}`)
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const t = setTimeout(() => setHighlightId(null), 4000)
+    return () => clearTimeout(t)
+  }, [highlightId, page])
+
+  function handleSearchSelect(type: 'lead' | 'customer' | 'transfer', id: string) {
+    setPage(type === 'lead' ? 'assessments' : type === 'customer' ? 'customers' : 'transfers')
+    setHighlightId(id)
+  }
   const [deletingCustomerBusy, setDeletingCustomerBusy] = useState(false)
 
   useEffect(() => {
@@ -147,7 +164,8 @@ export default function PortalPage() {
     <div className="min-h-screen bg-[#f4f7fb]">
       <Sidebar active={page} onNavigate={setPage} />
       <div className="lg:pl-64">
-        <Topbar page={page} onNavigate={setPage} onNewLead={() => setShowNewLead(true)} />
+        <Topbar page={page} onNavigate={setPage} onNewLead={() => setShowNewLead(true)}
+          leads={leads} customers={customers} transfers={transfers} onSelectResult={handleSearchSelect} />
         <main className="mx-auto max-w-[1600px] space-y-6 px-5 py-6 md:px-8">
 
           {/* NEW LEAD MODAL */}
@@ -254,7 +272,7 @@ export default function PortalPage() {
                     {loading ? <tr><td colSpan={9} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
                     : leads.length === 0 ? <tr><td colSpan={9} className="py-12 text-center text-sm text-muted-foreground">No leads yet</td></tr>
                     : leads.map(lead => (
-                      <tr key={lead._id} className="border-b border-border/50 hover:bg-secondary/30">
+                      <tr key={lead._id} id={`row-${lead._id}`} className={`border-b border-border/50 transition-colors ${highlightId === lead._id ? 'bg-primary/10 ring-1 ring-inset ring-primary/30' : 'hover:bg-secondary/30'}`}>
                         <td className="px-4 py-3 font-mono text-[11px] text-primary">{lead.ref}</td>
                         <td className="px-4 py-3 font-medium text-foreground">{lead.company}</td>
                         <td className="px-4 py-3 text-muted-foreground">{lead.contact}<div className="text-[11px]">{lead.email}</div></td>
@@ -317,7 +335,7 @@ export default function PortalPage() {
           )}
 
           {page === 'transfers' && (
-            <TransfersView transfers={transfers} loading={loading} onUpdate={fetchData} isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} userName={(session?.user as any)?.name ?? ''} />
+            <TransfersView transfers={transfers} loading={loading} onUpdate={fetchData} isAdmin={isAdmin} userEmail={session?.user?.email ?? ''} userName={(session?.user as any)?.name ?? ''} highlightId={page === 'transfers' ? highlightId : null} />
           )}
 
           {page === 'customers' && (
@@ -342,7 +360,7 @@ export default function PortalPage() {
                       const daysLeft = renewal ? Math.ceil((renewal.getTime() - Date.now()) / 86400000) : null
                       const healthColors: Record<string,string> = { Green: 'bg-green-50 text-green-700', Amber: 'bg-yellow-50 text-yellow-700', Red: 'bg-red-50 text-red-700' }
                       return (
-                        <tr key={c._id} className="border-b border-border/50 hover:bg-secondary/30">
+                        <tr key={c._id} id={`row-${c._id}`} className={`border-b border-border/50 transition-colors ${highlightId === c._id ? 'bg-primary/10 ring-1 ring-inset ring-primary/30' : 'hover:bg-secondary/30'}`}>
                           <td className="px-4 py-3 font-medium text-foreground">{c.company}</td>
                           <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">{c.tenantDomain}</td>
                           <td className="px-4 py-3"><span className="rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium">{c.package}</span></td>
@@ -524,10 +542,18 @@ export default function PortalPage() {
   )
 }
 
-function TransfersView({ transfers, loading, onUpdate, isAdmin, userEmail, userName }: { transfers: Transfer[]; loading: boolean; onUpdate: () => void; isAdmin: boolean; userEmail: string; userName: string }) {
+function TransfersView({ transfers, loading, onUpdate, isAdmin, userEmail, userName, highlightId }: { transfers: Transfer[]; loading: boolean; onUpdate: () => void; isAdmin: boolean; userEmail: string; userName: string; highlightId?: string | null }) {
   const [selected, setSelected] = useState<Transfer | null>(null)
   const [deletingTransfer, setDeletingTransfer] = useState<Transfer | null>(null)
   const [deletingTransferBusy, setDeletingTransferBusy] = useState(false)
+
+  // Came here via topbar search — auto-open the matching transfer's detail
+  // panel instead of leaving the rep to scan the table for it.
+  useEffect(() => {
+    if (!highlightId) return
+    const match = transfers.find(t => t._id === highlightId)
+    if (match) setSelected(match)
+  }, [highlightId, transfers])
 
   const TYPE_LABELS: Record<string, { label: string; color: string }> = {
     csp:    { label: 'CSP Transfer',   color: 'bg-blue-50 text-blue-700' },
