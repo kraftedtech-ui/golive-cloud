@@ -11,7 +11,7 @@ const DEVICE_TYPES = ["Windows laptops/desktops", "Mac", "Mobile (iOS/Android)",
 const SENSITIVE_DATA_TYPES = ["Financial / payment data", "Health records", "Legal / contracts", "Personal customer data"]
 const DATA_SCOPE_OPTIONS = ["Email", "Calendar & contacts", "Files / shared drives", "Teams or Slack history", "Apps connected to your current email"]
 const CUTOVER_OPTIONS = [
-  { value: "zero_downtime", label: "We can't have any downtime — needs a careful parallel switch" },
+  { value: "zero_downtime", label: "We cannot have any downtime — a careful parallel switch is required" },
   { value: "maintenance_window", label: "A short planned downtime window is fine" },
   { value: "flexible", label: "We're flexible on timing" },
 ]
@@ -19,7 +19,7 @@ const SWITCH_REASONS = ["Cost", "Poor support from current provider", "Billing n
 const BUDGET_RANGES = ["Not sure yet", "Under $500/mo", "$500–2,000/mo", "$2,000–10,000/mo", "$10,000+/mo"]
 const TIMELINES = ["Right away (this month)", "Next 1–3 months", "Next 3–6 months", "Just exploring options"]
 const CURRENT_PLAN_OPTIONS = [
-  { value: "", label: "Not sure / don't know" },
+  { value: "", label: "Not sure / unsure" },
   { value: "Basic (email only)", label: "Basic — email & web apps only" },
   { value: "Standard", label: "Standard — includes desktop Office apps" },
   { value: "Premium (security included)", label: "Premium — includes extra security features" },
@@ -216,7 +216,7 @@ export function PublicDiscoveryForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
-    if (isExistingM365Customer === null) { setError("Please answer whether you're already using Microsoft 365."); return }
+    if (isExistingM365Customer === null) { setError("Please answer whether you are already using Microsoft 365."); return }
     if (!emailVerified || !verificationToken) { setError("Please verify your email address before submitting."); return }
     if (!turnstileToken) { setError("Please complete the security check before submitting."); return }
 
@@ -265,7 +265,7 @@ export function PublicDiscoveryForm() {
     return (
       <div className="rounded-2xl border border-[#c8e6f0] bg-white p-8 text-center shadow-sm">
         <CheckCircle2 className="mx-auto size-12 text-[#00c8c8]" />
-        <h3 className="mt-4 text-xl font-bold text-[#0d2233]">Thanks, {contact.split(" ")[0] || "there"} — we've got it.</h3>
+        <h3 className="mt-4 text-xl font-bold text-[#0d2233]">Thank you, {contact.split(" ")[0] || "there"} — your submission has been received.</h3>
         <p className="mt-2 text-sm text-[#5a7a8a]">Reference: <span className="font-mono font-semibold text-[#0d2233]">{ref}</span></p>
 
         {result && (
@@ -280,7 +280,7 @@ export function PublicDiscoveryForm() {
               </ul>
             )}
             <p className="mt-3 text-xs text-[#5a7a8a]">
-              This is our best read from your answers — not a final quote. A GoLive specialist will confirm pricing for your exact user count and currency.
+              This is our recommendation based on your answers — not a final quote. A GoLive specialist will confirm pricing for your exact user count and currency.
             </p>
           </div>
         )}
@@ -288,11 +288,11 @@ export function PublicDiscoveryForm() {
         {result?.needsOfflineConsult && (
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-left">
             <p className="text-sm font-semibold text-amber-800">A few things need a real conversation</p>
-            <p className="mt-1 text-xs text-amber-700">Some of what you described isn't a simple checkbox answer — we'll reach out personally (usually within 1 business day) to talk it through properly instead of guessing.</p>
+            <p className="mt-1 text-xs text-amber-700">Some of what you described is not a simple checkbox answer — we will be in touch personally (usually within one business day) to discuss this properly.</p>
           </div>
         )}
 
-        <p className="mt-6 text-xs text-[#5a7a8a]">Want to talk sooner? <a href="https://wa.me/2348083587801" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#0096c7]">Message us on WhatsApp →</a></p>
+        <p className="mt-6 text-xs text-[#5a7a8a]">Prefer to speak with us sooner? <a href="https://wa.me/2348083587801" target="_blank" rel="noopener noreferrer" className="font-semibold text-[#0096c7]">Message us on WhatsApp →</a></p>
       </div>
     )
   }
@@ -301,12 +301,12 @@ export function PublicDiscoveryForm() {
     <form onSubmit={handleSubmit} className="space-y-8">
       {(prefillCompany || prefillContact) && (
         <div className="rounded-lg bg-[#e8f4fb] border border-[#c8e6f0] px-4 py-2.5 text-xs text-[#0d2233]">
-          We've pre-filled a few details from your conversation with GoLive — check they're right before continuing.
+          We have pre-filled a few details from your conversation with GoLive — please check these are correct before continuing.
         </div>
       )}
       <div>
         <h2 className={sectionTitle}>About your business</h2>
-        <p className={helpText}>Takes about 5 minutes. The more detail you give, the more accurate our recommendation — and anything that needs a real conversation, we'll flag and follow up on personally rather than guess.</p>
+        <p className={helpText}>This takes approximately 5 minutes. The more detail you provide, the more accurate our recommendation — and anything that warrants a proper conversation will be flagged and followed up personally.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -363,7 +363,7 @@ export function PublicDiscoveryForm() {
 
       <div className="rounded-xl border-2 border-[#c8e6f0] bg-[#f4fafd] p-5">
         <h2 className={sectionTitle}>Are you already using Microsoft 365?</h2>
-        <p className={helpText}>Microsoft 365 is the bundle that includes Outlook email, Word/Excel/PowerPoint, Teams calls & chat, and OneDrive cloud storage. If you're not sure, pick "No" — we'll figure it out together.</p>
+        <p className={helpText}>Microsoft 365 is the suite that includes Outlook email, Word, Excel, PowerPoint, Teams calls and chat, and OneDrive cloud storage. If you are unsure, select "No" — we will work it out with you.</p>
         <div className="mt-3 flex gap-3">
           <button type="button" onClick={() => setIsExistingM365Customer(true)}
             className={`flex-1 rounded-lg border-2 py-3 text-sm font-semibold ${isExistingM365Customer === true ? "border-[#0096c7] bg-[#0096c7] text-white" : "border-[#c8e6f0] bg-white text-[#0d2233]"}`}>
@@ -434,7 +434,7 @@ export function PublicDiscoveryForm() {
 
       <div>
         <h2 className={sectionTitle}>A bit about how your team works</h2>
-        <p className={helpText}>This helps us right-size the recommendation — there's no "correct" answer, just what's true for you today.</p>
+        <p className={helpText}>This helps us tailor the recommendation — there is no right or wrong answer, just what is accurate for your organisation today.</p>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-[#0d2233]">How many employees?</label>
@@ -486,7 +486,7 @@ export function PublicDiscoveryForm() {
           </div>
         )}
         <div className="mt-4">
-          <label className="mb-1.5 block text-sm font-medium text-[#0d2233]">What needs to move over? <span className="font-normal text-[#5a7a8a]">(only matters if you're already on email/files somewhere)</span></label>
+          <label className="mb-1.5 block text-sm font-medium text-[#0d2233]">What needs to move over? <span className="font-normal text-[#5a7a8a]">(only relevant if you are currently using an existing email or file system)</span></label>
           <div className="flex flex-wrap gap-2">
             {DATA_SCOPE_OPTIONS.map(d => (
               <button key={d} type="button" onClick={() => setDataScope(s => toggle(s, d))}
@@ -510,7 +510,7 @@ export function PublicDiscoveryForm() {
           <Sparkles className="size-5 text-[#0096c7]" />
           <h2 className={sectionTitle}>What's actually frustrating you right now?</h2>
         </div>
-        <p className={helpText}>Pick everything that applies. This is what we use to figure out exactly what to recommend — no pressure to know the "technical" name for anything, just describe what's bugging you.</p>
+        <p className={helpText}>Select everything that applies. This is what we use to determine the right recommendation — there is no need to know the technical terminology; simply describe what is causing you difficulty.</p>
         <div className="mt-4 space-y-2.5">
           {DISCOVERY_PAIN_POINTS.map(p => (
             <label key={p.key} className={`flex cursor-pointer items-start gap-3 rounded-xl border-2 p-3.5 transition-colors ${painPoints.includes(p.key) ? "border-[#0096c7] bg-[#f4fafd]" : "border-[#e3e9f0] bg-white"}`}>
@@ -524,13 +524,13 @@ export function PublicDiscoveryForm() {
         </div>
         {painPoints.includes("other") && (
           <textarea value={otherPainPointNotes} onChange={e => setOtherPainPointNotes(e.target.value)} rows={3} className={fieldClasses + " mt-2"}
-            placeholder="Tell us what's going on, in your own words..." />
+            placeholder="Please describe the issue in your own words..." />
         )}
       </div>
 
       <div>
         <h2 className={sectionTitle}>Budget & timeline</h2>
-        <p className={helpText}>Just so our recommendation is realistic for where you're at — there's no wrong answer.</p>
+        <p className={helpText}>This ensures our recommendation is realistic for your current situation — there is no wrong answer.</p>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1.5 block text-sm font-medium text-[#0d2233]">Rough monthly budget</label>

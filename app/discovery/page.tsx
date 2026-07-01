@@ -4,7 +4,7 @@ import { ShieldCheck, Sparkles, Clock } from "lucide-react"
 
 export const metadata = {
   title: "Free Microsoft 365 Needs Assessment — GoLive",
-  description: "Tell us about your business and get a tailored Microsoft 365 recommendation — takes about 5 minutes.",
+  description: "Tell us about your business and receive a tailored Microsoft 365 recommendation — takes approximately 5 minutes.",
 }
 
 const TRUST_POINTS = [
@@ -23,11 +23,11 @@ export default function DiscoveryPage() {
           </span>
           <h1 className="mt-4 text-3xl font-bold tracking-tight text-[#0d2233] sm:text-4xl">
             Tell us about your business.
-            <span className="block">We'll tell you what fits</span>
+            <span className="block">We will find the right fit for you.</span>
           </h1>
           <p className="mt-4 leading-relaxed text-[#5a7a8a]">
-            Whether you're already on Microsoft 365 or starting from scratch, answer a few questions and we'll point you to the right package —
-            and flag anything that's worth a real conversation instead of guessing.
+            Whether you are already on Microsoft 365 or starting from scratch, answer a few questions and we will recommend the right package —
+            and flag anything that warrants a proper conversation rather than a best guess.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
             {TRUST_POINTS.map(({ icon: Icon, text }) => (
