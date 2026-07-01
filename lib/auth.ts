@@ -75,11 +75,19 @@ export const authOptions: AuthOptions = {
       },
     }),
   ],
-  session: { strategy: 'jwt' },
+  session: { strategy: 'jwt', maxAge: 2 * 60 * 60 }, // 2 hours
   pages: { signIn: '/portal/login' },
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) { token.role = (user as { role?: string }).role || 'sales'; token.id = user.id }
+    async jwt({ token, user, trigger }) {
+      if (user) {
+        token.role = (user as { role?: string }).role || 'sales'
+        token.id = user.id
+      }
+      // On an explicit "extend session" request from the client, bump the
+      // token's issued-at time so NextAuth re-issues a fresh 2-hour JWT.
+      if (trigger === 'update') {
+        token.iat = Math.floor(Date.now() / 1000)
+      }
       return token
     },
     async session({ session, token }) {

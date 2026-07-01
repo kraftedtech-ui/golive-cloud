@@ -23,6 +23,7 @@ import DiscoveryAssessmentTool from '@/components/dashboard/DiscoveryAssessmentT
 import DeploymentChecklistTool from '@/components/dashboard/DeploymentChecklistTool'
 import SetupFeeCatalogAdmin from '@/components/dashboard/SetupFeeCatalogAdmin'
 import CurrencyOverviewWidget from '@/components/dashboard/CurrencyOverviewWidget'
+import SessionExpiryWarning from '@/components/dashboard/SessionExpiryWarning'
 
 export const dynamic = 'force-dynamic'
 
@@ -180,6 +181,7 @@ export default function PortalPage() {
 
   return (
     <div className="min-h-screen bg-[#f4f7fb]">
+      <SessionExpiryWarning />
       <Sidebar active={page} onNavigate={setPage} />
       <div className="lg:pl-64">
         <Topbar page={page} onNavigate={setPage} onNewLead={() => setShowNewLead(true)}
