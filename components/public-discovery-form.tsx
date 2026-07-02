@@ -65,8 +65,12 @@ export function PublicDiscoveryForm() {
   const [phone, setPhone] = useState("")
   const [country, setCountry] = useState("Nigeria")
   const [email, setEmail] = useState(prefillEmail)
-  const [emailVerified, setEmailVerified] = useState(false)
-  const [verificationToken, setVerificationToken] = useState("")
+  // EMAIL VERIFICATION SUSPENDED — emailVerified defaults to true so visitors
+  // can proceed directly without the OTP step. verificationToken is set to a
+  // placeholder so the API guard passes. To reactivate: set both back to
+  // their original defaults (false and "").
+  const [emailVerified, setEmailVerified] = useState(true)
+  const [verificationToken, setVerificationToken] = useState("suspended")
   const [otpSent, setOtpSent] = useState(false)
   const [otpCode, setOtpCode] = useState("")
   const [sendingOtp, setSendingOtp] = useState(false)
@@ -223,16 +227,15 @@ export function PublicDiscoveryForm() {
     setOtpError("")
   }
 
-  // emailTurnstileToken removed from canSubmit — email OTP Turnstile is bypassed.
-  // turnstileToken (submission widget) remains required.
-  // To reactivate email Turnstile: add `&& !!emailTurnstileToken` back to this condition.
-  const canSubmit = isExistingM365Customer !== null && emailVerified && !!turnstileToken && !!company && !!contact && !!phone
+  // emailVerified removed from canSubmit — OTP flow suspended (always true).
+  const canSubmit = isExistingM365Customer !== null && !!turnstileToken && !!company && !!contact && !!phone
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError("")
     if (isExistingM365Customer === null) { setError("Please answer whether you are already using Microsoft 365."); return }
-    if (!emailVerified || !verificationToken) { setError("Please verify your email address before submitting."); return }
+    // Email verification guard suspended — OTP flow disabled. To reactivate:
+    // if (!emailVerified || !verificationToken) { setError("Please verify your email address before submitting."); return }
     if (!turnstileToken) { setError("Please complete the security check before submitting."); return }
 
     setLoading(true)
@@ -348,30 +351,15 @@ export function PublicDiscoveryForm() {
 
       <div>
         <label className="mb-1.5 block text-sm font-medium text-[#0d2233]">Work email</label>
+        {/* EMAIL OTP VERIFICATION SUSPENDED — field is plain editable input.
+            To reactivate: restore disabled/opacity on input, restore Verify button,
+            OTP input block, otpError display, and code-sent message below.
+            Also restore emailVerified default to false and verificationToken to "". */}
         <div className="flex gap-2">
-          <input required type="email" value={email} disabled={emailVerified}
-            onChange={e => { setEmail(e.target.value); resetEmailVerification() }}
-            className={fieldClasses + (emailVerified ? " opacity-60" : "")} placeholder="you@company.com" />
-          {!emailVerified && !otpSent && (
-            <button type="button" onClick={handleSendOtp} disabled={sendingOtp}
-              className="flex-shrink-0 rounded-md bg-[#0096c7] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
-              {sendingOtp ? "Sending…" : "Verify"}
-            </button>
-          )}
-          {emailVerified && <span className="flex flex-shrink-0 items-center gap-1 text-sm font-medium text-[#0f9d6e]"><ShieldCheck className="size-4" /> Verified</span>}
+          <input required type="email" value={email}
+            onChange={e => setEmail(e.target.value)}
+            className={fieldClasses} placeholder="you@company.com" />
         </div>
-        {/* Turnstile email widget removed while bypassed: <div ref={emailWidgetRef} className="mt-2" /> */}
-        {otpSent && !emailVerified && (
-          <div className="mt-2 flex gap-2">
-            <input value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="6-digit code" className={fieldClasses} />
-            <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp}
-              className="flex-shrink-0 rounded-md border-2 border-[#0096c7] px-4 py-2.5 text-sm font-semibold text-[#0096c7] disabled:opacity-50">
-              {verifyingOtp ? "Checking…" : "Confirm"}
-            </button>
-          </div>
-        )}
-        {otpError && <p className="mt-1 text-xs text-red-600">{otpError}</p>}
-        {otpSent && !emailVerified && <p className={helpText}>Code sent — check your inbox (and spam folder). {otpCooldown > 0 ? `Resend in ${otpCooldown}s` : <button type="button" onClick={handleSendOtp} className="underline">Resend code</button>}</p>}
       </div>
 
       <div className="rounded-xl border-2 border-[#c8e6f0] bg-[#f4fafd] p-5">
@@ -572,7 +560,7 @@ export function PublicDiscoveryForm() {
 
       <button type="submit" disabled={loading || !canSubmit}
         className="w-full rounded-md bg-[#0096c7] py-3.5 text-sm font-bold text-white transition-opacity disabled:opacity-50">
-        {loading ? "Submitting…" : !emailVerified ? "Verify your email above to continue" : "Get my recommendation →"}
+        {loading ? "Submitting…" : "Get my recommendation →"}
       </button>
       <p className="text-center text-xs text-[#5a7a8a]">We'll never share your details. A specialist reviews every submission personally.</p>
     </form>

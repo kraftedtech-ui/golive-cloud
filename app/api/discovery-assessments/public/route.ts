@@ -58,7 +58,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const data = PublicDiscoverySchema.parse(body)
 
-    const emailOk = verifyEmailToken(data.verificationToken, data.email)
+    // EMAIL VERIFICATION SUSPENDED — token check bypassed.
+    // The client sends "suspended" as the token while the OTP flow is disabled.
+    // To reactivate: remove the short-circuit and restore the original block below.
+    const emailOk = data.verificationToken === 'suspended' || verifyEmailToken(data.verificationToken, data.email)
     if (!emailOk) {
       return NextResponse.json({ success: false, error: 'email_not_verified' }, { status: 403 })
     }
