@@ -69,8 +69,10 @@ export default function MigrateClient({ pricing }: { pricing: PublicPackage[] })
   const emailWidgetRef = useRef<HTMLDivElement>(null)
   const emailWidgetIdRef = useRef<string | undefined>(undefined)
 
-  const [emailVerified, setEmailVerified] = useState(false)
-  const [verificationToken, setVerificationToken] = useState('')
+  // EMAIL OTP SUSPENDED — emailVerified defaults to true, verificationToken is "suspended".
+  // To reactivate: restore defaults to false and "" respectively.
+  const [emailVerified, setEmailVerified] = useState(true)
+  const [verificationToken, setVerificationToken] = useState('suspended')
   const [otpSent, setOtpSent] = useState(false)
   const [otpCode, setOtpCode] = useState('')
   const [sendingOtp, setSendingOtp] = useState(false)
@@ -158,6 +160,7 @@ export default function MigrateClient({ pricing }: { pricing: PublicPackage[] })
     }
   }
 
+  // Script loader — kept active for submission Turnstile widget
   useEffect(() => {
     if (document.getElementById('turnstile-script')) {
       if (window.turnstile) setTurnstileReady(true)
@@ -172,6 +175,7 @@ export default function MigrateClient({ pricing }: { pricing: PublicPackage[] })
     document.head.appendChild(script)
   }, [])
 
+  // Submission Turnstile widget — ACTIVE
   useEffect(() => {
     if (!turnstileReady || !widgetRef.current || !window.turnstile) return
     if (widgetIdRef.current) return
@@ -184,24 +188,23 @@ export default function MigrateClient({ pricing }: { pricing: PublicPackage[] })
     })
   }, [turnstileReady])
 
-  useEffect(() => {
-    if (!turnstileReady || !emailWidgetRef.current || !window.turnstile) return
-    if (emailWidgetIdRef.current) return
-    emailWidgetIdRef.current = window.turnstile.render(emailWidgetRef.current, {
-      sitekey: '0x4AAAAAADnfiHKMINlWRfJ7',
-      size: 'flexible',
-      callback: (token: string) => setEmailTurnstileToken(token),
-      'expired-callback': () => setEmailTurnstileToken(''),
-      'error-callback': () => setEmailTurnstileToken(''),
-    })
-  }, [turnstileReady])
+  // Email Turnstile widget — SUSPENDED. Uncomment to reactivate.
+  // useEffect(() => {
+  //   if (!turnstileReady || !emailWidgetRef.current || !window.turnstile) return
+  //   if (emailWidgetIdRef.current) return
+  //   emailWidgetIdRef.current = window.turnstile.render(emailWidgetRef.current, {
+  //     sitekey: '0x4AAAAAADnfiHKMINlWRfJ7',
+  //     size: 'flexible',
+  //     callback: (token: string) => setEmailTurnstileToken(token),
+  //     'expired-callback': () => setEmailTurnstileToken(''),
+  //     'error-callback': () => setEmailTurnstileToken(''),
+  //   })
+  // }, [turnstileReady])
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!emailVerified || !verificationToken) {
-      setStatus('error')
-      return
-    }
+    // Email verification guard suspended. To reactivate:
+    // if (!emailVerified || !verificationToken) { setStatus('error'); return }
     if (!turnstileToken) {
       setStatus('error')
       return
@@ -391,36 +394,13 @@ export default function MigrateClient({ pricing }: { pricing: PublicPackage[] })
                 <div style={{ marginBottom: 10 }}>
                   <div>
                     <label style={lbl}>Email *</label>
+                    {/* EMAIL OTP SUSPENDED — plain input only. To reactivate: restore disabled,
+                        background/border logic, Verify button, emailWidgetRef div, Verified badge,
+                        OTP input block, and otpError display. */}
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <input style={{ ...inp, background: emailVerified ? '#f0fdf4' : '#fff', borderColor: emailVerified ? '#86efac' : BORDER }} required type="email" placeholder="you@company.com" disabled={emailVerified}
-                        value={form.email} onChange={e => { setForm(f => ({ ...f, email: e.target.value })); resetEmailVerification() }} />
-                      {!emailVerified && (
-                        <button type="button" onClick={handleSendOtp} disabled={sendingOtp || otpCooldown > 0 || !isValidEmail(form.email) || !emailTurnstileToken}
-                          style={{ flexShrink: 0, whiteSpace: 'nowrap', background: CY, color: '#fff', border: 'none', borderRadius: 6, padding: '0 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: (sendingOtp || otpCooldown > 0 || !isValidEmail(form.email) || !emailTurnstileToken) ? 0.5 : 1 }}>
-                          {sendingOtp ? 'Sending...' : otpCooldown > 0 ? `Resend (${otpCooldown}s)` : otpSent ? 'Resend' : 'Verify'}
-                        </button>
-                      )}
+                      <input style={inp} required type="email" placeholder="you@company.com"
+                        value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
                     </div>
-                    {!emailVerified && (
-                      <div style={{ marginTop: 6, width: '100%' }}>
-                        <div ref={emailWidgetRef} style={{ width: '100%' }} />
-                      </div>
-                    )}
-                    {emailVerified && (
-                      <p style={{ marginTop: 4, fontSize: 11, fontWeight: 600, color: '#16a34a' }}>✓ Email verified</p>
-                    )}
-                    {otpSent && !emailVerified && (
-                      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-                        <input type="text" inputMode="numeric" maxLength={6} placeholder="6-digit code" value={otpCode}
-                          onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                          style={{ ...inp, width: 110, letterSpacing: 4, textAlign: 'center' }} />
-                        <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || otpCode.length !== 6}
-                          style={{ background: TEAL, color: '#fff', border: 'none', borderRadius: 6, padding: '0 10px', fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: (verifyingOtp || otpCode.length !== 6) ? 0.5 : 1 }}>
-                          {verifyingOtp ? 'Checking...' : 'Confirm'}
-                        </button>
-                      </div>
-                    )}
-                    {otpError && <p style={{ marginTop: 4, fontSize: 11, color: '#dc2626' }}>{otpError}</p>}
                   </div>
                 </div>
                 <div style={{ marginBottom: 10 }}>

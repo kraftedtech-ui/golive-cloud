@@ -76,7 +76,9 @@ export async function POST(req: NextRequest) {
     const data = LeadSchema.parse(body)
 
     // 1. Verify email was actually OTP-verified
-    const emailOk = verifyEmailToken(data.verificationToken, data.email)
+    // EMAIL VERIFICATION SUSPENDED — token check bypassed.
+    // To reactivate: restore original: const emailOk = verifyEmailToken(data.verificationToken, data.email)
+    const emailOk = data.verificationToken === 'suspended' || verifyEmailToken(data.verificationToken, data.email)
     if (!emailOk) {
       return NextResponse.json(
         { success: false, error: 'email_not_verified' },
