@@ -140,6 +140,10 @@ export async function POST(req: NextRequest) {
       recommendedAddOnLabels: addOnLabels,
       needsOfflineConsult: recommendation.needsOfflineConsult,
       consultReasons: recommendation.consultReasons,
+      // CC the assigned sales rep if the lead has one — so the rep who
+      // owns this lead is immediately aware the customer filled it in.
+      assignedRepEmail: lead.assignedToEmail || undefined,
+      assignedRepName: lead.assignedTo || undefined,
     }).catch(console.error)
 
     return NextResponse.json({

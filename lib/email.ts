@@ -165,6 +165,7 @@ export async function sendDiscoveryNotification(data: {
   painPointLabels: string[]
   recommendedPackageLabel?: string; recommendedAddOnLabels?: string[]
   needsOfflineConsult: boolean; consultReasons?: string[]
+  assignedRepEmail?: string; assignedRepName?: string
 }) {
   const consultBanner = data.needsOfflineConsult
     ? `<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:14px 16px;margin-bottom:16px">
@@ -175,9 +176,22 @@ export async function sendDiscoveryNotification(data: {
        </div>`
     : ''
 
+  const repBanner = data.assignedRepEmail
+    ? `<div style="background:#e1f5ee;border:1px solid #9fe1cb;border-radius:8px;padding:12px 16px;margin-bottom:16px">
+         <p style="margin:0;color:#0f6e56;font-size:12px">
+           <strong>Assigned rep copied:</strong> ${data.assignedRepName || data.assignedRepEmail} &lt;${data.assignedRepEmail}&gt;
+         </p>
+       </div>`
+    : `<div style="background:#f4f7fb;border:1px solid #e3e9f0;border-radius:8px;padding:12px 16px;margin-bottom:16px">
+         <p style="margin:0;color:#5c7184;font-size:12px">
+           <strong>No sales rep assigned</strong> to this lead — only contact@golivecompany.com notified.
+         </p>
+       </div>`
+
   await resend.emails.send({
     from: FROM,
     to: NOTIFY,
+    ...(data.assignedRepEmail ? { cc: [data.assignedRepEmail] } : {}),
     subject: `New Discovery Questionnaire — ${data.company}${data.needsOfflineConsult ? ' (needs consult)' : ''}`,
     html: `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f4f7fb;padding:24px;border-radius:12px">
@@ -187,6 +201,7 @@ export async function sendDiscoveryNotification(data: {
         </div>
         <div style="background:white;border-radius:8px;padding:20px 24px;border:1px solid #e3e9f0">
           ${consultBanner}
+          ${repBanner}
           <table style="width:100%;border-collapse:collapse;font-size:14px">
             <tr><td style="padding:8px 0;color:#5c7184;width:140px">Company</td><td style="padding:8px 0;font-weight:600;color:#0d2233">${data.company}</td></tr>
             <tr><td style="padding:8px 0;color:#5c7184">Contact</td><td style="padding:8px 0;color:#0d2233">${data.contact}</td></tr>
