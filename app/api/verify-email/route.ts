@@ -10,22 +10,24 @@ function generateCode(): string {
 }
 
 async function verifyTurnstile(token: string, remoteIp?: string): Promise<boolean> {
-  try {
-    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        secret: process.env.TURNSTILE_SECRET_KEY || '',
-        response: token,
-        ...(remoteIp ? { remoteip: remoteIp } : {}),
-      }),
-    })
-    const data = await res.json()
-    return data.success === true
-  } catch (err) {
-    console.error('Turnstile verification error:', err)
-    return false
-  }
+  // BYPASSED — see lib/publicVerification.ts for reactivation instructions
+  return true
+  // try {
+  //   const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+  //     method: 'POST',
+  //     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  //     body: new URLSearchParams({
+  //       secret: process.env.TURNSTILE_SECRET_KEY || '',
+  //       response: token,
+  //       ...(remoteIp ? { remoteip: remoteIp } : {}),
+  //     }),
+  //   })
+  //   const data = await res.json()
+  //   return data.success === true
+  // } catch (err) {
+  //   console.error('Turnstile verification error:', err)
+  //   return false
+  // }
 }
 
 // In-memory IP rate limiter — single-server deployment, no Redis needed.

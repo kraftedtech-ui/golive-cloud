@@ -106,6 +106,15 @@ export function PublicDiscoveryForm() {
   const [dataScope, setDataScope] = useState<string[]>([])
   const [cutoverTolerance, setCutoverTolerance] = useState("")
 
+  // ── EMAIL TURNSTILE BYPASSED (submission Turnstile remains active) ─────────
+  // The email OTP Turnstile widget is disabled — visitors found the double
+  // verification layer (Turnstile before email + Turnstile before submit) too
+  // much friction. The submission Turnstile below remains fully active.
+  // To reactivate the email Turnstile:
+  //   1. Uncomment the emailWidgetRef useEffect below
+  //   2. Uncomment the email widget div in the JSX
+  //   3. Add emailTurnstileToken guard back to handleSendOtp
+
   useEffect(() => {
     if (document.getElementById("turnstile-script")) {
       if (window.turnstile) { setTurnstileReady(true); setEmailTurnstileReady(true) }
@@ -120,18 +129,20 @@ export function PublicDiscoveryForm() {
     document.head.appendChild(script)
   }, [])
 
-  useEffect(() => {
-    if (!emailTurnstileReady || !emailWidgetRef.current || !window.turnstile) return
-    if (emailWidgetIdRef.current) return
-    emailWidgetIdRef.current = window.turnstile.render(emailWidgetRef.current, {
-      sitekey: "0x4AAAAAADnfiHKMINlWRfJ7",
-      size: "flexible",
-      callback: (token: string) => setEmailTurnstileToken(token),
-      "expired-callback": () => setEmailTurnstileToken(""),
-      "error-callback": () => setEmailTurnstileToken(""),
-    })
-  }, [emailTurnstileReady])
+  // Email Turnstile widget — BYPASSED. Uncomment to reactivate.
+  // useEffect(() => {
+  //   if (!emailTurnstileReady || !emailWidgetRef.current || !window.turnstile) return
+  //   if (emailWidgetIdRef.current) return
+  //   emailWidgetIdRef.current = window.turnstile.render(emailWidgetRef.current, {
+  //     sitekey: "0x4AAAAAADnfiHKMINlWRfJ7",
+  //     size: "flexible",
+  //     callback: (token: string) => setEmailTurnstileToken(token),
+  //     "expired-callback": () => setEmailTurnstileToken(""),
+  //     "error-callback": () => setEmailTurnstileToken(""),
+  //   })
+  // }, [emailTurnstileReady])
 
+  // Submission Turnstile widget — ACTIVE.
   useEffect(() => {
     if (!turnstileReady || !widgetRef.current || !window.turnstile) return
     if (widgetIdRef.current) return
@@ -152,14 +163,15 @@ export function PublicDiscoveryForm() {
 
   async function handleSendOtp() {
     if (!isValidEmail(email)) { setOtpError("Please enter a valid email address first."); return }
-    if (!emailTurnstileToken) { setOtpError("Please complete the security check below first."); return }
+    // Turnstile guard removed while bypassed. To reactivate:
+    // if (!emailTurnstileToken) { setOtpError("Please complete the security check below first."); return }
     setOtpError("")
     setSendingOtp(true)
     try {
       const res = await fetch("/api/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, turnstileToken: emailTurnstileToken }),
+        body: JSON.stringify({ email, turnstileToken: emailTurnstileToken || "bypassed" }),
       })
       const result = await res.json()
       if (result.success) {
@@ -211,6 +223,9 @@ export function PublicDiscoveryForm() {
     setOtpError("")
   }
 
+  // emailTurnstileToken removed from canSubmit — email OTP Turnstile is bypassed.
+  // turnstileToken (submission widget) remains required.
+  // To reactivate email Turnstile: add `&& !!emailTurnstileToken` back to this condition.
   const canSubmit = isExistingM365Customer !== null && emailVerified && !!turnstileToken && !!company && !!contact && !!phone
 
   async function handleSubmit(e: React.FormEvent) {
@@ -345,9 +360,7 @@ export function PublicDiscoveryForm() {
           )}
           {emailVerified && <span className="flex flex-shrink-0 items-center gap-1 text-sm font-medium text-[#0f9d6e]"><ShieldCheck className="size-4" /> Verified</span>}
         </div>
-        {!emailVerified && (
-          <div ref={emailWidgetRef} className="mt-2" />
-        )}
+        {/* Turnstile email widget removed while bypassed: <div ref={emailWidgetRef} className="mt-2" /> */}
         {otpSent && !emailVerified && (
           <div className="mt-2 flex gap-2">
             <input value={otpCode} onChange={e => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="6-digit code" className={fieldClasses} />
@@ -553,7 +566,7 @@ export function PublicDiscoveryForm() {
         </div>
       </div>
 
-      {error && <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{!turnstileToken ? "Please complete the security check below." : error}</div>}
+      {error && <div className="rounded-md bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       <div ref={widgetRef} />
 
