@@ -11,11 +11,34 @@ interface Assessment {
   leadRef: string
   company: string
   completedByName?: string
+  completedByEmail?: string
   source: 'internal' | 'public'
+  // existing M365 estate
   isExistingM365Customer: boolean
   currentPlan?: string
+  currentLicenseCount?: number
+  currentCSPManager?: string
+  contractRenewalDate?: string
+  switchReasons?: string[]
+  // net-new prospects
+  currentEmailProvider?: string
+  currentProviderChallenges?: string
+  // business & technical profile
   employeeCount: string
+  deviceTypes?: string[]
+  remoteHybridWork?: boolean
+  itSupportModel?: string
+  handlesSensitiveData?: boolean
+  sensitiveDataTypes?: string[]
+  dataScope?: string[]
+  // pain points
   painPoints: string[]
+  otherPainPointNotes?: string
+  // commercial
+  budgetRange?: string
+  decisionTimeline?: string
+  additionalNotes?: string
+  // output
   recommendedPackageKey?: string
   recommendedAddOnKeys?: string[]
   needsOfflineConsult: boolean
@@ -38,6 +61,43 @@ const emptyForm = {
   itSupportModel: 'none', handlesSensitiveData: false, sensitiveDataTypes: [] as string[],
   painPoints: [] as string[], otherPainPointNotes: '',
   budgetRange: '', decisionTimeline: '', additionalNotes: '',
+}
+
+const CSP_MANAGER_LABELS: Record<string, string> = {
+  self_managed: 'Self-managed in-house',
+  another_csp: 'Another CSP / reseller',
+  microsoft_direct: 'Direct with Microsoft',
+  not_sure: 'Not sure',
+}
+
+const IT_SUPPORT_LABELS: Record<string, string> = {
+  none: 'No dedicated IT',
+  in_house: 'In-house IT',
+  outsourced: 'Outsourced IT',
+  other: 'Other',
+}
+
+function fmtDate(v?: string) {
+  if (!v) return null
+  const d = new Date(v)
+  return isNaN(d.getTime()) ? v : d.toLocaleDateString()
+}
+
+/** One label/value row in the detail modal. Renders nothing when empty. */
+function Row({ label, value }: { label: string; value?: React.ReactNode }) {
+  if (value === undefined || value === null || value === '' ) return null
+  if (Array.isArray(value) && value.length === 0) return null
+  return (
+    <p>
+      <span className="text-muted-foreground">{label}:</span>{' '}
+      <strong className="font-medium text-foreground">{Array.isArray(value) ? value.join(', ') : value}</strong>
+    </p>
+  )
+}
+
+/** Section heading inside the detail modal. */
+function Section({ title }: { title: string }) {
+  return <p className="pt-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-primary">{title}</p>
 }
 
 function toggle(arr: string[], val: string) {
@@ -453,19 +513,63 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
               </div>
               <button onClick={() => setViewing(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
             </div>
-            <div className="px-5 py-4 space-y-3 text-xs">
-              <p><span className="text-muted-foreground">M365 status:</span> <strong>{viewing.isExistingM365Customer ? `Existing customer${viewing.currentPlan ? ' — ' + viewing.currentPlan : ''}` : 'Net new'}</strong></p>
-              <p><span className="text-muted-foreground">Employee count:</span> <strong>{viewing.employeeCount}</strong></p>
-              <div>
-                <p className="text-muted-foreground mb-1">Pain points:</p>
+            <div className="max-h-[65vh] overflow-y-auto px-5 py-4 space-y-2.5 text-xs">
+
+              <Section title="Microsoft 365 estate" />
+              <Row label="M365 status" value={viewing.isExistingM365Customer ? 'Existing customer' : 'Net new'} />
+              {viewing.isExistingM365Customer ? (
+                <>
+                  <Row label="Current plan" value={viewing.currentPlan} />
+                  <Row label="Licensed users" value={viewing.currentLicenseCount} />
+                  <Row label="Managed today by" value={viewing.currentCSPManager ? (CSP_MANAGER_LABELS[viewing.currentCSPManager] || viewing.currentCSPManager) : undefined} />
+                  <Row label="Contract renewal" value={fmtDate(viewing.contractRenewalDate) || undefined} />
+                  <Row label="Reasons for switching" value={viewing.switchReasons} />
+                </>
+              ) : (
+                <>
+                  <Row label="Current provider" value={viewing.currentEmailProvider} />
+                  <Row label="Current frustrations" value={viewing.currentProviderChallenges} />
+                </>
+              )}
+
+              <Section title="Business & technical profile" />
+              <Row label="Employee count" value={viewing.employeeCount} />
+              <Row label="IT support model" value={viewing.itSupportModel ? (IT_SUPPORT_LABELS[viewing.itSupportModel] || viewing.itSupportModel) : undefined} />
+              <Row label="Device types" value={viewing.deviceTypes} />
+              <Row label="Remote / hybrid" value={viewing.remoteHybridWork === undefined ? undefined : (viewing.remoteHybridWork ? 'Yes' : 'No')} />
+              <Row label="Handles sensitive data" value={viewing.handlesSensitiveData === undefined ? undefined : (viewing.handlesSensitiveData ? 'Yes' : 'No')} />
+              <Row label="Sensitive data types" value={viewing.sensitiveDataTypes} />
+              <Row label="Data scope" value={viewing.dataScope} />
+
+              <Section title="Pain points" />
+              {viewing.painPoints.length === 0 ? (
+                <p className="text-muted-foreground italic">None selected — recommendation defaulted to the base package.</p>
+              ) : (
                 <ul className="list-disc pl-4 space-y-0.5">
                   {viewing.painPoints.map(key => <li key={key}>{DISCOVERY_PAIN_POINTS.find(p => p.key === key)?.label || key}</li>)}
                 </ul>
-              </div>
-              <p><span className="text-muted-foreground">Recommended package:</span> <strong>{packages.find(p => p.key === viewing.recommendedPackageKey)?.label || viewing.recommendedPackageKey}</strong></p>
-              {(viewing.recommendedAddOnKeys || []).length > 0 && (
-                <p><span className="text-muted-foreground">Recommended add-ons:</span> {viewing.recommendedAddOnKeys!.map(k => addOnDefs.find(a => a.key === k)?.label || k).join(', ')}</p>
               )}
+              {viewing.otherPainPointNotes && (
+                <p className="rounded-lg bg-secondary/40 px-3 py-2 text-foreground">{viewing.otherPainPointNotes}</p>
+              )}
+
+              {(viewing.budgetRange || viewing.decisionTimeline || viewing.additionalNotes) && (
+                <>
+                  <Section title="Budget & timeline" />
+                  <Row label="Budget range" value={viewing.budgetRange} />
+                  <Row label="Decision timeline" value={viewing.decisionTimeline} />
+                  {viewing.additionalNotes && (
+                    <div>
+                      <p className="text-muted-foreground mb-1">Additional notes:</p>
+                      <p className="rounded-lg bg-secondary/40 px-3 py-2 whitespace-pre-wrap text-foreground">{viewing.additionalNotes}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              <Section title="Recommendation" />
+              <Row label="Package" value={packages.find(p => p.key === viewing.recommendedPackageKey)?.label || viewing.recommendedPackageKey} />
+              <Row label="Add-ons" value={(viewing.recommendedAddOnKeys || []).map(k => addOnDefs.find(a => a.key === k)?.label || k)} />
               {viewing.needsOfflineConsult && (
                 <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
                   <p className="font-semibold text-amber-800">Needs offline consult:</p>
@@ -474,6 +578,11 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
                   </ul>
                 </div>
               )}
+
+              {viewing.completedByEmail && (
+                <p className="pt-2 text-[10px] text-muted-foreground">Submitted by {viewing.completedByName || 'unknown'} · {viewing.completedByEmail}</p>
+              )}
+            </div>
             </div>
             <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
               {onUseInProposal && (
