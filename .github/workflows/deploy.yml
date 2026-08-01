@@ -38,6 +38,7 @@ jobs:
           git show origin/main:middleware.ts > middleware.ts
           git show origin/main:next.config.ts > next.config.ts
           git show origin/main:package.json > package.json
+          git show origin/main:package-lock.json > package-lock.json
           git show origin/main:server.js > server.js
           git show origin/main:postcss.config.mjs > postcss.config.mjs
           git show origin/main:app/globals.css > app/globals.css
