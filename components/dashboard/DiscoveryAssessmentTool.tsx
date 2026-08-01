@@ -583,7 +583,6 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
                 <p className="pt-2 text-[10px] text-muted-foreground">Submitted by {viewing.completedByName || 'unknown'} · {viewing.completedByEmail}</p>
               )}
             </div>
-            </div>
             <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
               {onUseInProposal && (
                 <button
