@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react'
 import { DISCOVERY_PAIN_POINTS, DISCOVERY_PAIN_POINT_HELP, computeRecommendation } from '@/lib/discoveryRecommendation'
 
 interface Lead { _id: string; ref: string; company: string; contact?: string; email?: string; country: string; status: string; assignedToEmail?: string }
@@ -84,7 +84,7 @@ function fmtDate(v?: string) {
 }
 
 /** One label/value row in the detail modal. Renders nothing when empty. */
-function Row({ label, value }: { label: string; value?: React.ReactNode }) {
+function Row({ label, value }: { label: string; value?: ReactNode }) {
   if (value === undefined || value === null || value === '' ) return null
   if (Array.isArray(value) && value.length === 0) return null
   return (
