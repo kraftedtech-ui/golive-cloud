@@ -835,6 +835,18 @@ interface ProductMappingItem {
   features?: string[]
 }
 
+// Standard consumption-tax rate for each billing currency we support. These
+// are defaults to save typing, not tax advice — the rate stays editable per
+// quote, and cross-border supplies may be zero-rated or trigger a
+// registration obligation in the customer's own country.
+const DEFAULT_VAT_RATES: Record<string, number> = {
+  NGN: 7.5,  // Nigeria VAT
+  GHS: 15,   // Ghana VAT (levies charged separately)
+  KES: 16,   // Kenya VAT
+  ZAR: 15,   // South Africa VAT
+  USD: 0,    // no default — depends where the customer is established
+}
+
 function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed }: {
   leads: Lead[]; isAdmin: boolean; userEmail: string
   prefill?: { leadId: string; packageKey: string; addOnKeys: string[] } | null
@@ -859,6 +871,13 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const [selectedAddOns, setSelectedAddOns] = useState<Record<string, boolean>>({})
   const [azureNote, setAzureNote] = useState('')
   const [discountPct, setDiscountPct] = useState('')
+  const [vatEnabled, setVatEnabled] = useState(true)
+  const [vatRatePct, setVatRatePct] = useState('7.5')
+  const [customerTIN, setCustomerTIN] = useState('')
+  const [savedDocs, setSavedDocs] = useState<any[]>([])
+  const [revisionGroupId, setRevisionGroupId] = useState<string | null>(null)
+  const [savingDoc, setSavingDoc] = useState(false)
+  const [docMsg, setDocMsg] = useState('')
   const [commissionPeriod, setCommissionPeriod] = useState<'probation' | 'confirmed'>('probation')
   const [fxFetchedAt, setFxFetchedAt] = useState<string | null>(null)
   const [catalogLines, setCatalogLines] = useState<CatalogLine[]>([])
@@ -910,6 +929,30 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currency, fxRates, setupUSD])
 
+  // Currency is derived from the lead's country, so it is the best available
+  // proxy for which jurisdiction's VAT applies. Reps can still override.
+  useEffect(() => {
+    const rate = DEFAULT_VAT_RATES[currency]
+    if (rate !== undefined) {
+      setVatRatePct(String(rate))
+      setVatEnabled(rate > 0)
+    }
+  }, [currency])
+
+  const loadSavedDocs = useCallback(async (leadId: string) => {
+    if (!leadId) { setSavedDocs([]); return }
+    try {
+      const res = await fetch(`/api/sales-documents?leadId=${leadId}`)
+      const data = await res.json()
+      const items = Array.isArray(data?.items) ? data.items : []
+      setSavedDocs(items)
+      // Continue the open revision group so re-quoting adds a version
+      // rather than starting a parallel history for the same deal.
+      const open = items.find((d: any) => d.outcome === 'open')
+      setRevisionGroupId(open ? open.revisionGroupId : null)
+    } catch (e) { console.error(e) }
+  }, [])
+
   function handleSetupInputChange(value: string) {
     setSetupInput(value)
     const numeric = parseFloat(value) || 0
@@ -918,6 +961,8 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
 
   const handleLeadSelect = async (leadId: string) => {
     setSelectedLead(leadId)
+    setDocMsg('')
+    loadSavedDocs(leadId)
     const lead = leads.find(l => l._id === leadId)
     if (!lead) return
     // Auto-populate users from lead data
@@ -1065,7 +1110,13 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const discountBlocked = grossProfitAfterUSD < 0
 
   const subscriptionAfterDiscount = annualTotal + customLinesAnnual - discountConverted
-  const grandTotalFirstYear = subscriptionAfterDiscount + setupFee
+  // VAT sits on top of the discounted subscription plus the setup fee. It is
+  // never part of gross profit — it is collected on behalf of the revenue
+  // service — so none of the commission maths above sees it.
+  const netTotal = subscriptionAfterDiscount + setupFee
+  const vatRate = vatEnabled ? Math.max(0, parseFloat(vatRatePct) || 0) : 0
+  const vatAmount = netTotal * (vatRate / 100)
+  const grandTotalFirstYear = netTotal + vatAmount
   const usdRate = fxRates['USD'] || 0
   const grandTotalUSD = convertToUSD(grandTotalFirstYear, currency, fxRates)
   const sym = CURRENCY_SYMBOLS[currency] || currency + ' '
@@ -1074,6 +1125,98 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
   const expiry = new Date(Date.now() + 14 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
   const proposalRef = `GL-PROP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
+
+  /**
+   * Persist what is on screen as a new version. Called before printing so
+   * the archived record always matches the PDF the customer received.
+   */
+  async function saveProposalVersion() {
+    if (!lead) { setDocMsg('Select a lead first.'); return null }
+    setSavingDoc(true)
+    setDocMsg('')
+    try {
+      const payload = {
+        revisionGroupId: revisionGroupId || undefined,
+        leadId: lead._id,
+        buyerName: lead.company,
+        buyerContact: lead.contact,
+        buyerEmail: lead.email,
+        buyerPhone: lead.phone,
+        buyerCountry: lead.country,
+        buyerTIN: customerTIN || undefined,
+        packageLabel: pkg,
+        packageKey: packages.find(p => p.label === pkg)?.key,
+        addOnKeys: activeAddOns.map(a => a.key),
+        userCount,
+        billingOption,
+        termDuration: nce.termDuration,
+        billingPlan: nce.billingPlan,
+        lines: [
+          {
+            description: `${pkg} — ${userCount} user(s)`,
+            quantity: userCount,
+            unitPriceNet: pricePerUserConverted,
+            lineNet: packagePeriodTotal * nce.periodsPerYear,
+            termDuration: nce.termDuration,
+            billingPlan: nce.billingPlan,
+          },
+          ...catalogLines.map(l => ({
+            description: l.skuTitle,
+            skuTitle: l.skuTitle,
+            termDuration: l.termDuration,
+            billingPlan: l.billingPlan,
+            quantity: l.qty,
+            unitPriceNet: convertFromUSD(l.overrideUSD ?? l.retailUSD, currency, fxRates),
+            lineNet: convertFromUSD(lineAnnualUSD(l), currency, fxRates),
+          })),
+        ],
+        currency,
+        fxRateToNGN: fxRates['USD'] || undefined,
+        subscriptionNet: subscriptionAfterDiscount,
+        setupFee,
+        discountPercent,
+        discountAmount: discountConverted,
+        netTotal,
+        vatRatePercent: vatRate,
+        vatTotal: vatAmount,
+        grossTotal: grandTotalFirstYear,
+        grossProfitUSD: grossProfitAfterUSD,
+        commissionRate: COMMISSION_RATE,
+        commissionNGN,
+        validUntil: new Date(Date.now() + 14 * 86400000),
+      }
+      const res = await fetch('/api/sales-documents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json()
+      if (!data.success) { setDocMsg(data.error || 'Could not save this version.'); return null }
+      setRevisionGroupId(data.item.revisionGroupId)
+      setDocMsg(`Saved as ${data.item.reference}`)
+      loadSavedDocs(lead._id)
+      return data.item
+    } catch {
+      setDocMsg('Network error — the proposal was not saved.')
+      return null
+    } finally {
+      setSavingDoc(false)
+    }
+  }
+
+  async function setDocOutcome(id: string, outcome: string) {
+    try {
+      const res = await fetch(`/api/sales-documents/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ outcome }),
+      })
+      const data = await res.json()
+      if (!data.success) { setDocMsg(data.error || 'Could not update.'); return }
+      setDocMsg(outcome === 'accepted' ? `Closed — invoice ${data.item.invoiceNumber} issued.` : `Marked ${outcome}.`)
+      if (selectedLead) loadSavedDocs(selectedLead)
+    } catch { setDocMsg('Network error.') }
+  }
 
   const printProposal = () => {
     const printContent = document.getElementById('proposal-print')?.innerHTML
@@ -1144,6 +1287,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
             <div style="font-size:12px;color:#5c7184;">${lead?.email || ''}</div>
             ${lead?.phone ? `<div style="font-size:12px;color:#5c7184;">${lead.phone}</div>` : ''}
             <div style="font-size:12px;color:#5c7184;">${lead?.country || ''}${lead?.industry ? ' · ' + lead.industry : ''}</div>
+            ${customerTIN.trim() ? `<div style="font-size:12px;color:#5c7184;margin-top:4px"><span style="font-weight:600">Tax ID:</span> ${customerTIN}</div>` : ''}
           </div>
           <div class="meta-card">
             <div class="meta-label">Package</div>
@@ -1165,7 +1309,10 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           ${catalogLines.length > 0 ? catalogLines.map(l => `<tr><td style="color:#5c7184">${l.qty}× ${l.skuTitle}<br/><span style="font-size:10px;color:#93a5b5">${l.termDuration === 'P1Y' ? '12-month term' : 'Monthly term'} · billed ${l.billingPlan.toLowerCase()}</span></td><td>${sym}${convertFromUSD(lineAnnualUSD(l), currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })} / year</td></tr>`).join('') : ''}
           <tr><td style="color:#5c7184">One-time setup & migration fee</td><td>${sym}${setupFee.toLocaleString()}</td></tr>
           ${discountPercent > 0 ? `<tr><td style="color:#0096c7">Discount applied (${discountPercent}%)</td><td style="color:#0096c7">−${sym}${discountConverted.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
-          <tr class="total-row"><td>Total first year investment</td><td>${sym}${(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          ${vatRate > 0 ? `<tr><td style="color:#5c7184">Subtotal (excl. VAT)</td><td>${sym}${netTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          <tr><td style="color:#5c7184">VAT @ ${vatRate}%</td><td>${sym}${vatAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
+          <tr class="total-row"><td>Total first year investment${vatRate > 0 ? ' (incl. VAT)' : ''}</td><td>${sym}${(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          ${vatRate === 0 ? '<tr><td colspan="2" style="color:#5c7184;font-size:11px">Exclusive of VAT. Any tax applicable in the customer\'s jurisdiction is payable in addition to the amounts above.</td></tr>' : ''}
           ${currency !== 'USD' && usdRate > 0 ? `<tr><td style="color:#5c7184;font-size:11px">USD equivalent</td><td style="font-size:11px;color:#5c7184">\u2248 ${grandTotalUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })} at 1 USD = ${CURRENCY_SYMBOLS['NGN'] || '₦'}${usdRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td></tr>` : ''}
         </table>
         ${azureNote.trim() ? `<div class="validity" style="margin-bottom:16px;">☁ Azure: ${azureNote} — billed separately and directly by Microsoft based on actual consumption. Not included in the totals above.</div>` : ''}
@@ -1336,6 +1483,40 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           isAdmin={isAdmin}
         />
 
+        <div className="rounded-xl border border-border p-3 space-y-2.5">
+          <label className="flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer">
+            <input type="checkbox" checked={vatEnabled} onChange={e => setVatEnabled(e.target.checked)} />
+            Charge VAT on this quote
+          </label>
+          {vatEnabled ? (
+            <div className="grid grid-cols-2 gap-2.5">
+              <div>
+                <label className="mb-1 block text-[11px] text-muted-foreground">VAT rate (%)</label>
+                <input type="number" min={0} step="0.5" value={vatRatePct} onChange={e => setVatRatePct(e.target.value)}
+                  className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
+              </div>
+              <div>
+                <label className="mb-1 block text-[11px] text-muted-foreground">Customer Tax ID (TIN)</label>
+                <input value={customerTIN} onChange={e => setCustomerTIN(e.target.value)} placeholder="Required for e-invoicing"
+                  className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
+              </div>
+            </div>
+          ) : (
+            <p className="rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-[10px] text-amber-800">
+              ⚠ The proposal will state it is exclusive of VAT. If GoLive is required to charge it and does not, the tax authority assesses GoLive — it comes out of margin, not the customer.
+            </p>
+          )}
+          {vatEnabled && !customerTIN.trim() && currency === 'NGN' && (
+            <p className="text-[10px] text-amber-700">A customer TIN is needed before this can be cleared as a B2B e-invoice.</p>
+          )}
+          {vatEnabled && vatAmount > 0 && (
+            <p className="text-[10px] text-muted-foreground">
+              VAT of {sym}{vatAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })} is collected on behalf of the tax authority — it is not revenue and does not affect the gross profit shown below.
+              {currency === 'NGN' && ' A VAT-registered customer normally reclaims this, so waiving it costs GoLive far more than it saves them.'}
+            </p>
+          )}
+        </div>
+
         <div>
           <label className="mb-1.5 block text-xs font-medium text-foreground">Discount (% off subscription)</label>
           <input
@@ -1458,11 +1639,61 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           </div>
         )}
 
-        <button onClick={printProposal} disabled={!selectedLead || catalogMissing || addOnsMissing || discountBlocked}
+        <button onClick={async () => { await saveProposalVersion(); printProposal() }} disabled={!selectedLead || catalogMissing || addOnsMissing || discountBlocked || savingDoc}
           className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed">
           🖨️ Generate & Print PDF
         </button>
         {!selectedLead && <p className="text-center text-xs text-muted-foreground">Select a lead to enable proposal generation</p>}
+        {docMsg && <p className="text-center text-xs text-teal-700">{docMsg}</p>}
+
+        {savedDocs.length > 0 && (
+          <div className="rounded-xl border border-border p-3">
+            <p className="mb-2 text-xs font-semibold text-foreground">Quote history</p>
+            <div className="space-y-1.5">
+              {savedDocs.map((d: any) => (
+                <div key={d._id} className={`rounded-lg border px-2.5 py-1.5 text-[11px] ${
+                  d.outcome === 'accepted' ? 'border-green-300 bg-green-50'
+                  : d.outcome === 'open' ? 'border-border bg-white'
+                  : 'border-border bg-secondary/30 opacity-70'}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="min-w-0 flex-1">
+                      <span className="font-medium text-foreground">v{d.version}</span>
+                      <span className="text-muted-foreground"> · {d.packageLabel || '—'} · {d.userCount} users</span>
+                      <span className="block text-[10px] text-muted-foreground">
+                        {d.invoiceNumber || d.reference} · {new Date(d.issuedAt).toLocaleDateString()}
+                        {d.issuedByName && <span> · {d.issuedByName}</span>}
+                      </span>
+                    </span>
+                    <span className="flex-shrink-0 text-right">
+                      <span className="font-medium text-foreground">
+                        {CURRENCY_SYMBOLS[d.currency] || d.currency}{Math.round(d.grossTotal).toLocaleString()}
+                      </span>
+                      <span className={`block text-[9px] font-semibold uppercase tracking-wide ${
+                        d.outcome === 'accepted' ? 'text-green-700'
+                        : d.outcome === 'open' ? 'text-primary'
+                        : 'text-muted-foreground'}`}>{d.outcome}</span>
+                    </span>
+                  </div>
+                  {d.outcome === 'open' && (
+                    <div className="mt-1.5 flex gap-1.5">
+                      <button onClick={() => setDocOutcome(d._id, 'accepted')}
+                        className="rounded-md bg-green-600 px-2 py-0.5 text-[10px] font-medium text-white hover:bg-green-700">
+                        Mark accepted — issue invoice no.
+                      </button>
+                      <button onClick={() => setDocOutcome(d._id, 'declined')}
+                        className="rounded-md border border-border bg-white px-2 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-secondary">
+                        Declined
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="mt-2 text-[10px] text-muted-foreground">
+              Each generate saves a new version. Invoice numbers are only issued on acceptance, so abandoned quotes leave no gaps in the invoice sequence.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Preview */}
@@ -1509,6 +1740,18 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
               <span>Discount ({discountPercent}%)</span>
               <span className="font-medium">−{sym}{discountConverted.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
             </div>
+          )}
+          {vatRate > 0 && (
+            <>
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-muted-foreground">Subtotal (excl. VAT)</span>
+                <span className="font-medium">{sym}{netTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-muted-foreground">VAT ({vatRate}%)</span>
+                <span className="font-medium">{sym}{vatAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+              </div>
+            </>
           )}
           <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">Total first year</span><span className="font-bold text-primary text-base">{sym}{(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
         </div>
