@@ -858,6 +858,9 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const [fxRates, setFxRates] = useState<Record<string, number>>({ NGN: 1 })
   const [selectedAddOns, setSelectedAddOns] = useState<Record<string, boolean>>({})
   const [azureNote, setAzureNote] = useState('')
+  const [discountPct, setDiscountPct] = useState('')
+  const [commissionPeriod, setCommissionPeriod] = useState<'probation' | 'confirmed'>('probation')
+  const [fxFetchedAt, setFxFetchedAt] = useState<string | null>(null)
   const [catalogLines, setCatalogLines] = useState<CatalogLine[]>([])
   const [linePickerOpen, setLinePickerOpen] = useState(false)
   const [packages, setPackages] = useState<ProductMappingItem[]>(FALLBACK_PACKAGES)
@@ -893,7 +896,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
 
     fetch('/api/exchange-rates')
       .then(r => r.json())
-      .then(data => { if (data?.success) setFxRates(data.rates || { NGN: 1 }) })
+      .then(data => { if (data?.success) { setFxRates(data.rates || { NGN: 1 }); setFxFetchedAt(data.fetchedAt || null) } })
       .catch(() => {})
   }, [packages, addOnDefs])
 
@@ -939,7 +942,16 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
         const suggestedKeys = suggestScopeKeys(tags, feeCatalog)
         const { lines, totalUSD } = computeSetupFeeLineItems(suggestedKeys, userCount, feeCatalog)
         if (lines.length > 0) {
-          setPkg(latestDiscovery.isExistingM365Customer ? 'Secure Business Cloud' : 'Starter Cloud Office')
+          // Use what Discovery actually concluded. The old behaviour hardcoded
+          // 'Secure Business Cloud' for every existing M365 customer, which
+          // silently overrode the recommendation engine entirely.
+          const recKey = latestDiscovery.recommendedPackageKey
+          const recPkg = recKey ? packages.find(p => p.key === recKey) : undefined
+          const PACKAGE_KEY_FALLBACK = latestDiscovery.isExistingM365Customer ? 'Secure Business Cloud' : 'Starter Cloud Office'
+          setPkg(recPkg ? recPkg.label : PACKAGE_KEY_FALLBACK)
+          if (Array.isArray(latestDiscovery.recommendedAddOnKeys)) {
+            setSelectedAddOns(Object.fromEntries(latestDiscovery.recommendedAddOnKeys.map((k: string) => [k, true])))
+          }
           setSetupUSD(totalUSD)
           setSetupFeeSource(`Computed from Discovery scope: ${lines.map(l => l.label).join(', ')}`)
           return
@@ -1008,7 +1020,54 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const customLinesCostUSD = catalogLines.reduce((sum, l) => sum + costUSD(l) * l.qty * periodsPerYearFor(l.billingPlan), 0)
   const customLinesAnnual = convertFromUSD(customLinesAnnualUSD, currency, fxRates)
   const customLinesMargin = customLinesAnnualUSD > 0 ? (customLinesAnnualUSD - customLinesCostUSD) / customLinesAnnualUSD : 0
-  const grandTotalFirstYear = annualTotal + customLinesAnnual + setupFee
+  // ---- Deal economics -------------------------------------------------
+  // Everything below is INTERNAL. Gross profit and commission are shown to
+  // whoever is building the quote (a rep can't pitch on GP, per the
+  // commission rules, if they can never see it) but unit reseller cost is
+  // never surfaced and none of this reaches the printed proposal.
+  const packageAnnualUSD = pricePerUserUSD * userCount * nce.periodsPerYear
+  const addOnsAnnualUSD = addOnsPerUserUSD * userCount * nce.periodsPerYear
+  const packageMarginAnnualUSD = marginPerUserUSD * userCount * nce.periodsPerYear
+  const addOnsMarginAnnualUSD = addOnsMarginPerUserUSD * userCount * nce.periodsPerYear
+  const customLinesMarginUSD = customLinesAnnualUSD - customLinesCostUSD
+
+  const subscriptionRevenueUSD = packageAnnualUSD + addOnsAnnualUSD + customLinesAnnualUSD
+  const grossProfitBeforeUSD = packageMarginAnnualUSD + addOnsMarginAnnualUSD + customLinesMarginUSD
+
+  // Discount applies to subscription revenue only. The setup fee is GoLive
+  // service revenue with its own commission category, so folding it in here
+  // would understate how much of the licence margin a discount actually eats.
+  const discountPercent = Math.max(0, Math.min(100, parseFloat(discountPct) || 0))
+  const discountUSD = subscriptionRevenueUSD * (discountPercent / 100)
+  const grossProfitAfterUSD = grossProfitBeforeUSD - discountUSD
+  const gpRetained = grossProfitBeforeUSD > 0 ? grossProfitAfterUSD / grossProfitBeforeUSD : 1
+  const discountConverted = convertFromUSD(discountUSD, currency, fxRates)
+
+  // Commission mirrors the Commission Dashboard: GP-based, 5% on probation
+  // and 10% once confirmed for licence/subscription categories.
+  const COMMISSION_RATE = commissionPeriod === 'probation' ? 0.05 : 0.10
+  const grossProfitAfterNGN = convertFromUSD(grossProfitAfterUSD, 'NGN', fxRates)
+  const commissionNGN = grossProfitAfterNGN * COMMISSION_RATE
+  const GP_BONUS_TIERS = [
+    { threshold: 1000000, label: '\u20a61M GP bonus', amount: 150000 },
+    { threshold: 500000, label: '\u20a6500K GP bonus', amount: 60000 },
+    { threshold: 250000, label: '\u20a6250K GP bonus', amount: 25000 },
+  ]
+  const bonusTier = GP_BONUS_TIERS.find(t => grossProfitAfterNGN >= t.threshold) || null
+  const nextBonusTier = [...GP_BONUS_TIERS].reverse().find(t => grossProfitAfterNGN < t.threshold) || null
+  // A discount that drops GP under a bonus threshold costs far more than the
+  // discount itself — surface the cliff rather than letting it happen quietly.
+  const bonusAtRisk = discountPercent > 0 && GP_BONUS_TIERS.find(
+    t => convertFromUSD(grossProfitBeforeUSD, 'NGN', fxRates) >= t.threshold && grossProfitAfterNGN < t.threshold
+  ) || null
+
+  const needsMdApproval = discountPercent > 0 && gpRetained < 0.75
+  const discountBlocked = grossProfitAfterUSD < 0
+
+  const subscriptionAfterDiscount = annualTotal + customLinesAnnual - discountConverted
+  const grandTotalFirstYear = subscriptionAfterDiscount + setupFee
+  const usdRate = fxRates['USD'] || 0
+  const grandTotalUSD = convertToUSD(grandTotalFirstYear, currency, fxRates)
   const sym = CURRENCY_SYMBOLS[currency] || currency + ' '
   const periodLabel = nce.periodsPerYear === 1 ? '/ user / year' : '/ user / month'
   const lead = leads.find(l => l._id === selectedLead)
@@ -1059,7 +1118,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
       <div class="page">
         <div class="header">
           <div class="logo-area">
-            <img src="https://cloud.golivecompany.com/images/logo-dark.png" style="height:80px;width:auto;" alt="GoLive" onerror="this.style.display='none'" />
+            <img src="https://cloud.golivecompany.com/images/logo-dark.png" style="width:260px;max-width:100%;height:auto;display:block;margin-bottom:10px;" alt="GoLive" onerror="this.style.display='none'" />
             <div class="company-sub">RC1644767 · 7 Ibiyinka Olorunbe Close, Victoria Island, Lagos</div>
             <div class="company-sub">contact@golivecompany.com · +234 808 358 7801</div>
           </div>
@@ -1105,7 +1164,9 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           ${nce.periodsPerYear > 1 ? `<tr><td style="color:#5c7184">12-month subscription total</td><td>${sym}${annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
           ${catalogLines.length > 0 ? catalogLines.map(l => `<tr><td style="color:#5c7184">${l.qty}× ${l.skuTitle}<br/><span style="font-size:10px;color:#93a5b5">${l.termDuration === 'P1Y' ? '12-month term' : 'Monthly term'} · billed ${l.billingPlan.toLowerCase()}</span></td><td>${sym}${convertFromUSD(lineAnnualUSD(l), currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })} / year</td></tr>`).join('') : ''}
           <tr><td style="color:#5c7184">One-time setup & migration fee</td><td>${sym}${setupFee.toLocaleString()}</td></tr>
+          ${discountPercent > 0 ? `<tr><td style="color:#0096c7">Discount applied (${discountPercent}%)</td><td style="color:#0096c7">−${sym}${discountConverted.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
           <tr class="total-row"><td>Total first year investment</td><td>${sym}${(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          ${currency !== 'USD' && usdRate > 0 ? `<tr><td style="color:#5c7184;font-size:11px">USD equivalent</td><td style="font-size:11px;color:#5c7184">\u2248 ${grandTotalUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })} at 1 USD = ${CURRENCY_SYMBOLS['NGN'] || '₦'}${usdRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td></tr>` : ''}
         </table>
         ${azureNote.trim() ? `<div class="validity" style="margin-bottom:16px;">☁ Azure: ${azureNote} — billed separately and directly by Microsoft based on actual consumption. Not included in the totals above.</div>` : ''}
 
@@ -1117,6 +1178,18 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
 
         <div class="validity">
           ⏱ This proposal is valid for 14 days from ${today}. ${nce.note}
+        </div>
+
+        <div class="section-title">Payment Details</div>
+        <table class="pricing-table" style="margin-bottom:16px">
+          <tr><td style="color:#5c7184">Account name</td><td style="text-align:left;font-weight:600">THE GOLIVE DIGITAL SOLN CO. LTD</td></tr>
+          <tr><td style="color:#5c7184">Account number</td><td style="text-align:left;font-weight:600">0588294971</td></tr>
+          <tr><td style="color:#5c7184">Bank</td><td style="text-align:left;font-weight:600">GT Bank</td></tr>
+          <tr><td style="color:#5c7184">National Tax ID</td><td style="text-align:left;font-weight:600">2522598389709</td></tr>
+          ${currency !== 'USD' ? '' : '<tr><td style="color:#5c7184">Note</td><td style="text-align:left;font-size:11px">USD payments — contact us for correspondent bank details before transferring.</td></tr>'}
+        </table>
+        <div class="validity" style="margin-bottom:24px">
+          💳 To proceed, quote reference <strong>${proposalRef}</strong> on your transfer and email the remittance advice to contact@golivecompany.com. Provisioning begins on confirmation of payment.
         </div>
 
         <div class="footer-box">
@@ -1264,6 +1337,92 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
         />
 
         <div>
+          <label className="mb-1.5 block text-xs font-medium text-foreground">Discount (% off subscription)</label>
+          <input
+            type="number"
+            min={0}
+            max={100}
+            step="0.5"
+            value={discountPct}
+            onChange={e => setDiscountPct(e.target.value)}
+            placeholder="0"
+            className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+          />
+          <p className="mt-1 text-[10px] text-muted-foreground">Applies to licences only, not the setup fee. Licence margin is thin — a small discount takes a large share of gross profit.</p>
+        </div>
+
+        {subscriptionRevenueUSD > 0 && (
+          <div className="rounded-xl border border-border bg-secondary/20 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-foreground">Deal economics</p>
+              <div className="flex gap-1">
+                {(['probation', 'confirmed'] as const).map(p => (
+                  <button key={p} type="button" onClick={() => setCommissionPeriod(p)}
+                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${commissionPeriod === p ? 'bg-primary text-white' : 'bg-white text-muted-foreground ring-1 ring-border'}`}>
+                    {p === 'probation' ? 'Probation 5%' : 'Confirmed 10%'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground -mt-1">Internal only — never appears on the customer proposal.</p>
+
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg bg-white px-2.5 py-1.5">
+                <p className="text-[10px] text-muted-foreground">Gross profit</p>
+                <p className="font-semibold text-foreground">{sym}{convertFromUSD(grossProfitAfterUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                {discountPercent > 0 && (
+                  <p className="text-[10px] text-muted-foreground">was {sym}{convertFromUSD(grossProfitBeforeUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                )}
+              </div>
+              <div className="rounded-lg bg-white px-2.5 py-1.5">
+                <p className="text-[10px] text-muted-foreground">Your commission</p>
+                <p className="font-semibold text-foreground">₦{commissionNGN.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                <p className="text-[10px] text-muted-foreground">{(COMMISSION_RATE * 100).toFixed(0)}% of GP</p>
+              </div>
+            </div>
+
+            {bonusTier && !bonusAtRisk && (
+              <p className="rounded-lg bg-teal-50 border border-teal-200 px-2.5 py-1.5 text-[10px] text-teal-800">
+                ✓ Qualifies for the {bonusTier.label} (+₦{bonusTier.amount.toLocaleString()}) if this GP lands in a single month.
+              </p>
+            )}
+            {nextBonusTier && !bonusTier && (
+              <p className="text-[10px] text-muted-foreground">
+                ₦{(nextBonusTier.threshold - grossProfitAfterNGN).toLocaleString(undefined, { maximumFractionDigits: 0 })} more GP would reach the {nextBonusTier.label}.
+              </p>
+            )}
+            {bonusAtRisk && (
+              <p className="rounded-lg bg-red-50 border border-red-300 px-2.5 py-1.5 text-[10px] font-medium text-red-800">
+                ⚠ This discount drops GP below the {bonusAtRisk.label} threshold — losing ₦{bonusAtRisk.amount.toLocaleString()}, more than the discount saves the customer in most cases.
+              </p>
+            )}
+
+            {discountPercent > 0 && (
+              <div className={`rounded-lg border px-2.5 py-1.5 text-[10px] ${
+                discountBlocked ? 'border-red-300 bg-red-50 text-red-800'
+                : gpRetained < 0.5 ? 'border-orange-300 bg-orange-50 text-orange-800'
+                : gpRetained < 0.75 ? 'border-amber-300 bg-amber-50 text-amber-800'
+                : 'border-border bg-white text-muted-foreground'}`}>
+                {discountBlocked ? (
+                  <span className="font-medium">⚠ This discount exceeds the entire gross profit — the deal would run at a loss.</span>
+                ) : (
+                  <>
+                    <span className="font-medium">{(gpRetained * 100).toFixed(0)}% of gross profit retained.</span>
+                    {' '}A {discountPercent}% discount costs {sym}{discountConverted.toLocaleString(undefined, { maximumFractionDigits: 0 })} — {((1 - gpRetained) * 100).toFixed(0)}% of the profit on this deal.
+                  </>
+                )}
+              </div>
+            )}
+
+            {needsMdApproval && !discountBlocked && (
+              <p className="rounded-lg bg-amber-50 border border-amber-300 px-2.5 py-1.5 text-[10px] font-medium text-amber-900">
+                🔒 Requires written MD approval before quoting — no discount may be promised without it.
+              </p>
+            )}
+          </div>
+        )}
+
+        <div>
           <label className="mb-1.5 block text-xs font-medium text-foreground">Azure (optional note — billed separately, usage-based)</label>
           <input
             value={azureNote}
@@ -1299,7 +1458,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           </div>
         )}
 
-        <button onClick={printProposal} disabled={!selectedLead || catalogMissing || addOnsMissing}
+        <button onClick={printProposal} disabled={!selectedLead || catalogMissing || addOnsMissing || discountBlocked}
           className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed">
           🖨️ Generate & Print PDF
         </button>
@@ -1310,7 +1469,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
       <div id="proposal-print" className="rounded-xl border border-border bg-white p-5 text-sm">
         <div className="flex items-start justify-between border-b border-border pb-4 mb-4">
           <div>
-            <img src="/images/logo-dark.png" alt="GoLive" style={{ height: 60, width: 'auto' }} />
+            <img src="/images/logo-dark.png" alt="GoLive" style={{ width: 220, maxWidth: '100%', height: 'auto', display: 'block' }} />
             <div className="text-[10px] text-muted-foreground mt-1">RC1644767 · contact@golivecompany.com</div>
           </div>
           <div className="flex items-center gap-2 rounded-lg border border-border bg-[#f0f8ff] px-3 py-2">
@@ -1345,11 +1504,28 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
             </div>
           ))}
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Setup fee</span><span className="font-medium">{sym}{setupFee.toLocaleString()}</span></div>
+          {discountPercent > 0 && (
+            <div className="flex justify-between py-1 border-b border-border/50 text-primary">
+              <span>Discount ({discountPercent}%)</span>
+              <span className="font-medium">−{sym}{discountConverted.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+            </div>
+          )}
           <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">Total first year</span><span className="font-bold text-primary text-base">{sym}{(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
         </div>
         {azureNote.trim() && (
           <div className="mt-2 rounded-lg bg-sky-50 border border-sky-200 px-2.5 py-2 text-[10px] text-sky-800">☁ Azure: {azureNote} — billed separately by Microsoft, not included above.</div>
         )}
+        {currency !== 'USD' && usdRate > 0 && (
+          <p className="mt-1 text-right text-[10px] text-muted-foreground">
+            ≈ ${grandTotalUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })} USD at 1 USD = ₦{usdRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            {fxFetchedAt && <span> · {new Date(fxFetchedAt).toLocaleDateString()}</span>}
+          </p>
+        )}
+        <div className="mt-3 rounded-lg border border-border bg-secondary/30 px-3 py-2 text-[10px]">
+          <p className="font-semibold text-foreground">Pay to — GT Bank</p>
+          <p className="text-muted-foreground">THE GOLIVE DIGITAL SOLN CO. LTD · 0588294971</p>
+          <p className="text-muted-foreground">Tax ID 2522598389709</p>
+        </div>
         <div className="mt-3 rounded-lg bg-primary/10 p-2.5 text-[10px] text-primary">✓ Migration included &nbsp;·&nbsp; ✓ NDPA 2023 compliant &nbsp;·&nbsp; ✓ 30-day support</div>
       </div>
     </div>
