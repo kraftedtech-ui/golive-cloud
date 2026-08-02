@@ -23,7 +23,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, solutionAreas: areas.filter(Boolean).sort() })
     }
 
-    const filter: Record<string, unknown> = { active: true }
+    // Rows with billingPlan 'None' are spreadsheet placeholders carrying zero
+    // pricing — they must never be quotable. An explicit ?billingPlan= below
+    // still wins if a caller ever needs them back.
+    const filter: Record<string, unknown> = { active: true, billingPlan: { $ne: 'None' } }
     if (customerType) filter.customerType = customerType
     if (billingPlan) filter.billingPlan = billingPlan
     if (solutionArea) filter.solutionArea = solutionArea

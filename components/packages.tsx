@@ -7,6 +7,7 @@ import type { PublicPackage } from "@/lib/publicProductData"
 
 const TAGLINES: Record<string, string> = {
   starter: "Professional email & productivity to get online fast.",
+  standard: "Full desktop Office apps with business email and Teams.",
   secure: "Productivity plus advanced security & device management.",
   ai: "Copilot and tailored security at scale.",
 }
@@ -34,11 +35,11 @@ export function Packages({ packages }: { packages: PublicPackage[] }) {
           <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#0d2233] sm:text-4xl">Simple, transparent licensing</h2>
           <p className="mt-4 leading-relaxed text-[#5a7a8a]">Per-user pricing billed in your local currency. Switch the currency selector to see pricing for your market.</p>
         </div>
-        <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:items-start">
+        <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5 lg:items-start">
           {packages.map((pkg) => (
             <div key={pkg.key} className={pkg.featured
-              ? "relative rounded-2xl bg-white p-8 shadow-lg ring-2 ring-[#0096c7] lg:-mt-5 lg:mb-5"
-              : "relative rounded-2xl border border-[#c8e6f0] bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"}>
+              ? "relative rounded-2xl bg-white p-8 shadow-lg ring-2 ring-[#0096c7] lg:p-6 lg:-mt-5 lg:mb-5"
+              : "relative rounded-2xl border border-[#c8e6f0] bg-white p-8 shadow-sm transition-all duration-300 lg:p-6 hover:-translate-y-1 hover:shadow-md"}>
               {pkg.featured && (
                 <>
                   <span aria-hidden="true" className="absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r from-[#0096c7] via-[#00c8c8] to-[#0096c7]" />

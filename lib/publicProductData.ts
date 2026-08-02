@@ -15,7 +15,7 @@ export interface PublicPackage {
 // Setup fees aren't in the catalog (they're a GoLive service fee, not a
 // Microsoft SKU) — kept here as the one small piece of data this layer still
 // owns directly, rather than buried in two different page files.
-const SETUP_FEES_USD: Record<string, number | null> = { starter: 150, secure: 300, ai: null }
+const SETUP_FEES_USD: Record<string, number | null> = { starter: 150, standard: 200, secure: 300, ai: null }
 const CUSTOM_PRICING_KEYS = new Set(['ai'])
 const FEATURED_KEYS = new Set(['secure'])
 
@@ -24,6 +24,8 @@ const FEATURED_KEYS = new Set(['secure'])
 const FALLBACK_PACKAGES: PublicPackage[] = [
   { key: 'starter', name: 'Starter Cloud Office', priceUsd: 6, setupFeeUsd: 150, featured: false,
     features: ['Microsoft 365 Business Basic', 'Custom domain business email', '1 TB OneDrive per user', 'Teams, Word, Excel & PowerPoint (web)', 'Local currency billing', 'Email & chat support'] },
+  { key: 'standard', name: 'Standard Cloud Office', priceUsd: 12.5, setupFeeUsd: 200, featured: false,
+    features: ['Microsoft 365 Business Standard', 'Desktop Office apps on up to 5 devices', 'Custom domain business email', '1 TB OneDrive per user', 'Teams, SharePoint & Exchange Online', 'Local currency billing', 'Email & chat support'] },
   { key: 'secure', name: 'Secure Business Cloud', priceUsd: 22, setupFeeUsd: 300, featured: true,
     features: ['Microsoft 365 Business Premium', 'Microsoft Defender for Business', 'Desktop Office apps + 1 TB storage', 'Intune device management & MFA', 'Data loss prevention & encryption', 'Priority support + onboarding'] },
   { key: 'ai', name: 'AI-Ready Enterprise', priceUsd: null, setupFeeUsd: null, featured: false,

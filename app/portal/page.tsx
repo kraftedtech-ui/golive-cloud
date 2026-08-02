@@ -24,6 +24,7 @@ import DeploymentChecklistTool from '@/components/dashboard/DeploymentChecklistT
 import SetupFeeCatalogAdmin from '@/components/dashboard/SetupFeeCatalogAdmin'
 import CurrencyOverviewWidget from '@/components/dashboard/CurrencyOverviewWidget'
 import SessionExpiryWarning from '@/components/dashboard/SessionExpiryWarning'
+import CatalogLinePicker, { type CatalogLine, lineAnnualUSD, costUSD, periodsPerYearFor } from '@/components/dashboard/CatalogLinePicker'
 
 export const dynamic = 'force-dynamic'
 
@@ -857,6 +858,8 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const [fxRates, setFxRates] = useState<Record<string, number>>({ NGN: 1 })
   const [selectedAddOns, setSelectedAddOns] = useState<Record<string, boolean>>({})
   const [azureNote, setAzureNote] = useState('')
+  const [catalogLines, setCatalogLines] = useState<CatalogLine[]>([])
+  const [linePickerOpen, setLinePickerOpen] = useState(false)
   const [packages, setPackages] = useState<ProductMappingItem[]>(FALLBACK_PACKAGES)
   const [addOnDefs, setAddOnDefs] = useState<ProductMappingItem[]>([])
 
@@ -998,6 +1001,14 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const periodTotal = packagePeriodTotal + addOnsPeriodTotal // amount per billed period (the period this NCE option actually bills in)
   const annualTotal = periodTotal * nce.periodsPerYear
   const setupFee = parseInt(setupInput || '0')
+  // Catalog line items are quoted independently of the package: each keeps its own
+  // NCE term and billing plan, so they are annualised per line rather than folded
+  // into the per-user period maths above.
+  const customLinesAnnualUSD = catalogLines.reduce((sum, l) => sum + lineAnnualUSD(l), 0)
+  const customLinesCostUSD = catalogLines.reduce((sum, l) => sum + costUSD(l) * l.qty * periodsPerYearFor(l.billingPlan), 0)
+  const customLinesAnnual = convertFromUSD(customLinesAnnualUSD, currency, fxRates)
+  const customLinesMargin = customLinesAnnualUSD > 0 ? (customLinesAnnualUSD - customLinesCostUSD) / customLinesAnnualUSD : 0
+  const grandTotalFirstYear = annualTotal + customLinesAnnual + setupFee
   const sym = CURRENCY_SYMBOLS[currency] || currency + ' '
   const periodLabel = nce.periodsPerYear === 1 ? '/ user / year' : '/ user / month'
   const lead = leads.find(l => l._id === selectedLead)
@@ -1092,8 +1103,9 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           ${activeAddOns.length > 0 ? `<tr><td style="color:#5c7184">Add-ons: ${activeAddOns.map(a => a.label).join(', ')}</td><td>${sym}${addOnsPerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}</td></tr>` : ''}
           <tr><td style="color:#5c7184">${nce.periodsPerYear === 1 ? 'Annual subscription total' : 'Monthly subscription total'}</td><td>${sym}${periodTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
           ${nce.periodsPerYear > 1 ? `<tr><td style="color:#5c7184">12-month subscription total</td><td>${sym}${annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
+          ${catalogLines.length > 0 ? catalogLines.map(l => `<tr><td style="color:#5c7184">${l.qty}× ${l.skuTitle}<br/><span style="font-size:10px;color:#93a5b5">${l.termDuration === 'P1Y' ? '12-month term' : 'Monthly term'} · billed ${l.billingPlan.toLowerCase()}</span></td><td>${sym}${convertFromUSD(lineAnnualUSD(l), currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })} / year</td></tr>`).join('') : ''}
           <tr><td style="color:#5c7184">One-time setup & migration fee</td><td>${sym}${setupFee.toLocaleString()}</td></tr>
-          <tr class="total-row"><td>Total first year investment</td><td>${sym}${(annualTotal + setupFee).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          <tr class="total-row"><td>Total first year investment</td><td>${sym}${(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
         </table>
         ${azureNote.trim() ? `<div class="validity" style="margin-bottom:16px;">☁ Azure: ${azureNote} — billed separately and directly by Microsoft based on actual consumption. Not included in the totals above.</div>` : ''}
 
@@ -1210,6 +1222,48 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
         </div>
 
         <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <label className="text-xs font-medium text-foreground">Additional licences (any catalog SKU)</label>
+            <button type="button" onClick={() => setLinePickerOpen(true)}
+              className="rounded-lg border border-border bg-white px-2.5 py-1 text-[11px] font-medium text-foreground hover:bg-secondary">
+              + Add from catalog
+            </button>
+          </div>
+          <div className="space-y-1.5 rounded-lg border border-border p-2.5">
+            {catalogLines.length === 0 ? (
+              <p className="py-1 text-xs text-muted-foreground">Nothing added. Use this to quote SKUs that are not part of a package — anything in the distributor pricelist.</p>
+            ) : catalogLines.map(l => (
+              <div key={l._id} className="flex items-center gap-2 text-xs">
+                <span className="min-w-0 flex-1">
+                  <span className="font-medium text-foreground">{l.qty}× {l.skuTitle}</span>
+                  <span className="block text-[10px] text-muted-foreground">
+                    {l.termDuration === 'P1Y' ? '12-month term' : 'Monthly term'} · billed {l.billingPlan.toLowerCase()}
+                    {l.overrideUSD !== undefined && <span className="text-amber-600"> · price overridden from ${l.retailUSD.toFixed(2)}</span>}
+                  </span>
+                </span>
+                <span className="flex-shrink-0 text-muted-foreground">
+                  {sym}{convertFromUSD(lineAnnualUSD(l), currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}/yr
+                </span>
+              </div>
+            ))}
+          </div>
+          {catalogLines.length > 0 && isAdmin && (
+            <p className={`mt-1 text-[10px] ${customLinesMargin < 0.05 ? 'text-amber-700' : 'text-muted-foreground'}`}>
+              Blended margin on these lines: {(customLinesMargin * 100).toFixed(1)}%
+              {customLinesMargin < 0.05 && ' — below the 5% floor, check the overrides.'}
+            </p>
+          )}
+        </div>
+
+        <CatalogLinePicker
+          open={linePickerOpen}
+          onClose={() => setLinePickerOpen(false)}
+          onApply={setCatalogLines}
+          existing={catalogLines}
+          isAdmin={isAdmin}
+        />
+
+        <div>
           <label className="mb-1.5 block text-xs font-medium text-foreground">Azure (optional note — billed separately, usage-based)</label>
           <input
             value={azureNote}
@@ -1284,8 +1338,14 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           {nce.periodsPerYear > 1 && (
             <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">12-month total</span><span className="font-semibold">{sym}{annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
           )}
+          {catalogLines.map(l => (
+            <div key={l._id} className="flex justify-between py-1 border-b border-border/50">
+              <span className="text-muted-foreground">{l.qty}× {l.skuTitle} <span className="text-[10px]">({l.billingPlan.toLowerCase()})</span></span>
+              <span className="font-medium">{sym}{convertFromUSD(lineAnnualUSD(l), currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}/yr</span>
+            </div>
+          ))}
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Setup fee</span><span className="font-medium">{sym}{setupFee.toLocaleString()}</span></div>
-          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">Total first year</span><span className="font-bold text-primary text-base">{sym}{(annualTotal + setupFee).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
+          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">Total first year</span><span className="font-bold text-primary text-base">{sym}{(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
         </div>
         {azureNote.trim() && (
           <div className="mt-2 rounded-lg bg-sky-50 border border-sky-200 px-2.5 py-2 text-[10px] text-sky-800">☁ Azure: {azureNote} — billed separately by Microsoft, not included above.</div>
