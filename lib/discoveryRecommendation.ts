@@ -85,17 +85,60 @@ export const DISCOVERY_PAIN_POINT_HELP: Record<string, string> = {
   other: 'Anything not covered above — tell us in your own words below.',
 }
 
-const PACKAGE_RANK: Record<string, number> = { starter: 0, secure: 1, ai: 2 }
+const PACKAGE_RANK: Record<string, number> = { starter: 0, standard: 1, secure: 2, ai: 3 }
+const RANK_TO_KEY: Record<number, string> = { 3: 'ai', 2: 'secure', 1: 'standard', 0: 'starter' }
+
+/**
+ * The customer's existing Microsoft 365 plan, expressed as a minimum package
+ * rank we must not drop below. Without this the engine keys off pain points
+ * alone, so an existing Business Standard customer who selects nothing gets
+ * recommended Business Basic — a downgrade, quoted as if it were an upgrade.
+ *
+ * The public form uses a fixed dropdown; the internal form is free text, so
+ * exact values are checked first and substrings second.
+ */
+const CURRENT_PLAN_FLOOR: Record<string, number> = {
+  'Basic (email only)': 0,
+  'Standard': 1,
+  'Premium (security included)': 2,
+}
+
+/** Matched separately: sits above everything in the catalog, so it can only be a consult. */
+const ENTERPRISE_PLAN_VALUE = 'Enterprise (E3/E5)'
+export const ENTERPRISE_CONSULT_REASON =
+  'Customer is on Enterprise (E3/E5) — above every package in the catalog. Confirm the right commercial path before quoting.'
+
+export function planFloorRank(currentPlan?: string): number | 'enterprise' | null {
+  if (!currentPlan) return null
+  const exact = CURRENT_PLAN_FLOOR[currentPlan]
+  if (exact !== undefined) return exact
+  if (currentPlan === ENTERPRISE_PLAN_VALUE) return 'enterprise'
+
+  // Free-text fallback for the internal form ('Business Standard', 'M365 BP',
+  // 'E3', etc). Order matters: check the most specific tokens first.
+  const p = currentPlan.toLowerCase()
+  if (/\be[35]\b|enterprise/.test(p)) return 'enterprise'
+  if (p.includes('copilot')) return 3
+  if (p.includes('premium') || /\bbp\b/.test(p)) return 2
+  if (p.includes('standard')) return 1
+  if (p.includes('basic')) return 0
+  return null // unrecognised or 'not sure' — apply no floor rather than guess
+}
 
 export interface RecommendationInput {
   painPoints: string[]
   handlesSensitiveData: boolean
+  /** What the customer runs today, if anything — acts as a floor on the result. */
+  currentPlan?: string
+  isExistingM365Customer?: boolean
   validPackageKeys: string[] // package keys that currently exist in ProductMapping (active only)
   validAddOnKeys: string[]
 }
 
 export interface RecommendationResult {
   packageKey: string
+  /** True when the floor lifted the result above what pain points alone produced. */
+  raisedByCurrentPlan?: boolean
   addOnKeys: string[]
   needsOfflineConsult: boolean
   consultReasons: string[]
@@ -109,7 +152,7 @@ export interface RecommendationResult {
  * explicit offline-consult reason instead of being silently dropped.
  */
 export function computeRecommendation(input: RecommendationInput): RecommendationResult {
-  const { painPoints, handlesSensitiveData, validPackageKeys, validAddOnKeys } = input
+  const { painPoints, handlesSensitiveData, validPackageKeys, validAddOnKeys, currentPlan, isExistingM365Customer } = input
 
   let packageRank = 0 // starts at 'starter'
   const addOnKeys = new Set<string>()
@@ -117,6 +160,22 @@ export function computeRecommendation(input: RecommendationInput): Recommendatio
 
   if (handlesSensitiveData) {
     packageRank = Math.max(packageRank, PACKAGE_RANK['secure'])
+  }
+
+  // Never recommend below what they already run. An existing customer being
+  // quoted a lower tier reads as a downgrade dressed up as a saving, and under
+  // NCE it would also strand them on fewer entitlements than they have today.
+  let raisedByCurrentPlan = false
+  if (isExistingM365Customer !== false) {
+    const floor = planFloorRank(currentPlan)
+    if (floor === 'enterprise') {
+      packageRank = Math.max(packageRank, PACKAGE_RANK['secure'])
+      consultReasons.add(ENTERPRISE_CONSULT_REASON)
+      raisedByCurrentPlan = true
+    } else if (typeof floor === 'number' && floor > packageRank) {
+      packageRank = floor
+      raisedByCurrentPlan = true
+    }
   }
 
   for (const key of painPoints) {
@@ -138,11 +197,10 @@ export function computeRecommendation(input: RecommendationInput): Recommendatio
   // ideal tier doesn't exist (e.g. 'ai' was deactivated in Product Mapping),
   // step down to the next best one that does exist rather than recommending
   // something that can't actually be quoted.
-  const rankToKey: Record<number, string> = { 2: 'ai', 1: 'secure', 0: 'starter' }
-  let packageKey = rankToKey[packageRank]
+  let packageKey = RANK_TO_KEY[packageRank]
   while (packageKey && !validPackageKeys.includes(packageKey) && packageRank > 0) {
     packageRank -= 1
-    packageKey = rankToKey[packageRank]
+    packageKey = RANK_TO_KEY[packageRank]
   }
   if (!validPackageKeys.includes(packageKey)) {
     // Nothing matched at all (unlikely, but don't recommend a dead key)
@@ -151,6 +209,7 @@ export function computeRecommendation(input: RecommendationInput): Recommendatio
 
   return {
     packageKey,
+    raisedByCurrentPlan,
     addOnKeys: Array.from(addOnKeys),
     needsOfflineConsult: consultReasons.size > 0,
     consultReasons: Array.from(consultReasons),

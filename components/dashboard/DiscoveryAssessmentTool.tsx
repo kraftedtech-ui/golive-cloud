@@ -136,9 +136,11 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
   const recommendation = useMemo(() => computeRecommendation({
     painPoints: form.painPoints,
     handlesSensitiveData: form.handlesSensitiveData,
+    currentPlan: form.currentPlan,
+    isExistingM365Customer: form.isExistingM365Customer,
     validPackageKeys: packages.map(p => p.key),
     validAddOnKeys: addOnDefs.map(a => a.key),
-  }), [form.painPoints, form.handlesSensitiveData, packages, addOnDefs])
+  }), [form.painPoints, form.handlesSensitiveData, form.currentPlan, form.isExistingM365Customer, packages, addOnDefs])
 
   const recommendedPackage = packages.find(p => p.key === recommendation.packageKey)
   const recommendedAddOns = addOnDefs.filter(a => recommendation.addOnKeys.includes(a.key))
@@ -459,6 +461,11 @@ export default function DiscoveryAssessmentTool({ leads, isAdmin, userEmail, onU
                       {recommendation.consultReasons.map((r, i) => <li key={i}>{r}</li>)}
                     </ul>
                   </div>
+                )}
+                {recommendation.raisedByCurrentPlan && (
+                  <p className="mt-2 rounded-lg bg-sky-50 border border-sky-200 px-2.5 py-1.5 text-[10px] text-sky-800">
+                    ↑ Raised to match the plan they already run — quoting anything lower would be a downgrade.
+                  </p>
                 )}
                 <p className="mt-3 text-[10px] text-muted-foreground">Updates live as you answer.</p>
                 {onUseInProposal && (

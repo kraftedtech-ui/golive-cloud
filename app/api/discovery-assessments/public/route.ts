@@ -102,6 +102,8 @@ export async function POST(req: NextRequest) {
     const recommendation = computeRecommendation({
       painPoints: data.painPoints,
       handlesSensitiveData: data.handlesSensitiveData,
+      currentPlan: data.currentPlan,
+      isExistingM365Customer: data.isExistingM365Customer,
       validPackageKeys,
       validAddOnKeys,
     })
