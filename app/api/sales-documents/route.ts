@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
     const reference = `GL-PROP-${year}-${shortId}-v${version}`
 
     const issuedAt = new Date()
+    const actorEmail = auth.email ?? undefined
 
     // Supersede whatever was current. Declined versions stay declined so the
     // history shows the customer actually said no at that point.
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
         $push: {
           auditTrail: {
             at: issuedAt,
-            actorEmail: auth.email,
+            actorEmail,
             action: 'superseded',
             detail: `Replaced by v${version}`,
           },
@@ -114,13 +115,13 @@ export async function POST(req: NextRequest) {
       reference,
       outcome: 'open',
       issuedAt,
-      issuedByEmail: auth.email,
-      issuedByName: auth.name,
+      issuedByEmail: actorEmail,
+      issuedByName: auth.name ?? undefined,
       retentionUntil: retentionDateFrom(issuedAt),
       auditTrail: [
         {
           at: issuedAt,
-          actorEmail: auth.email,
+          actorEmail,
           action: 'created',
           detail: `Version ${version} issued`,
         },

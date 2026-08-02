@@ -79,6 +79,8 @@ export async function PATCH(
     }
 
     const now = new Date()
+    // auth.email is string | null | undefined; the schema field is string | undefined
+    const actorEmail = auth.email ?? undefined
 
     if (outcome === 'accepted') {
       const alreadyClosed = await SalesDocument.findOne({
@@ -100,17 +102,17 @@ export async function PATCH(
       doc.invoiceNumber = await allocateInvoiceNumber()
       doc.documentType = 'invoice'
       doc.acceptedAt = now
-      doc.acceptedByEmail = auth.email
+      doc.acceptedByEmail = actorEmail
       doc.auditTrail.push({
         at: now,
-        actorEmail: auth.email,
+        actorEmail,
         action: 'accepted',
         detail: `Invoice ${doc.invoiceNumber} issued${body.note ? ' — ' + body.note : ''}`,
       })
     } else {
       doc.auditTrail.push({
         at: now,
-        actorEmail: auth.email,
+        actorEmail,
         action: outcome,
         detail: body.note || undefined,
       })
