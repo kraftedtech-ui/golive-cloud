@@ -1832,7 +1832,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
       const data = await res.json()
       if (data.success) {
         setSuccess(`✓ ${form.name} added. They can log in at /portal/login.`)
-        setForm({ name: '', email: '', password: '', role: 'sales' })
+        setForm({ name: '', email: '', password: '', role: 'sales', startDate: '', probationDays: '90' })
         setShowAdd(false); onUpdate()
       } else setError(data.error || 'Failed to add. Email may already exist.')
     } catch { setError('Network error.') }
