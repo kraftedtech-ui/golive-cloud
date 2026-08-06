@@ -11,6 +11,11 @@ export interface IUser extends Document {
   active: boolean
   lastLogin?: Date
   invitedBy?: string
+  /** First day of employment — drives the commission rate. */
+  startDate?: Date
+  probationDays?: number
+  /** Set to confirm early, or to record a confirmation that ran late. */
+  confirmedAt?: Date
   phone?: string
   emailNotifications: boolean
   profilePicture?: string
@@ -33,6 +38,9 @@ const UserSchema = new Schema<IUser>(
     active: { type: Boolean, default: true },
     lastLogin: Date,
     invitedBy: String,
+    startDate: Date,
+    probationDays: { type: Number, default: 90 },
+    confirmedAt: Date,
     phone: String,
     emailNotifications: { type: Boolean, default: true },
     profilePicture: String,

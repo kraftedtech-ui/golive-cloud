@@ -879,6 +879,19 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const [savingDoc, setSavingDoc] = useState(false)
   const [docMsg, setDocMsg] = useState('')
   const [commissionPeriod, setCommissionPeriod] = useState<'probation' | 'confirmed'>('probation')
+  const [periodDerived, setPeriodDerived] = useState(false)
+  const [commissionPeriodLabel, setCommissionPeriodLabel] = useState<string>('')
+  useEffect(() => {
+    fetch('/api/commission-period')
+      .then(r => r.json())
+      .then(d => {
+        if (!d?.success || !d.mine) return
+        setCommissionPeriod(d.mine.period)
+        setPeriodDerived(!!d.mine.derived)
+        setCommissionPeriodLabel(d.mine.label || '')
+      })
+      .catch(() => {})
+  }, [])
   const [fxFetchedAt, setFxFetchedAt] = useState<string | null>(null)
   const [catalogLines, setCatalogLines] = useState<CatalogLine[]>([])
   const [linePickerOpen, setLinePickerOpen] = useState(false)
@@ -1546,6 +1559,11 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
               </div>
             </div>
             <p className="text-[10px] text-muted-foreground -mt-1">Internal only — never appears on the customer proposal.</p>
+            {commissionPeriodLabel && (
+              <p className="text-[10px] text-muted-foreground -mt-1">
+                {periodDerived ? commissionPeriodLabel : commissionPeriodLabel + ' — ask an admin to set your start date'}
+              </p>
+            )}
 
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-lg bg-white px-2.5 py-1.5">

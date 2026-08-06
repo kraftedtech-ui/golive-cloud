@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import CertificationBonusPanel from './CertificationBonusPanel'
 import SkuMarginPicker from './SkuMarginPicker'
+import { deriveCommissionPeriod, isConfirmingSoon, type CommissionPeriodInfo } from '@/lib/commissionPeriod'
 import { SUPPORTED_CURRENCIES, fmtCurrency, currencyForCountry } from '@/lib/currency'
 
 interface CommissionRule { _id: string; type: 'do' | 'dont'; text: string; section: string }
@@ -45,6 +46,11 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
   const [calcGPMargin, setCalcGPMargin] = useState('12')
   const [calcMarginSource, setCalcMarginSource] = useState<string | null>(null)
   const [calcPeriod, setCalcPeriod] = useState<'probation' | 'confirmed'>('probation')
+  // Derived from the rep's start date rather than left to a toggle — with
+  // more than one rep, a forgotten switch is a payroll error.
+  const [periodInfo, setPeriodInfo] = useState<CommissionPeriodInfo | null>(null)
+  const [teamPeriods, setTeamPeriods] = useState<any[]>([])
+  const [periodOverridden, setPeriodOverridden] = useState(false)
 
   // Shared SKU-margin picker — 'calculator' or a lead._id, or null when closed
   const [pickerTarget, setPickerTarget] = useState<string | null>(null)
@@ -89,6 +95,19 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
   }, [isAdmin, userName, userEmail])
 
   useEffect(() => { fetchData() }, [fetchData])
+
+  useEffect(() => {
+    fetch('/api/commission-period')
+      .then(r => r.json())
+      .then(d => {
+        if (!d?.success) return
+        setPeriodInfo(d.mine)
+        if (Array.isArray(d.team)) setTeamPeriods(d.team)
+        setCalcPeriod(prev => (periodOverridden ? prev : d.mine.period))
+      })
+      .catch(() => {})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Calculator logic
   const dealValue = parseFloat(calcDealValue) || 0
@@ -285,7 +304,8 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
                     <div className="flex gap-2">
                       {(['probation', 'confirmed'] as const).map(p => (
                         <button key={p} onClick={() => setCalcPeriod(p)}
-                          className={`flex-1 rounded-lg border py-2 text-xs font-medium capitalize transition-colors ${calcPeriod === p ? 'border-primary bg-primary text-white' : 'border-border text-foreground hover:bg-secondary'}`}>
+                          className={`flex-1 rounded-lg border py-2 text-xs font-medium capitalize transition-colors ${calcPeriod === p ? 'border-primary bg-primary text-white' : 'border-border text-foreground hover:bg-secondary'} ${!isAdmin && periodInfo?.derived && p !== periodInfo.period ? 'opacity-40' : ''}`}
+                          onClickCapture={() => setPeriodOverridden(true)}>
                           {p === 'probation' ? '🔄 Probation (Days 1–90)' : '✅ Confirmed (Day 91+)'}
                         </button>
                       ))}

@@ -94,6 +94,7 @@ jobs:
           git show origin/main:lib/publicProductData.ts > lib/publicProductData.ts
           git show origin/main:lib/discoveryRecommendation.ts > lib/discoveryRecommendation.ts
           git show origin/main:lib/einvoice.ts > lib/einvoice.ts
+          git show origin/main:lib/commissionPeriod.ts > lib/commissionPeriod.ts
           git show origin/main:lib/publicVerification.ts > lib/publicVerification.ts
           git show origin/main:lib/deploymentRecommendation.ts > lib/deploymentRecommendation.ts
           git show "origin/main:app/api/auth/[...nextauth]/route.ts" > "app/api/auth/[...nextauth]/route.ts"
@@ -164,6 +165,8 @@ jobs:
           mkdir -p app/api/sales-documents "app/api/sales-documents/[id]"
           git show origin/main:app/api/sales-documents/route.ts > app/api/sales-documents/route.ts
           git show "origin/main:app/api/sales-documents/[id]/route.ts" > "app/api/sales-documents/[id]/route.ts"
+          mkdir -p app/api/commission-period
+          git show origin/main:app/api/commission-period/route.ts > app/api/commission-period/route.ts
 
           mkdir -p app/api/setup-fee-catalog "app/api/setup-fee-catalog/[id]"
           git show origin/main:app/api/setup-fee-catalog/route.ts > app/api/setup-fee-catalog/route.ts

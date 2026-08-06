@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
   if (auth instanceof NextResponse) return auth
   try {
     await connectDB()
-    const { name, email, password, role, invitedBy } = await req.json()
+    const { name, email, password, role, invitedBy, startDate, probationDays } = await req.json()
 
     if (!name || !email || !password) {
       return NextResponse.json({ success: false, error: 'Name, email and password are required' }, { status: 400 })
@@ -35,7 +35,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'A user with this email already exists' }, { status: 409 })
     }
 
-    const user = await User.create({ name, email, password, role: role || 'sales', invitedBy })
+    const user = await User.create({
+      name, email, password,
+      role: role || 'sales',
+      invitedBy,
+      startDate: startDate || undefined,
+      probationDays: probationDays || 90,
+    })
     const { password: _, ...userWithoutPassword } = user.toObject()
 
     // Send welcome email with temporary credentials (after successful account creation)
