@@ -25,6 +25,7 @@ import SetupFeeCatalogAdmin from '@/components/dashboard/SetupFeeCatalogAdmin'
 import CurrencyOverviewWidget from '@/components/dashboard/CurrencyOverviewWidget'
 import SessionExpiryWarning from '@/components/dashboard/SessionExpiryWarning'
 import CatalogLinePicker, { type CatalogLine, lineAnnualUSD, costUSD, periodsPerYearFor } from '@/components/dashboard/CatalogLinePicker'
+import { deriveCommissionPeriod } from '@/lib/commissionPeriod'
 
 export const dynamic = 'force-dynamic'
 
@@ -1796,8 +1797,8 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
 function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: boolean; onUpdate: () => void }) {
   const [showAdd, setShowAdd] = useState(false)
   const [editUser, setEditUser] = useState<User | null>(null)
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'sales' })
-  const [editForm, setEditForm] = useState({ name: '', email: '', role: '', password: '', active: true })
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'sales', startDate: '', probationDays: '90' })
+  const [editForm, setEditForm] = useState({ name: '', email: '', role: '', password: '', active: true, startDate: '', probationDays: '90', confirmedAt: '' })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -1813,7 +1814,13 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
 
   const openEdit = (u: User) => {
     setEditUser(u)
-    setEditForm({ name: u.name, email: u.email, role: u.role, password: '', active: u.active })
+    const iso = (v: unknown) => (v ? new Date(v as string).toISOString().slice(0, 10) : '')
+    setEditForm({
+      name: u.name, email: u.email, role: u.role, password: '', active: u.active,
+      startDate: iso((u as any).startDate),
+      probationDays: String((u as any).probationDays ?? 90),
+      confirmedAt: iso((u as any).confirmedAt),
+    })
     setError('')
   }
 
@@ -1838,6 +1845,10 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
     setSaving(true); setError('')
     try {
       const payload: any = { name: editForm.name, email: editForm.email, role: editForm.role, active: editForm.active }
+      // Empty string clears the date rather than storing an invalid one.
+      payload.startDate = editForm.startDate || null
+      payload.probationDays = parseInt(editForm.probationDays) || 90
+      payload.confirmedAt = editForm.confirmedAt || null
       if (editForm.password) payload.password = editForm.password
       const res = await fetch(`/api/users/${editUser._id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
       const data = await res.json()
@@ -1851,6 +1862,26 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
     await fetch(`/api/users/${u._id}`, { method: 'DELETE' })
     setConfirmDelete(null); onUpdate()
     setSuccess(`✓ ${u.name} removed from the team.`)
+  }
+
+  /**
+   * Confirmation is an explicit decision. Probation ending only makes
+   * someone eligible — the higher commission rate applies from the moment
+   * an admin records it here, and not before.
+   */
+  const [confirmingId, setConfirmingId] = useState<string | null>(null)
+  const setConfirmation = async (u: User, confirm: boolean) => {
+    setConfirmingId(u._id)
+    await fetch(`/api/users/${u._id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirmedAt: confirm ? new Date().toISOString() : null }),
+    })
+    setConfirmingId(null)
+    onUpdate()
+    setSuccess(confirm
+      ? `\u2713 ${u.name} confirmed \u2014 commission moves to the confirmed rate on deals closed from today.`
+      : `\u21a9 ${u.name} returned to the probation rate.`)
   }
 
   const [togglingId, setTogglingId] = useState<string | null>(null)
@@ -1892,14 +1923,14 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-secondary/30">
-                {['Member','Email','Role','Status','Last Login','Actions'].map(h => (
+                {['Member','Email','Role','Status','Commission','Last Login','Actions'].map(h => (
                   <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {loading ? <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
-              : users.length === 0 ? <tr><td colSpan={6} className="py-12 text-center text-sm text-muted-foreground">No team members yet</td></tr>
+              {loading ? <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">Loading...</td></tr>
+              : users.length === 0 ? <tr><td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">No team members yet</td></tr>
               : users.map(u => {
                 const roleInfo = ROLE_LABELS[u.role] || ROLE_LABELS.viewer
                 return (
@@ -1915,6 +1946,35 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
                     <td className="px-4 py-3 text-xs text-muted-foreground">{u.email}</td>
                     <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${roleInfo.color}`}>{roleInfo.label}</span></td>
                     <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${u.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{u.active ? '● Active' : '○ Inactive'}</span></td>
+                    <td className="px-4 py-3">
+                      {(() => {
+                        if (u.role === 'viewer') return <span className="text-[11px] text-muted-foreground">\u2014</span>
+                        const commissionInfo = deriveCommissionPeriod(u as any)
+                        return (
+                          <div className="space-y-1">
+                            <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                              commissionInfo.period === 'confirmed' ? 'bg-teal-50 text-teal-700'
+                              : commissionInfo.awaitingConfirmation ? 'bg-amber-50 text-amber-800'
+                              : 'bg-secondary text-muted-foreground'}`}>
+                              {commissionInfo.period === 'confirmed' ? 'Confirmed \u00b7 10%' : 'Probation \u00b7 5%'}
+                            </span>
+                            <p className="text-[10px] text-muted-foreground">{commissionInfo.label}</p>
+                            {commissionInfo.awaitingConfirmation && (
+                              <button onClick={() => setConfirmation(u, true)} disabled={confirmingId === u._id}
+                                className="rounded-md bg-teal-600 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-teal-700 disabled:opacity-60">
+                                {confirmingId === u._id ? '\u2026' : 'Confirm now'}
+                              </button>
+                            )}
+                            {commissionInfo.period === 'confirmed' && (
+                              <button onClick={() => setConfirmation(u, false)} disabled={confirmingId === u._id}
+                                className="block text-[10px] text-muted-foreground underline hover:text-foreground">
+                                Revert to probation
+                              </button>
+                            )}
+                          </div>
+                        )
+                      })()}
+                    </td>
                     <td className="px-4 py-3 text-[11px] text-muted-foreground">{u.lastLogin ? new Date(u.lastLogin).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}</td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
@@ -1949,6 +2009,18 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
                 <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Temporary password *</label>
                 <input required type="password" minLength={8} className={inp} placeholder="Minimum 8 characters" value={form.password} onChange={e => setForm(f => ({...f, password: e.target.value}))} />
                 <p className="mt-1 text-[11px] text-[#5c7184]">Share privately — admin can reset anytime from this page</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Start date</label>
+                  <input type="date" className={inp} value={form.startDate} onChange={e => setForm(f => ({...f, startDate: e.target.value}))} />
+                  <p className="mt-1 text-[11px] text-[#5c7184]">Start date (drives the commission rate)</p>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Probation (days)</label>
+                  <input type="number" min={0} className={inp} value={form.probationDays} onChange={e => setForm(f => ({...f, probationDays: e.target.value}))} />
+                  <p className="mt-1 text-[11px] text-[#5c7184]">Eligibility only — you still confirm manually</p>
+                </div>
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Role *</label>
@@ -1990,6 +2062,24 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
                 <select className={inp} value={editForm.active ? 'true' : 'false'} onChange={e => setEditForm(f => ({...f, active: e.target.value === 'true'}))}>
                   <option value="true">Active — can log in</option><option value="false">Inactive — login blocked</option>
                 </select>
+              </div>
+              <div className="rounded-xl border border-[#e3e9f0] bg-[#f4f7fb] p-4 space-y-3">
+                <label className="block text-xs font-semibold text-[#0d2233]">Commission period</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-[11px] text-[#5c7184]">Start date</label>
+                    <input type="date" className={inp} value={editForm.startDate} onChange={e => setEditForm(f => ({...f, startDate: e.target.value}))} />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-[11px] text-[#5c7184]">Probation (days)</label>
+                    <input type="number" min={0} className={inp} value={editForm.probationDays} onChange={e => setEditForm(f => ({...f, probationDays: e.target.value}))} />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-[11px] text-[#5c7184]">Confirmation date</label>
+                  <input type="date" className={inp} value={editForm.confirmedAt} onChange={e => setEditForm(f => ({...f, confirmedAt: e.target.value}))} />
+                  <p className="mt-1 text-[11px] text-[#5c7184]">Blank keeps them on the probation rate, whatever the start date says.</p>
+                </div>
               </div>
               <div className="rounded-xl border border-[#e3e9f0] bg-[#f4f7fb] p-4">
                 <label className="mb-1.5 block text-xs font-semibold text-[#0d2233]">🔑 Reset Password</label>
