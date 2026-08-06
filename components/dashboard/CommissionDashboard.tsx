@@ -8,14 +8,72 @@ import { SUPPORTED_CURRENCIES, fmtCurrency, currencyForCountry } from '@/lib/cur
 interface CommissionRule { _id: string; type: 'do' | 'dont'; text: string; section: string }
 interface Lead { _id: string; company: string; contact: string; status: string; country?: string; assignedTo?: string; assignedToEmail?: string; productCategory?: string; mrr?: number; setupFee?: number; grossProfitMargin?: number; commissionStatus?: string; currency?: string; createdAt: string }
 
+/**
+ * Transcribed directly from the Commission & Bonus Addendum (REF#01010),
+ * sections 5 and 6. The signed Addendum is the single source of truth — if a
+ * rate here ever disagrees with it, the Addendum wins and this table is wrong.
+ *
+ * Two categories deliberately carry no fixed confirmed rate:
+ *
+ *   setup_migration  — §6 gives a 10%-15% band, "confirmed per project in
+ *                      writing by MD before work begins". Auto-applying a
+ *                      figure would pre-empt a negotiation the contract
+ *                      requires, so the rate must be entered per project.
+ *   support_retainer — §5 covers it during probation (5% of first month's GP)
+ *                      but §6 has no confirmed row. Nothing to apply until
+ *                      the Addendum is amended.
+ */
 const PRODUCT_CATEGORIES = [
-  { value: 'm365_license', label: 'New M365 Licence / Subscription', probRate: 0.05, confirmedRate: 0.10 },
-  { value: 'monthly_subscription', label: 'Monthly Subscription (ongoing)', probRate: 0.05, confirmedRate: 0.10, hasTrail: true },
-  { value: 'annual_subscription', label: 'Annual Subscription (upfront)', probRate: 0.05, confirmedRate: 0.10 },
-  { value: 'setup_migration', label: 'Setup / Migration / Onboarding', probRate: 0.10, confirmedRate: 0.125 },
-  { value: 'support_retainer', label: 'Support Retainer (new)', probRate: 0.05, confirmedRate: 0.10 },
-  { value: 'upsell_crosssell', label: 'Upsell / Cross-sell', probRate: 0.05, confirmedRate: 0.075 },
-  { value: 'renewal', label: 'Renewal (actively managed)', probRate: 0, confirmedRate: 0.03 },
+  {
+    value: 'm365_license', label: 'New M365 Licence / Subscription',
+    probRate: 0.05, confirmedRate: 0.10,
+    note: '\u00a75 / \u00a76 \u2014 confirmed rate applies to the first paid invoice',
+  },
+  {
+    value: 'monthly_subscription', label: 'Monthly Subscription (ongoing)',
+    probRate: 0.05, confirmedRate: 0.10, hasTrail: true,
+    note: '\u00a76 \u2014 10% month 1, then 3% months 2\u201312, only while the customer stays active, paid and assigned to you',
+  },
+  {
+    value: 'annual_subscription', label: 'Annual Subscription (upfront)',
+    probRate: 0.05, confirmedRate: 0.10,
+    note: '\u00a76 \u2014 10% of the first annual invoice Gross Profit',
+  },
+  {
+    value: 'setup_migration', label: 'Setup / Migration / Onboarding',
+    probRate: 0.10, confirmedRate: null, confirmedRateMin: 0.10, confirmedRateMax: 0.15,
+    requiresMdRate: true,
+    note: '\u00a76 \u2014 10\u201315%, confirmed per project in writing by the MD BEFORE work begins',
+  },
+  {
+    value: 'support_retainer', label: 'Support Retainer (new)',
+    probRate: 0.05, confirmedRate: null,
+    notInAddendum: true,
+    note: '\u00a75 \u2014 5% of the first month\u2019s Gross Profit during probation. The Addendum sets no confirmed rate; agree one with the MD.',
+  },
+  {
+    value: 'upsell_crosssell', label: 'Upsell / Cross-sell',
+    probRate: 0.05, confirmedRate: 0.075,
+    note: '\u00a76 \u2014 7.5% of Gross Profit on the incremental value',
+  },
+  {
+    value: 'renewal', label: 'Renewal (actively managed)',
+    probRate: 0, confirmedRate: 0.03,
+    note: '\u00a75 \u2014 no commission during probation unless the MD approves in writing BEFORE the renewal closes',
+  },
+]
+
+/** Addendum §7 — monthly Gross Profit bonuses. Highest tier only, not cumulative. */
+const GP_BONUS_TIERS = [
+  { threshold: 1000000, label: '\u20a61M GP bonus', amount: 150000 },
+  { threshold: 500000, label: '\u20a6500K GP bonus', amount: 60000 },
+  { threshold: 250000, label: '\u20a6250K GP bonus', amount: 25000 },
+]
+
+/** Addendum §8 — support and quality bonuses. Both can be earned in one month. */
+const SUPPORT_BONUSES = [
+  { amount: 25000, label: '95%+ response SLA maintained, no major unresolved complaint' },
+  { amount: 15000, label: '10+ qualified follow-ups or testimonials logged in the CRM' },
 ]
 
 const STATUS_BADGE: Record<string, string> = {
@@ -46,6 +104,9 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
   const [calcGPMargin, setCalcGPMargin] = useState('12')
   const [calcMarginSource, setCalcMarginSource] = useState<string | null>(null)
   const [calcPeriod, setCalcPeriod] = useState<'probation' | 'confirmed'>('probation')
+  // Setup/migration has no fixed confirmed rate — the Addendum requires one
+  // to be agreed per project in writing before work begins.
+  const [mdAgreedRate, setMdAgreedRate] = useState('')
   // Derived from the rep's start date rather than left to a toggle — with
   // more than one rep, a forgotten switch is a payroll error.
   const [periodInfo, setPeriodInfo] = useState<CommissionPeriodInfo | null>(null)
@@ -114,11 +175,19 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
   const gpMargin = parseFloat(calcGPMargin) / 100
   const gp = dealValue * gpMargin
   const cat = PRODUCT_CATEGORIES.find(c => c.value === calcCategory)!
-  const rate = calcPeriod === 'probation' ? cat.probRate : cat.confirmedRate
+  const baseRate = calcPeriod === 'probation' ? cat.probRate : cat.confirmedRate
+  // A null confirmed rate means the Addendum does not fix one. Fall back to
+  // whatever the MD has agreed for this project, and show nothing until
+  // they do — inventing a figure here is how the 12.5% error happened.
+  const agreed = parseFloat(mdAgreedRate)
+  const rate = baseRate !== null && baseRate !== undefined
+    ? baseRate
+    : (!isNaN(agreed) && agreed > 0 ? agreed / 100 : 0)
+  const rateUnresolved = (baseRate === null || baseRate === undefined) && !(agreed > 0)
   const commission = gp * rate
   const trailCommission = cat.hasTrail && calcPeriod === 'confirmed' ? gp * 0.03 : 0
   const month12Total = cat.hasTrail && calcPeriod === 'confirmed' ? commission + (trailCommission * 11) : 0
-  const bonusTier = gp >= 1000000 ? { label: '₦1M GP Bonus', amount: 150000 } : gp >= 500000 ? { label: '₦500K GP Bonus', amount: 60000 } : gp >= 250000 ? { label: '₦250K GP Bonus', amount: 25000 } : null
+  const bonusTier = GP_BONUS_TIERS.find(t => gp >= t.threshold) || null
 
   // Tracker stats
   const myTracked = leads.filter(l => l.commissionStatus === 'tracked' || !l.commissionStatus).length
@@ -327,6 +396,32 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
                           <span className="text-muted-foreground">Est. Gross Profit ({calcGPMargin}%)</span>
                           <span className="font-medium">{fmt(gp)}</span>
                         </div>
+                        {cat.note && (
+                          <p className="mb-2 rounded-lg bg-secondary/40 px-2.5 py-1.5 text-[10px] text-muted-foreground">
+                            Addendum {cat.note}
+                          </p>
+                        )}
+                        {(cat as any).requiresMdRate && calcPeriod === 'confirmed' && (
+                          <div className="mb-2 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-2">
+                            <label className="mb-1 block text-[10px] font-medium text-amber-900">
+                              Rate agreed with MD for this project (%)
+                            </label>
+                            <input type="number" min={10} max={15} step="0.5" value={mdAgreedRate}
+                              onChange={e => setMdAgreedRate(e.target.value)} placeholder="10 – 15"
+                              className="w-24 rounded-md border border-amber-300 bg-white px-2 py-1 text-xs" />
+                            <p className="mt-1 text-[10px] text-amber-800">
+                              The Addendum requires this to be confirmed in writing before work begins. There is no default.
+                            </p>
+                          </div>
+                        )}
+                        {(cat as any).notInAddendum && calcPeriod === 'confirmed' && (
+                          <p className="mb-2 rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-[10px] text-amber-900">
+                            The Addendum sets no confirmed rate for this category. Agree one with the MD before quoting.
+                          </p>
+                        )}
+                        {rateUnresolved && (
+                          <p className="mb-2 text-[10px] font-medium text-amber-800">Rate not set — the figures below will read zero until it is.</p>
+                        )}
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Commission rate</span>
                           <span className="font-medium">{(rate * 100).toFixed(1)}%</span>
@@ -347,6 +442,21 @@ export default function CommissionDashboard({ userRole, userName, userEmail }: {
                             </div>
                           </>
                         )}
+                        <div className="mt-3 rounded-lg border border-border bg-white px-3 py-2.5">
+                          <p className="text-[11px] font-semibold text-foreground">Support &amp; quality bonuses (monthly)</p>
+                          <p className="mb-1.5 text-[10px] text-muted-foreground">
+                            Addendum §8 — independent of Gross Profit. Both can be earned in the same month. Verified by the MD from CRM records at month-end.
+                          </p>
+                          {SUPPORT_BONUSES.map(b => (
+                            <div key={b.amount} className="flex items-start justify-between gap-2 py-0.5">
+                              <span className="text-[10px] text-muted-foreground">{b.label}</span>
+                              <span className="flex-shrink-0 text-[11px] font-semibold text-foreground">₦{b.amount.toLocaleString()}</span>
+                            </div>
+                          ))}
+                          <p className="mt-1 text-[10px] text-muted-foreground">
+                            Up to ₦{SUPPORT_BONUSES.reduce((s, b) => s + b.amount, 0).toLocaleString()} a month without closing a deal.
+                          </p>
+                        </div>
                         {cat.value === 'renewal' && calcPeriod === 'probation' && (
                           <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
                             Renewal commissions during probation require MD written approval before close.
