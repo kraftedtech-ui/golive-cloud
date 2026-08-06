@@ -33,6 +33,8 @@ jobs:
           git remote remove origin 2>/dev/null || true
           git remote add origin https://github.com/kraftedtech-ui/golive-cloud.git
           git fetch origin main
+          echo "=== DEPLOYING COMMIT: $(git rev-parse --short origin/main) ==="
+          git log -1 --pretty=format:"%s%n" origin/main
           echo "=== Pulling files from GitHub ==="
           git show origin/main:tsconfig.json > tsconfig.json
           git show origin/main:middleware.ts > middleware.ts
