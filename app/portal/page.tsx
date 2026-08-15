@@ -1088,7 +1088,14 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const monthlyLinesCostUSD = monthlyLines.reduce((sum, l) => sum + costUSD(l) * l.qty, 0)
   const customLinesAnnual = convertFromUSD(customLinesAnnualUSD, currency, fxRates)
   const monthlyLinesDisplay = convertFromUSD(monthlyLinesUSD, currency, fxRates)
-  const customLinesMargin = customLinesAnnualUSD > 0 ? (customLinesAnnualUSD - customLinesCostUSD) / customLinesAnnualUSD : 0
+  // Annualise monthly lines so both kinds of catalog line are measured over
+  // the same window. Dividing by committed revenue alone made a quote with
+  // only P1M lines report 0.0% — an empty denominator, not a real zero.
+  const monthlyLinesAnnualUSD = monthlyLinesUSD * 12
+  const monthlyLinesCostAnnualUSD = monthlyLinesCostUSD * 12
+  const allCatalogAnnualUSD = customLinesAnnualUSD + monthlyLinesAnnualUSD
+  const allCatalogCostUSD = customLinesCostUSD + monthlyLinesCostAnnualUSD
+  const customLinesMargin = allCatalogAnnualUSD > 0 ? (allCatalogAnnualUSD - allCatalogCostUSD) / allCatalogAnnualUSD : 0
   // ---- Deal economics -------------------------------------------------
   // Everything below is INTERNAL. Gross profit and commission are shown to
   // whoever is building the quote (a rep can't pitch on GP, per the
@@ -1098,7 +1105,10 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const addOnsAnnualUSD = addOnsPerUserUSD * userCount * nce.periodsPerYear
   const packageMarginAnnualUSD = marginPerUserUSD * userCount * nce.periodsPerYear
   const addOnsMarginAnnualUSD = addOnsMarginPerUserUSD * userCount * nce.periodsPerYear
-  const customLinesMarginUSD = customLinesAnnualUSD - customLinesCostUSD
+  // Covers committed AND monthly catalog lines. monthlyLinesCostUSD was
+  // previously computed but never used, so P1M lines added revenue while
+  // contributing no margin — understating gross profit and commission.
+  const customLinesMarginUSD = allCatalogAnnualUSD - allCatalogCostUSD
 
   const subscriptionRevenueUSD = packageAnnualUSD + addOnsAnnualUSD + customLinesAnnualUSD + (monthlyLinesUSD * 12)
   const grossProfitBeforeUSD = packageMarginAnnualUSD + addOnsMarginAnnualUSD + customLinesMarginUSD
