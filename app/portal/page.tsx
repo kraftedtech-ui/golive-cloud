@@ -24,7 +24,7 @@ import DeploymentChecklistTool from '@/components/dashboard/DeploymentChecklistT
 import SetupFeeCatalogAdmin from '@/components/dashboard/SetupFeeCatalogAdmin'
 import CurrencyOverviewWidget from '@/components/dashboard/CurrencyOverviewWidget'
 import SessionExpiryWarning from '@/components/dashboard/SessionExpiryWarning'
-import CatalogLinePicker, { type CatalogLine, lineAnnualUSD, costUSD, periodsPerYearFor } from '@/components/dashboard/CatalogLinePicker'
+import CatalogLinePicker, { type CatalogLine, lineAnnualUSD, unitUSD, costUSD, periodsPerYearFor } from '@/components/dashboard/CatalogLinePicker'
 import { deriveCommissionPeriod } from '@/lib/commissionPeriod'
 
 export const dynamic = 'force-dynamic'
@@ -1075,9 +1075,17 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   // Catalog line items are quoted independently of the package: each keeps its own
   // NCE term and billing plan, so they are annualised per line rather than folded
   // into the per-user period maths above.
-  const customLinesAnnualUSD = catalogLines.reduce((sum, l) => sum + lineAnnualUSD(l), 0)
-  const customLinesCostUSD = catalogLines.reduce((sum, l) => sum + costUSD(l) * l.qty * periodsPerYearFor(l.billingPlan), 0)
+  // Split catalog lines: committed (P1Y/P3Y) fold into annual total; monthly lines shown separately
+  // Committed = annual or 3-year term regardless of billing plan (monthly billing on P1Y is still an annual commitment)
+  // Monthly = P1M term only — truly flexible, no annual lock-in
+  const committedLines = catalogLines.filter(l => l.termDuration !== 'P1M')
+  const monthlyLines   = catalogLines.filter(l => l.termDuration === 'P1M')
+  const customLinesAnnualUSD = committedLines.reduce((sum, l) => sum + lineAnnualUSD(l), 0)
+  const customLinesCostUSD = committedLines.reduce((sum, l) => sum + costUSD(l) * l.qty * periodsPerYearFor(l.billingPlan), 0)
+  const monthlyLinesUSD  = monthlyLines.reduce((sum, l) => sum + unitUSD(l) * l.qty, 0)
+  const monthlyLinesCostUSD = monthlyLines.reduce((sum, l) => sum + costUSD(l) * l.qty, 0)
   const customLinesAnnual = convertFromUSD(customLinesAnnualUSD, currency, fxRates)
+  const monthlyLinesDisplay = convertFromUSD(monthlyLinesUSD, currency, fxRates)
   const customLinesMargin = customLinesAnnualUSD > 0 ? (customLinesAnnualUSD - customLinesCostUSD) / customLinesAnnualUSD : 0
   // ---- Deal economics -------------------------------------------------
   // Everything below is INTERNAL. Gross profit and commission are shown to
@@ -1090,7 +1098,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const addOnsMarginAnnualUSD = addOnsMarginPerUserUSD * userCount * nce.periodsPerYear
   const customLinesMarginUSD = customLinesAnnualUSD - customLinesCostUSD
 
-  const subscriptionRevenueUSD = packageAnnualUSD + addOnsAnnualUSD + customLinesAnnualUSD
+  const subscriptionRevenueUSD = packageAnnualUSD + addOnsAnnualUSD + customLinesAnnualUSD + (monthlyLinesUSD * 12)
   const grossProfitBeforeUSD = packageMarginAnnualUSD + addOnsMarginAnnualUSD + customLinesMarginUSD
 
   // Discount applies to subscription revenue only. The setup fee is GoLive
@@ -1130,7 +1138,35 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const netTotal = subscriptionAfterDiscount + setupFee
   const vatRate = vatEnabled ? Math.max(0, parseFloat(vatRatePct) || 0) : 0
   const vatAmount = netTotal * (vatRate / 100)
-  const grandTotalFirstYear = netTotal + vatAmount
+  // For P1M (monthly, no commitment) first payment = this month only (period + setup + VAT)
+  // For P1Y (annual commitment) = full year total as before
+  const isMonthlyCommitment = nce.termDuration === 'P1M'
+  // For monthly commitment, first payment = this month's package + monthly add-ons + setup fee
+  // monthlyLinesUSD is USD; every other term here is in the display currency.
+  // Convert before summing — adding raw USD to NGN silently drops the line to
+  // ~1/1360th of its value in the first-month total.
+  const monthlyLinesConverted = convertFromUSD(monthlyLinesUSD, currency, fxRates)
+  // discountConverted is computed off ANNUAL revenue. On a monthly-commitment
+  // quote the headline covers one month, so the discount shown and charged
+  // must be the one-month share — previously it was omitted entirely, and the
+  // customer was billed full price beneath a visible discount line.
+  const headlineDiscount = isMonthlyCommitment
+    ? (periodTotal + monthlyLinesConverted) * (discountPercent / 100)
+    : discountConverted
+  const firstPaymentBase = isMonthlyCommitment
+    ? periodTotal + monthlyLinesConverted + setupFee - headlineDiscount
+    : netTotal
+  const firstPaymentVAT = firstPaymentBase * (vatRate / 100)
+  // The headline governs which period the Subtotal/VAT rows must describe.
+  // Mixing an annual subtotal under a first-month heading is what produced
+  // three different periods in one column.
+  const headlineBase = isMonthlyCommitment ? firstPaymentBase : netTotal
+  const headlineVAT = isMonthlyCommitment ? firstPaymentVAT : vatAmount
+  // Projection must carry committed catalog lines AND monthly lines annualised.
+  const projectedAnnual = annualTotal + customLinesAnnual + monthlyLinesConverted * 12
+  const grandTotalFirstYear = isMonthlyCommitment
+    ? firstPaymentBase + firstPaymentVAT
+    : netTotal + vatAmount
   const usdRate = fxRates['USD'] || 0
   const grandTotalUSD = convertToUSD(grandTotalFirstYear, currency, fxRates)
   const sym = CURRENCY_SYMBOLS[currency] || currency + ' '
@@ -1190,9 +1226,12 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
         setupFee,
         discountPercent,
         discountAmount: discountConverted,
-        netTotal,
+        // Must satisfy netTotal + vatTotal === grossTotal. On a P1M quote all
+        // three describe the first month; on P1Y all three describe the year.
+        // Mixing them left the archived invoice contradicting itself.
+        netTotal: headlineBase,
         vatRatePercent: vatRate,
-        vatTotal: vatAmount,
+        vatTotal: headlineVAT,
         grossTotal: grandTotalFirstYear,
         grossProfitUSD: grossProfitAfterUSD,
         commissionRate: COMMISSION_RATE,
@@ -1320,12 +1359,22 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           ${activeAddOns.length > 0 ? `<tr><td style="color:#5c7184">Add-ons: ${activeAddOns.map(a => a.label).join(', ')}</td><td>${sym}${addOnsPerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}</td></tr>` : ''}
           <tr><td style="color:#5c7184">${nce.periodsPerYear === 1 ? 'Annual subscription total' : 'Monthly subscription total'}</td><td>${sym}${periodTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
           ${nce.periodsPerYear > 1 ? `<tr><td style="color:#5c7184">12-month subscription total</td><td>${sym}${annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
-          ${catalogLines.length > 0 ? catalogLines.map(l => `<tr><td style="color:#5c7184">${l.qty}× ${l.skuTitle}<br/><span style="font-size:10px;color:#93a5b5">${l.termDuration === 'P1Y' ? '12-month term' : 'Monthly term'} · billed ${l.billingPlan.toLowerCase()}</span></td><td>${sym}${convertFromUSD(lineAnnualUSD(l), currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })} / year</td></tr>`).join('') : ''}
+          ${catalogLines.length > 0 ? catalogLines.map(l => {
+            const isMonthly = l.billingPlan === 'Monthly'
+            const displayAmt = convertFromUSD(unitUSD(l) * l.qty, currency, fxRates)
+            const termLabel = l.termDuration === 'P1Y' ? '12-month commitment' : l.termDuration === 'P3Y' ? '36-month commitment' : 'Monthly term'
+            const periodLabel = isMonthly ? '/ mo' : '/ yr'
+            return `<tr><td style="color:#5c7184">${l.qty}× ${l.skuTitle}<br/><span style="font-size:10px;color:#93a5b5">${termLabel} · billed ${l.billingPlan.toLowerCase()}</span></td><td>${sym}${displayAmt.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${periodLabel}</td></tr>`
+          }).join('') : ''}
           <tr><td style="color:#5c7184">One-time setup & migration fee</td><td>${sym}${setupFee.toLocaleString()}</td></tr>
-          ${discountPercent > 0 ? `<tr><td style="color:#0096c7">Discount applied (${discountPercent}%)</td><td style="color:#0096c7">−${sym}${discountConverted.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
-          ${vatRate > 0 ? `<tr><td style="color:#5c7184">Subtotal (excl. VAT)</td><td>${sym}${netTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
-          <tr><td style="color:#5c7184">VAT @ ${vatRate}%</td><td>${sym}${vatAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
-          <tr class="total-row"><td>Total first year investment${vatRate > 0 ? ' (incl. VAT)' : ''}</td><td>${sym}${(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          ${discountPercent > 0 ? `<tr><td style="color:#0096c7">Discount applied (${discountPercent}%)</td><td style="color:#0096c7">−${sym}${headlineDiscount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
+          ${vatRate > 0 ? `<tr><td style="color:#5c7184">${isMonthlyCommitment ? 'First month subtotal (excl. VAT)' : 'Subtotal (excl. VAT)'}</td><td>${sym}${headlineBase.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          <tr><td style="color:#5c7184">VAT @ ${vatRate}%</td><td>${sym}${headlineVAT.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
+          ${isMonthlyCommitment
+            ? `<tr><td style="color:#5c7184;font-size:11px">Projected 12-month total (no commitment)</td><td style="font-size:11px;color:#5c7184">${sym}${projectedAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>`
+            : ''}
+          <tr class="total-row"><td>${isMonthlyCommitment ? 'First month investment' : 'Total first year investment'}${vatRate > 0 ? ' (incl. VAT)' : ''}</td><td>${sym}${(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          ${monthlyLinesUSD > 0 ? `<tr><td style="color:#5c7184;font-size:11px">of which recurring monthly add-ons</td><td style="font-size:11px;color:#5c7184">${sym}${convertFromUSD(monthlyLinesUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })} / mo</td></tr>` : ''}
           ${vatRate === 0 ? '<tr><td colspan="2" style="color:#5c7184;font-size:11px">Exclusive of VAT. Any tax applicable in the customer\'s jurisdiction is payable in addition to the amounts above.</td></tr>' : ''}
           ${currency !== 'USD' && usdRate > 0 ? `<tr><td style="color:#5c7184;font-size:11px">USD equivalent</td><td style="font-size:11px;color:#5c7184">\u2248 ${grandTotalUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })} at 1 USD = ${CURRENCY_SYMBOLS['NGN'] || '₦'}${usdRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td></tr>` : ''}
         </table>
@@ -1476,7 +1525,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
                   </span>
                 </span>
                 <span className="flex-shrink-0 text-muted-foreground">
-                  {sym}{convertFromUSD(lineAnnualUSD(l), currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}/yr
+                  {sym}{convertFromUSD(unitUSD(l) * l.qty, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}/{l.billingPlan === 'Monthly' ? 'mo' : 'yr'}
                 </span>
               </div>
             ))}
@@ -1750,29 +1799,41 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           {catalogLines.map(l => (
             <div key={l._id} className="flex justify-between py-1 border-b border-border/50">
               <span className="text-muted-foreground">{l.qty}× {l.skuTitle} <span className="text-[10px]">({l.billingPlan.toLowerCase()})</span></span>
-              <span className="font-medium">{sym}{convertFromUSD(lineAnnualUSD(l), currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}/yr</span>
+              <span className="font-medium">{sym}{convertFromUSD(unitUSD(l) * l.qty, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}/{l.billingPlan === 'Monthly' ? 'mo' : 'yr'}</span>
             </div>
           ))}
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Setup fee</span><span className="font-medium">{sym}{setupFee.toLocaleString()}</span></div>
           {discountPercent > 0 && (
             <div className="flex justify-between py-1 border-b border-border/50 text-primary">
               <span>Discount ({discountPercent}%)</span>
-              <span className="font-medium">−{sym}{discountConverted.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+              <span className="font-medium">−{sym}{headlineDiscount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
             </div>
           )}
           {vatRate > 0 && (
             <>
               <div className="flex justify-between py-1 border-b border-border/50">
-                <span className="text-muted-foreground">Subtotal (excl. VAT)</span>
-                <span className="font-medium">{sym}{netTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="text-muted-foreground">{isMonthlyCommitment ? 'First month subtotal (excl. VAT)' : 'Subtotal (excl. VAT)'}</span>
+                <span className="font-medium">{sym}{headlineBase.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/50">
                 <span className="text-muted-foreground">VAT ({vatRate}%)</span>
-                <span className="font-medium">{sym}{vatAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="font-medium">{sym}{headlineVAT.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
             </>
           )}
-          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">Total first year</span><span className="font-bold text-primary text-base">{sym}{(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
+          {isMonthlyCommitment && (
+            <div className="flex justify-between py-1 border-b border-border/50 text-xs text-muted-foreground">
+              <span>Projected 12-month (no commitment)</span>
+              <span>{sym}{projectedAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+            </div>
+          )}
+          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">{isMonthlyCommitment ? 'First month total' : 'Total first year'}</span><span className="font-bold text-primary text-base">{sym}{(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
+          {monthlyLinesUSD > 0 && (
+            <div className="flex justify-between py-1 text-xs text-muted-foreground border-t border-dashed border-border/40 mt-1">
+              <span>of which recurring monthly add-ons</span>
+              <span>{sym}{monthlyLinesDisplay.toLocaleString(undefined, { maximumFractionDigits: 0 })} / mo</span>
+            </div>
+          )}
         </div>
         {azureNote.trim() && (
           <div className="mt-2 rounded-lg bg-sky-50 border border-sky-200 px-2.5 py-2 text-[10px] text-sky-800">☁ Azure: {azureNote} — billed separately by Microsoft, not included above.</div>
