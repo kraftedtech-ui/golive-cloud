@@ -895,6 +895,8 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   }, [])
   const [fxFetchedAt, setFxFetchedAt] = useState<string | null>(null)
   const [catalogLines, setCatalogLines] = useState<CatalogLine[]>([])
+  // Months paid up front on a P1M deal. 1 = plain monthly billing.
+  const [advanceMonths, setAdvanceMonths] = useState(1)
   const [linePickerOpen, setLinePickerOpen] = useState(false)
   const [packages, setPackages] = useState<ProductMappingItem[]>(FALLBACK_PACKAGES)
   const [addOnDefs, setAddOnDefs] = useState<ProductMappingItem[]>([])
@@ -1153,8 +1155,23 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const headlineDiscount = isMonthlyCommitment
     ? (periodTotal + monthlyLinesConverted) * (discountPercent / 100)
     : discountConverted
+  // One month's net subscription charge, discount already applied. This is
+  // the unit of revenue recognition regardless of how many months are billed.
+  const monthlyNet = periodTotal + monthlyLinesConverted - headlineDiscount
+  const advMonths = isMonthlyCommitment ? Math.max(1, advanceMonths) : 1
+  const advanceNet = monthlyNet * advMonths
+  const coverageStart = new Date()
+  const coverageEnd = new Date(coverageStart)
+  coverageEnd.setMonth(coverageEnd.getMonth() + advMonths)
+  coverageEnd.setDate(coverageEnd.getDate() - 1)
+  const coverageLabel = `${coverageStart.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} – ${coverageEnd.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+  const headlineLabel = !isMonthlyCommitment
+    ? 'Total first year'
+    : advMonths > 1
+      ? `First payment — ${advMonths} months in advance`
+      : 'First month total'
   const firstPaymentBase = isMonthlyCommitment
-    ? periodTotal + monthlyLinesConverted + setupFee - headlineDiscount
+    ? advanceNet + setupFee
     : netTotal
   const firstPaymentVAT = firstPaymentBase * (vatRate / 100)
   // The headline governs which period the Subtotal/VAT rows must describe.
@@ -1233,6 +1250,10 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
         vatRatePercent: vatRate,
         vatTotal: headlineVAT,
         grossTotal: grandTotalFirstYear,
+        advanceMonths: advMonths,
+        monthlyNet,
+        coverageStart,
+        coverageEnd,
         grossProfitUSD: grossProfitAfterUSD,
         commissionRate: COMMISSION_RATE,
         commissionNGN,
@@ -1373,7 +1394,11 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           ${isMonthlyCommitment
             ? `<tr><td style="color:#5c7184;font-size:11px">Projected 12-month total (no commitment)</td><td style="font-size:11px;color:#5c7184">${sym}${projectedAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>`
             : ''}
-          <tr class="total-row"><td>${isMonthlyCommitment ? 'First month investment' : 'Total first year investment'}${vatRate > 0 ? ' (incl. VAT)' : ''}</td><td>${sym}${(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          ${isMonthlyCommitment && advMonths > 1
+            ? `<tr><td style="color:#5c7184">Monthly charge (excl. VAT)</td><td>${sym}${monthlyNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
+          <tr><td style="color:#5c7184">× ${advMonths} months in advance · covers ${coverageLabel}</td><td>${sym}${advanceNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>`
+            : ''}
+          <tr class="total-row"><td>${headlineLabel}${vatRate > 0 ? ' (incl. VAT)' : ''}</td><td>${sym}${(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
           ${monthlyLinesUSD > 0 ? `<tr><td style="color:#5c7184;font-size:11px">of which recurring monthly add-ons</td><td style="font-size:11px;color:#5c7184">${sym}${convertFromUSD(monthlyLinesUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })} / mo</td></tr>` : ''}
           ${vatRate === 0 ? '<tr><td colspan="2" style="color:#5c7184;font-size:11px">Exclusive of VAT. Any tax applicable in the customer\'s jurisdiction is payable in addition to the amounts above.</td></tr>' : ''}
           ${currency !== 'USD' && usdRate > 0 ? `<tr><td style="color:#5c7184;font-size:11px">USD equivalent</td><td style="font-size:11px;color:#5c7184">\u2248 ${grandTotalUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })} at 1 USD = ${CURRENCY_SYMBOLS['NGN'] || '₦'}${usdRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td></tr>` : ''}
@@ -1474,6 +1499,26 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
             <p className="mt-1 text-[10px] text-muted-foreground">No Discovery Assessment on file for this lead — using a rough default. Run one first for an accurate, scope-based fee.</p>
           )}
         </div>
+
+        {isMonthlyCommitment && (
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-foreground">Payment in advance</label>
+            <select
+              value={advanceMonths}
+              onChange={e => setAdvanceMonths(parseInt(e.target.value, 10))}
+              className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30"
+            >
+              <option value={1}>Monthly — 1 month at a time</option>
+              <option value={3}>Quarterly — 3 months in advance</option>
+              <option value={6}>Half-yearly — 6 months in advance</option>
+            </select>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {advanceMonths > 1
+                ? `Customer pays ${advanceMonths} months up front; GoLive keeps the monthly commitment with Microsoft. Revenue is recognised monthly across the period.`
+                : 'No advance — billed one month at a time, so the customer can leave at any point after setup.'}
+            </p>
+          </div>
+        )}
 
         <div>
           <label className="mb-1.5 block text-xs font-medium text-foreground">Add-ons (optional, priced separately from the package)</label>
@@ -1827,7 +1872,23 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
               <span>{sym}{projectedAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
             </div>
           )}
-          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">{isMonthlyCommitment ? 'First month total' : 'Total first year'}</span><span className="font-bold text-primary text-base">{sym}{(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
+          {isMonthlyCommitment && advMonths > 1 && (
+            <>
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-muted-foreground">Monthly charge (excl. VAT)</span>
+                <span className="font-medium">{sym}{monthlyNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-border/50">
+                <span className="text-muted-foreground">× {advMonths} months in advance</span>
+                <span className="font-medium">{sym}{advanceNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-border/50 text-xs text-muted-foreground">
+                <span>Covers</span>
+                <span>{coverageLabel}</span>
+              </div>
+            </>
+          )}
+          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">{headlineLabel}</span><span className="font-bold text-primary text-base">{sym}{(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
           {monthlyLinesUSD > 0 && (
             <div className="flex justify-between py-1 text-xs text-muted-foreground border-t border-dashed border-border/40 mt-1">
               <span>of which recurring monthly add-ons</span>

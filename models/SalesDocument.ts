@@ -96,6 +96,23 @@ export interface ISalesDocument extends Document {
   grossTotal: number
 
   /**
+   * Prepayment. On a monthly-commitment (P1M) deal the customer may pay
+   * several months in advance while GoLive keeps the monthly commitment
+   * upstream. This is an advance for services, not a refundable deposit —
+   * VAT is charged on the whole amount at issue and revenue is recognised
+   * across the coverage window.
+   *
+   *   advanceMonths  months this document covers (1 = plain monthly)
+   *   monthlyNet     one month's net charge, for revenue recognition
+   *   coverageStart  first day of the period paid for
+   *   coverageEnd    last day of the period paid for
+   */
+  advanceMonths?: number
+  monthlyNet?: number
+  coverageStart?: Date
+  coverageEnd?: Date
+
+  /**
    * Internal economics, snapshotted so a closed deal can be reconciled later
    * even after catalog prices move. Never rendered on the customer document.
    */
@@ -194,6 +211,11 @@ const SalesDocumentSchema = new Schema<ISalesDocument>(
     vatRatePercent: { type: Number, default: 0 },
     vatTotal: { type: Number, default: 0 },
     grossTotal: { type: Number, required: true },
+
+    advanceMonths: { type: Number, default: 1 },
+    monthlyNet: { type: Number, default: 0 },
+    coverageStart: Date,
+    coverageEnd: Date,
 
     grossProfitUSD: Number,
     commissionRate: Number,
