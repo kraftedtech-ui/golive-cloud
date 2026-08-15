@@ -1173,6 +1173,14 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const firstPaymentBase = isMonthlyCommitment
     ? advanceNet + setupFee
     : netTotal
+  // commissionNGN is a FULL-TERM forecast: it annualises gross profit over
+  // twelve months. Commission is only earned as each month is served, so on
+  // a monthly-commitment deal the amount payable when this invoice is
+  // collected is the share covering the months actually paid for. On an
+  // annual commitment the customer has paid the whole term, so it is all
+  // earned at once. Declared here because it depends on advMonths.
+  const commissionMonthsPaid = isMonthlyCommitment ? advMonths : 12
+  const commissionPayableNGN = commissionNGN * (commissionMonthsPaid / 12)
   const firstPaymentVAT = firstPaymentBase * (vatRate / 100)
   // The headline governs which period the Subtotal/VAT rows must describe.
   // Mixing an annual subtotal under a first-month heading is what produced
@@ -1669,10 +1677,21 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
                 )}
               </div>
               <div className="rounded-lg bg-white px-2.5 py-1.5">
-                <p className="text-[10px] text-muted-foreground">Your commission</p>
+                <p className="text-[10px] text-muted-foreground">Commission forecast</p>
                 <p className="font-semibold text-foreground">₦{commissionNGN.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                <p className="text-[10px] text-muted-foreground">{(COMMISSION_RATE * 100).toFixed(0)}% of GP</p>
+                <p className="text-[10px] text-muted-foreground">{(COMMISSION_RATE * 100).toFixed(0)}% of GP · full 12-month term</p>
               </div>
+            </div>
+
+            <div className="rounded-lg bg-white px-2.5 py-1.5 text-xs">
+              <p className="text-[10px] text-muted-foreground">Payable on this invoice</p>
+              <p className="font-semibold text-foreground">₦{commissionPayableNGN.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+              <p className="text-[10px] text-muted-foreground">
+                {commissionMonthsPaid} of 12 months paid for
+                {commissionMonthsPaid < 12
+                  ? ` — the remaining ₦${(commissionNGN - commissionPayableNGN).toLocaleString(undefined, { maximumFractionDigits: 0 })} accrues monthly as each month is served`
+                  : ' — full term paid up front'}
+              </p>
             </div>
 
             {bonusTier && !bonusAtRisk && (
