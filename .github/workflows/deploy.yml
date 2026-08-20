@@ -216,6 +216,7 @@ jobs:
           git show origin/main:public/site.webmanifest > public/site.webmanifest
           git show origin/main:public/certification-guide.html > public/certification-guide.html
           git show origin/main:public/assessment.html > public/assessment.html
+          git show origin/main:public/assessment-core.js > public/assessment-core.js
           git show origin/main:public/assessment-sales.html > public/assessment-sales.html
           git show origin/main:public/assessment-social.html > public/assessment-social.html
           git show origin/main:public/assessment-hosting.html > public/assessment-hosting.html
