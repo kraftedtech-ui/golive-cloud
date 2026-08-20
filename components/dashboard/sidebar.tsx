@@ -7,7 +7,7 @@ import {
   Users, ShieldCheck, LayoutDashboard, LogOut, BadgeCheck,
   BookOpen, Award, GraduationCap, ExternalLink, ChevronDown,
   DollarSign, Bell, Settings, Tags, AlertTriangle, ClipboardList,
-  type LucideIcon, Cloud,
+  type LucideIcon, Cloud, ClipboardCheck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
