@@ -74,6 +74,7 @@ jobs:
           git show origin/main:lib/auth.ts > lib/auth.ts
           git show origin/main:lib/apiAuth.ts > lib/apiAuth.ts
           git show origin/main:lib/assessmentToken.ts > lib/assessmentToken.ts
+          git show origin/main:lib/proposalTemplate.ts > lib/proposalTemplate.ts
           mkdir -p scripts
           git show origin/main:scripts/purge-assessments.js > scripts/purge-assessments.js
           git show origin/main:lib/exchangeRates.ts > lib/exchangeRates.ts
@@ -168,6 +169,8 @@ jobs:
           git show "origin/main:app/api/discovery-assessments/[id]/route.ts" > "app/api/discovery-assessments/[id]/route.ts"
           mkdir -p app/api/discovery-assessments/public
           git show origin/main:app/api/discovery-assessments/public/route.ts > app/api/discovery-assessments/public/route.ts
+          mkdir -p app/api/proposals/pdf
+          git show origin/main:app/api/proposals/pdf/route.ts > app/api/proposals/pdf/route.ts
           mkdir -p app/api/sales-documents "app/api/sales-documents/[id]"
           git show origin/main:app/api/sales-documents/route.ts > app/api/sales-documents/route.ts
           git show "origin/main:app/api/sales-documents/[id]/route.ts" > "app/api/sales-documents/[id]/route.ts"

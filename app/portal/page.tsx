@@ -900,6 +900,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   }, [])
   const [fxFetchedAt, setFxFetchedAt] = useState<string | null>(null)
   const [catalogLines, setCatalogLines] = useState<CatalogLine[]>([])
+  const [pdfBusy, setPdfBusy] = useState(false)
   // Months paid up front on a P1M deal. 1 = plain monthly billing.
   const [advanceMonths, setAdvanceMonths] = useState(1)
   const [linePickerOpen, setLinePickerOpen] = useState(false)
@@ -1315,155 +1316,196 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
     } catch { setDocMsg('Network error.') }
   }
 
-  const printProposal = () => {
-    const printContent = document.getElementById('proposal-print')?.innerHTML
-    if (!printContent) return
-    const win = window.open('', '_blank')
-    if (!win) return
-    win.document.write(`
-      <!DOCTYPE html><html><head>
-      <title>GoLive Proposal — ${lead?.company || 'Client'}</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; color: #0d2233; background: #fff; }
-        .page { max-width: 800px; margin: 0 auto; padding: 48px 48px; }
-        .header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px; border-bottom: 3px solid #0096c7; margin-bottom: 32px; }
-        .logo-area { display: flex; flex-direction: column; gap: 4px; }
-        .company-name { font-size: 24px; font-weight: 800; color: #0d2233; }
-        .company-sub { font-size: 11px; color: #5c7184; }
-        .ms-badge { display: flex; align-items: center; gap: 8px; background: #f0f8ff; border: 1px solid #c8e6f0; border-radius: 8px; padding: 8px 14px; }
-        .ms-logo { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; width: 20px; height: 20px; }
-        .ms-logo span { display: block; border-radius: 1px; }
-        .ms-badge-text { font-size: 10px; font-weight: 600; color: #0d2233; line-height: 1.3; }
-        .proposal-title { font-size: 20px; font-weight: 700; color: #0096c7; margin-bottom: 4px; }
-        .proposal-ref { font-size: 11px; color: #5c7184; margin-bottom: 24px; }
-        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
-        .meta-card { background: #f4f7fb; border-radius: 8px; padding: 14px 16px; }
-        .meta-label { font-size: 10px; font-weight: 700; color: #5c7184; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-        .meta-value { font-size: 13px; font-weight: 600; color: #0d2233; }
-        .section-title { font-size: 13px; font-weight: 700; color: #0d2233; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #e3e9f0; }
-        .pricing-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
-        .pricing-table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
-        .pricing-table td:last-child { text-align: right; font-weight: 500; }
-        .pricing-table .total-row td { font-size: 16px; font-weight: 800; color: #0096c7; border-bottom: none; padding-top: 14px; }
-        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 32px; }
-        .feature { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: #333; }
-        .check { color: #00c8c8; font-weight: 700; flex-shrink: 0; }
-        .footer-box { background: #0d2233; color: #fff; border-radius: 10px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; margin-top: 32px; }
-        .footer-text { font-size: 11px; color: rgba(255,255,255,0.7); line-height: 1.6; }
-        .validity { background: #e8f4fb; border-left: 3px solid #0096c7; border-radius: 0 6px 6px 0; padding: 12px 16px; margin-bottom: 24px; font-size: 12px; color: #0d2233; }
-        .ndpr { font-size: 10px; color: rgba(255,255,255,0.5); }
-      </style>
-      </head><body>
-      <div class="page">
-        <div class="header">
-          <div class="logo-area">
-            <img src="https://cloud.golivecompany.com/images/logo-dark.png" style="width:260px;max-width:100%;height:auto;display:block;margin-bottom:10px;" alt="GoLive" onerror="this.style.display='none'" />
-            <div class="company-sub">RC1644767 · 7 Ibiyinka Olorunbe Close, Victoria Island, Lagos</div>
-            <div class="company-sub">contact@golivecompany.com · +234 808 358 7801</div>
-          </div>
-          <div class="ms-badge">
-            <svg width="20" height="20" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
-              <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
-              <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
-              <rect x="1" y="11" width="9" height="9" fill="#00a4ef"/>
-              <rect x="11" y="11" width="9" height="9" fill="#ffb900"/>
-            </svg>
-            <div class="ms-badge-text">Authorized Microsoft<br/>CSP Partner · ID 6787357</div>
-          </div>
-        </div>
+  /**
+   * Save the version, then render the PDF server-side with the reference the
+   * save returned. The document is never produced from an unsaved quote, so
+   * the reference a customer quotes on their transfer always resolves to a
+   * record — and a re-print creates a new version rather than a second
+   * document carrying a different number for the same quote.
+   */
+  const generateProposalPdf = async () => {
+    if (!lead) { setDocMsg('Select a lead first.'); return }
+    setPdfBusy(true)
+    setDocMsg('Saving version…')
 
-        <div class="proposal-title">Microsoft 365 Proposal</div>
-        <div class="proposal-ref">Ref: ${proposalRef} · Prepared: ${today} · Valid until: ${expiry}</div>
+    try {
+      const saved = await saveProposalVersion()
+      if (!saved) { setPdfBusy(false); return }
 
-        <div class="meta-grid">
-          <div class="meta-card">
-            <div class="meta-label">Prepared for</div>
-            <div class="meta-value">${lead?.company || '—'}</div>
-            <div style="font-size:12px;color:#5c7184;margin-top:2px">${lead?.contact || ''}</div>
-            <div style="font-size:12px;color:#5c7184;">${lead?.email || ''}</div>
-            ${lead?.phone ? `<div style="font-size:12px;color:#5c7184;">${lead.phone}</div>` : ''}
-            <div style="font-size:12px;color:#5c7184;">${lead?.country || ''}${lead?.industry ? ' · ' + lead.industry : ''}</div>
-            ${customerTIN.trim() ? `<div style="font-size:12px;color:#5c7184;margin-top:4px"><span style="font-weight:600">Tax ID:</span> ${customerTIN}</div>` : ''}
-          </div>
-          <div class="meta-card">
-            <div class="meta-label">Package</div>
-            <div class="meta-value">${pkg}</div>
-            <div style="font-size:12px;color:#5c7184;margin-top:2px">${userCount} users · Billed in ${currency} · ${nce.label}</div>
-            ${lead?.services?.[0] ? `<div style="font-size:11px;color:#0096c7;margin-top:4px">Migrating from: ${lead.services[0]}</div>` : ''}
-          </div>
-        </div>
+      setDocMsg('Rendering PDF…')
 
-        <div class="section-title">Pricing Summary</div>
-        <table class="pricing-table">
-          <tr><td style="color:#5c7184">Package</td><td>${pkg}</td></tr>
-          <tr><td style="color:#5c7184">Billing plan</td><td>${nce.label}</td></tr>
-          <tr><td style="color:#5c7184">Number of users</td><td>${userCount}</td></tr>
-          <tr><td style="color:#5c7184">Package price per user</td><td>${sym}${pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}</td></tr>
-          ${activeAddOns.length > 0 ? `<tr><td style="color:#5c7184">Add-ons: ${activeAddOns.map(a => a.label).join(', ')}</td><td>${sym}${addOnsPerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}</td></tr>` : ''}
-          <tr><td style="color:#5c7184">${nce.periodsPerYear === 1 ? 'Annual subscription total' : 'Monthly subscription total'}</td><td>${sym}${periodTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
-          ${nce.periodsPerYear > 1 ? `<tr><td style="color:#5c7184">12-month subscription total</td><td>${sym}${annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
-          ${catalogLines.length > 0 ? catalogLines.map(l => {
-            const isMonthly = l.billingPlan === 'Monthly'
-            const displayAmt = convertFromUSD(unitUSD(l) * l.qty, currency, fxRates)
-            const termLabel = l.termDuration === 'P1Y' ? '12-month commitment' : l.termDuration === 'P3Y' ? '36-month commitment' : 'Monthly term'
-            const periodLabel = isMonthly ? '/ mo' : '/ yr'
-            return `<tr><td style="color:#5c7184">${l.qty}× ${l.skuTitle}<br/><span style="font-size:10px;color:#93a5b5">${termLabel} · billed ${l.billingPlan.toLowerCase()}</span></td><td>${sym}${displayAmt.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${periodLabel}</td></tr>`
-          }).join('') : ''}
-          <tr><td style="color:#5c7184">One-time setup & migration fee</td><td>${sym}${setupFee.toLocaleString()}</td></tr>
-          ${discountPercent > 0 ? `<tr><td style="color:#0096c7">Discount applied (${discountPercent}%)</td><td style="color:#0096c7">−${sym}${headlineDiscount.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
-          ${vatRate > 0 ? `<tr><td style="color:#5c7184">${isMonthlyCommitment ? 'First month subtotal (excl. VAT)' : 'Subtotal (excl. VAT)'}</td><td>${sym}${headlineBase.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
-          <tr><td style="color:#5c7184">VAT @ ${vatRate}%</td><td>${sym}${headlineVAT.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>` : ''}
-          ${isMonthlyCommitment
-            ? `<tr><td style="color:#5c7184;font-size:11px">Projected 12-month total (no commitment)</td><td style="font-size:11px;color:#5c7184">${sym}${projectedAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>`
-            : ''}
-          ${isMonthlyCommitment && advMonths > 1
-            ? `<tr><td style="color:#5c7184">Monthly charge (excl. VAT)</td><td>${sym}${monthlyNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
-          <tr><td style="color:#5c7184">× ${advMonths} months in advance · covers ${coverageLabel}</td><td>${sym}${advanceNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>`
-            : ''}
-          <tr class="total-row"><td>${headlineLabel}${vatRate > 0 ? ' (incl. VAT)' : ''}</td><td>${sym}${(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</td></tr>
-          ${monthlyLinesUSD > 0 ? `<tr><td style="color:#5c7184;font-size:11px">of which recurring monthly add-ons</td><td style="font-size:11px;color:#5c7184">${sym}${convertFromUSD(monthlyLinesUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })} / mo</td></tr>` : ''}
-          ${vatRate === 0 ? '<tr><td colspan="2" style="color:#5c7184;font-size:11px">Exclusive of VAT. Any tax applicable in the customer\'s jurisdiction is payable in addition to the amounts above.</td></tr>' : ''}
-          ${currency !== 'USD' && usdRate > 0 ? `<tr><td style="color:#5c7184;font-size:11px">USD equivalent</td><td style="font-size:11px;color:#5c7184">\u2248 ${grandTotalUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })} at 1 USD = ${CURRENCY_SYMBOLS['NGN'] || '₦'}${usdRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td></tr>` : ''}
-        </table>
-        ${azureNote.trim() ? `<div class="validity" style="margin-bottom:16px;">☁ Azure: ${azureNote} — billed separately and directly by Microsoft based on actual consumption. Not included in the totals above.</div>` : ''}
+      // Every figure below is the one already on screen. Nothing is
+      // recomputed for the document.
+      const lines: any[] = [
+        { label: 'Package', value: pkg },
+        { label: 'Billing plan', value: nce.label },
+        { label: 'Users', value: String(userCount) },
+        {
+          label: `Package price per user ${periodLabel.replace('/ user / ', 'per ')}`,
+          value: `${sym}${pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })}`,
+        },
+      ]
 
-        <div class="section-title">What's Included</div>
-        <div class="features">
-          ${(pkgFeatures[pkg] || []).map(f => `<div class="feature"><span class="check">✓</span><span>${f}</span></div>`).join('')}
-          ${activeAddOns.map(a => `<div class="feature"><span class="check">✓</span><span>${a.label}</span></div>`).join('')}
-        </div>
+      if (activeAddOns.length > 0) {
+        lines.push({
+          label: `Add-ons: ${activeAddOns.map(a => a.label).join(', ')}`,
+          value: `${sym}${addOnsPerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}`,
+        })
+      }
 
-        <div class="validity">
-          ⏱ This proposal is valid for 14 days from ${today}. ${nce.note}
-        </div>
+      lines.push({
+        label: nce.periodsPerYear === 1 ? 'Annual subscription total' : 'Monthly subscription total',
+        value: `${sym}${periodTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+      })
 
-        <div class="section-title">Payment Details</div>
-        <table class="pricing-table" style="margin-bottom:16px">
-          <tr><td style="color:#5c7184">Account name</td><td style="text-align:left;font-weight:600">THE GOLIVE DIGITAL SOLN CO. LTD</td></tr>
-          <tr><td style="color:#5c7184">Account number</td><td style="text-align:left;font-weight:600">0588294971</td></tr>
-          <tr><td style="color:#5c7184">Bank</td><td style="text-align:left;font-weight:600">GT Bank</td></tr>
-          <tr><td style="color:#5c7184">National Tax ID</td><td style="text-align:left;font-weight:600">2522598389709</td></tr>
-          ${currency !== 'USD' ? '' : '<tr><td style="color:#5c7184">Note</td><td style="text-align:left;font-size:11px">USD payments — contact us for correspondent bank details before transferring.</td></tr>'}
-        </table>
-        <div class="validity" style="margin-bottom:24px">
-          💳 To proceed, quote reference <strong>${proposalRef}</strong> on your transfer and email the remittance advice to contact@golivecompany.com. Provisioning begins on confirmation of payment.
-        </div>
+      if (nce.periodsPerYear > 1) {
+        lines.push({
+          label: '12-month subscription total',
+          value: `${sym}${annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+        })
+      }
 
-        <div class="footer-box">
-          <div class="footer-text">
-            <strong style="color:#fff">The GoLive Digital Solutions Company Ltd.</strong><br/>
-            RC1644767 · Microsoft CSP Partner ID: 6787357<br/>
-            cloud.golivecompany.com · contact@golivecompany.com
-          </div>
-          <div class="ndpr">NDPA 2023 Compliant<br/>Migration Included<br/>30-Day Support</div>
-        </div>
-      </div>
-      </body></html>
-    `)
-    win.document.close()
-    win.focus()
-    setTimeout(() => { win.print() }, 500)
+      catalogLines.forEach(l => {
+        const termLabel = l.termDuration === 'P1Y' ? '12-month commitment'
+          : l.termDuration === 'P3Y' ? '36-month commitment' : 'Monthly term'
+        lines.push({
+          label: `${l.qty}× ${l.skuTitle}`,
+          sublabel: `${termLabel} · billed ${l.billingPlan.toLowerCase()}`,
+          value: `${sym}${convertFromUSD(unitUSD(l) * l.qty, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}${l.billingPlan === 'Monthly' ? ' / mo' : ' / yr'}`,
+        })
+      })
+
+      lines.push({
+        label: 'One-time setup & migration fee',
+        value: `${sym}${setupFee.toLocaleString()}`,
+      })
+
+      if (discountPercent > 0) {
+        lines.push({
+          label: `Discount applied (${discountPercent}%)`,
+          value: `−${sym}${headlineDiscount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+          accent: true,
+        })
+      }
+
+      if (isMonthlyCommitment && advMonths > 1) {
+        lines.push({
+          label: 'Monthly charge (excl. VAT)',
+          value: `${sym}${monthlyNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+        })
+        lines.push({
+          label: `× ${advMonths} months in advance`,
+          sublabel: `Covers ${coverageLabel}`,
+          value: `${sym}${advanceNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+        })
+      }
+
+      if (vatRate > 0) {
+        lines.push({
+          label: isMonthlyCommitment ? 'First month subtotal (excl. VAT)' : 'Subtotal (excl. VAT)',
+          value: `${sym}${headlineBase.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+        })
+        lines.push({
+          label: `VAT at ${vatRate}%`,
+          value: `${sym}${headlineVAT.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+        })
+      } else {
+        lines.push({
+          label: 'Exclusive of VAT. Any tax applicable in the customer\'s jurisdiction is payable in addition.',
+          value: '',
+          small: true,
+        })
+      }
+
+      if (isMonthlyCommitment) {
+        lines.push({
+          label: 'Projected 12-month total (no commitment)',
+          value: `${sym}${projectedAnnual.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+          small: true,
+        })
+      }
+
+      if (monthlyLinesUSD > 0) {
+        lines.push({
+          label: 'of which recurring monthly add-ons',
+          value: `${sym}${convertFromUSD(monthlyLinesUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })} / mo`,
+          small: true,
+        })
+      }
+
+      const payload = {
+        reference: saved.reference,
+        issuedOn: today,
+        validUntil: new Date(Date.now() + 5 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+        validityDays: 5,
+        buyer: {
+          company: lead.company,
+          contact: lead.contact,
+          email: lead.email,
+          phone: lead.phone,
+          country: lead.country,
+          industry: lead.industry,
+          taxId: customerTIN.trim() || undefined,
+          migratingFrom: lead.services?.[0],
+        },
+        packageLabel: pkg,
+        userCount,
+        currency,
+        billingLabel: nce.label,
+        lines,
+        totalLabel: `${headlineLabel}${vatRate > 0 ? ' (incl. VAT)' : ''}`,
+        totalValue: `${sym}${grandTotalFirstYear.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
+        totalNote: currency !== 'USD' && usdRate > 0
+          ? `≈ $${grandTotalUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })} at 1 USD = ₦${usdRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+          : undefined,
+        features: [...(pkgFeatures[pkg] || []), ...activeAddOns.map(a => a.label)],
+        azureNote: azureNote.trim() || undefined,
+        bank: {
+          accountName: 'THE GOLIVE DIGITAL SOLN CO. LTD',
+          accountNumber: '0588294971',
+          bankName: 'GT Bank',
+          taxId: '2522598389709',
+        },
+        terms: {
+          renewalNoticeDays: 30,
+          latePaymentDaysDue: 7,
+          latePaymentRatePctPerMonth: 1.5,
+          vatRatePct: vatRate || 7.5,
+          vatAuthority: 'the Federal Inland Revenue Service',
+          vatName: 'Value Added Tax',
+          jurisdiction: 'the Federal Republic of Nigeria',
+          courts: 'the courts of Lagos State',
+        },
+      }
+
+      const res = await fetch('/api/proposals/pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        setDocMsg('Could not generate the PDF. The version was saved.')
+        setPdfBusy(false)
+        return
+      }
+
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${saved.reference}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      setDocMsg(`Saved and downloaded as ${saved.reference}`)
+    } catch {
+      setDocMsg('Network error while generating the PDF.')
+    } finally {
+      setPdfBusy(false)
+    }
   }
 
   return (
@@ -1786,7 +1828,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           </div>
         )}
 
-        <button onClick={async () => { await saveProposalVersion(); printProposal() }} disabled={!selectedLead || catalogMissing || addOnsMissing || discountBlocked || savingDoc}
+        <button onClick={generateProposalPdf} disabled={!selectedLead || catalogMissing || addOnsMissing || discountBlocked || savingDoc || pdfBusy}
           className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed">
           🖨️ Generate & Print PDF
         </button>
