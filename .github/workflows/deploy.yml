@@ -91,6 +91,7 @@ jobs:
           git show origin/main:models/SalesDocument.ts > models/SalesDocument.ts
           git show origin/main:models/SetupFeeCatalog.ts > models/SetupFeeCatalog.ts
           git show origin/main:models/DeploymentChecklist.ts > models/DeploymentChecklist.ts
+          git show origin/main:models/Application.ts > models/Application.ts
           git show origin/main:lib/pricelistParser.ts > lib/pricelistParser.ts
           git show origin/main:lib/suspensionRisk.ts > lib/suspensionRisk.ts
           git show origin/main:lib/publicProductData.ts > lib/publicProductData.ts
@@ -178,6 +179,21 @@ jobs:
           git show origin/main:app/api/deployment-checklists/route.ts > app/api/deployment-checklists/route.ts
           git show "origin/main:app/api/deployment-checklists/[id]/route.ts" > "app/api/deployment-checklists/[id]/route.ts"
 
+          # Recruitment / candidate assessment subsystem. Built directly on
+          # the server and untracked until 2026-08; without these lines a
+          # rebuild loses candidate applications, scoring and recordings.
+          mkdir -p app/api/applications app/api/applications/register
+          git show origin/main:app/api/applications/route.ts > app/api/applications/route.ts
+          git show origin/main:app/api/applications/register/route.ts > app/api/applications/register/route.ts
+
+          mkdir -p app/api/assessments/check-attempt app/api/assessments/download app/api/assessments/verify-code
+          git show origin/main:app/api/assessments/check-attempt/route.ts > app/api/assessments/check-attempt/route.ts
+          git show origin/main:app/api/assessments/download/route.ts > app/api/assessments/download/route.ts
+          git show origin/main:app/api/assessments/verify-code/route.ts > app/api/assessments/verify-code/route.ts
+
+          mkdir -p app/api/save-recording
+          git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts
+
           # NOTE: app/api/public/lead-assessment/route.ts was removed here —
           # that path was never actually committed to the repo (confirmed
           # against a fresh clone), so pulling it unconditionally broke every
@@ -199,6 +215,10 @@ jobs:
           git show origin/main:public/icon-512x512.png > public/icon-512x512.png
           git show origin/main:public/site.webmanifest > public/site.webmanifest
           git show origin/main:public/certification-guide.html > public/certification-guide.html
+          git show origin/main:public/assessment.html > public/assessment.html
+          git show origin/main:public/assessment-sales.html > public/assessment-sales.html
+          git show origin/main:public/assessment-social.html > public/assessment-social.html
+          git show origin/main:public/assessment-hosting.html > public/assessment-hosting.html
           mkdir -p components
           git show origin/main:components/assessment-form.tsx > components/assessment-form.tsx
           git show origin/main:components/assessment-section.tsx > components/assessment-section.tsx
@@ -246,6 +266,7 @@ jobs:
           git show origin/main:components/dashboard/SetupFeeCatalogAdmin.tsx > components/dashboard/SetupFeeCatalogAdmin.tsx
           git show origin/main:components/dashboard/CurrencyOverviewWidget.tsx > components/dashboard/CurrencyOverviewWidget.tsx
           git show origin/main:components/dashboard/SessionExpiryWarning.tsx > components/dashboard/SessionExpiryWarning.tsx
+          git show origin/main:components/dashboard/HRAssessmentsPanel.tsx > components/dashboard/HRAssessmentsPanel.tsx
           mkdir -p components/ui
           git show origin/main:components/ui/card.tsx > components/ui/card.tsx
           git show origin/main:components/ui/button.tsx > components/ui/button.tsx
