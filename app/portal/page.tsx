@@ -24,6 +24,7 @@ import DeploymentChecklistTool from '@/components/dashboard/DeploymentChecklistT
 import SetupFeeCatalogAdmin from '@/components/dashboard/SetupFeeCatalogAdmin'
 import CurrencyOverviewWidget from '@/components/dashboard/CurrencyOverviewWidget'
 import SessionExpiryWarning from '@/components/dashboard/SessionExpiryWarning'
+import HRAssessmentsPanel from '@/components/dashboard/HRAssessmentsPanel'
 import CatalogLinePicker, { type CatalogLine, lineAnnualUSD, unitUSD, costUSD, periodsPerYearFor } from '@/components/dashboard/CatalogLinePicker'
 import { deriveCommissionPeriod } from '@/lib/commissionPeriod'
 
@@ -437,6 +438,10 @@ export default function PortalPage() {
 
           {page === 'team' && isAdmin && (
             <TeamManagement users={users} loading={loading} onUpdate={fetchData} />
+          )}
+
+          {page === 'hr-assessments' && isAdmin && (
+            <HRAssessmentsPanel />
           )}
 
           {page === 'pricing' && isAdmin && (

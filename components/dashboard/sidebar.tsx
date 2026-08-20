@@ -48,6 +48,7 @@ const sections: NavSection[] = [
       { label: "Pricing Catalog", icon: Tags, key: "pricing", adminOnly: true },
       { label: "Setup Fee Catalog", icon: Tags, key: "setup-fees", adminOnly: true },
       { label: "Team & Access", icon: ShieldCheck, key: "team", adminOnly: true },
+      { label: "Candidate Assessments", icon: ClipboardCheck, key: "hr-assessments", adminOnly: true },
       { label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
     ],
   },
