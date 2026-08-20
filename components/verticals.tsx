@@ -4,7 +4,7 @@ const VERTICALS = [
   { icon: Scale, title: "Legal", desc: "Secure document management, confidential client communication and compliance-ready archiving for law firms." },
   { icon: GraduationCap, title: "Schools", desc: "Microsoft 365 Education, Teams classrooms and managed devices for students and staff." },
   { icon: Church, title: "Churches", desc: "Affordable email, member communication and collaboration tools for ministries and NGOs." },
-  { icon: Stethoscope, title: "Clinics", desc: "Protected health data, secure scheduling and HIPAA-aligned collaboration for healthcare providers." },
+  { icon: Stethoscope, title: "Clinics", desc: "Protected health data, secure scheduling and NDPA 2023-aligned collaboration for clinics and healthcare providers." },
   { icon: Workflow, title: "Business Automation", desc: "Power Platform, Copilot and workflow automation to streamline operations end to end." },
 ]
 

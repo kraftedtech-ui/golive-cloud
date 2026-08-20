@@ -38,7 +38,7 @@ export function Footer() {
             <BadgeCheck className="size-4 text-[#00c8c8]" />Microsoft CSP Partner · ID 6787357
           </span>
           <span className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-medium text-white/80">
-            <ShieldCheck className="size-4 text-[#00c8c8]" />NDPR Compliant · RC1644767
+            <ShieldCheck className="size-4 text-[#00c8c8]" />NDPA 2023 Compliant · RC1644767
           </span>
           <img src="/images/ndpr-badge.png" alt="NDPR Compliance" className="h-9 w-auto" />
         </div>

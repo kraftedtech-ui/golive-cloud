@@ -334,7 +334,7 @@ export function AssessmentForm({ variant = "card" }: { variant?: "card" | "secti
       >
         {loading ? "Submitting..." : !emailVerified ? "Verify your email to continue" : "Get free assessment"}
       </button>
-      <p className="mt-3 text-center text-xs text-[#5a7a8a]">NDPR compliant. We never share your data.</p>
+      <p className="mt-3 text-center text-xs text-[#5a7a8a]">NDPA 2023 compliant. We never share your data.</p>
     </form>
   )
 }

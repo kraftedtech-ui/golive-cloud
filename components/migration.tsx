@@ -15,7 +15,7 @@ export function Migration() {
           <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#0096c7]">
             <span className="h-px w-6 bg-[#0096c7]/40" />Migration<span className="h-px w-6 bg-[#0096c7]/40" />
           </span>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#0d2233] sm:text-4xl">Switch to GoLive in 48 hours</h2>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-[#0d2233] sm:text-4xl">Switch to GoLive without downtime</h2>
           <p className="mt-4 leading-relaxed text-[#5a7a8a]">White-glove migrations handled by certified engineers — your team keeps working while we move everything across.</p>
         </div>
         <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">

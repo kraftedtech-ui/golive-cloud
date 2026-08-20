@@ -4,7 +4,7 @@ import { AssessmentForm } from "@/components/assessment-form"
 
 const STATS = [
   { value: "8+", label: "African markets served" },
-  { value: "48hr", label: "Typical migration window" },
+  { value: "1 weekend", label: "Typical mailbox cutover" },
   { value: "Microsoft", label: "Authorized CSP Partner" },
 ]
 
