@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoLive — Hosting Support Technician Assessment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0F6E56;--teal-lt:#E1F5EE;--teal-mid:#9FE1CB;
+  --navy:#0D2233;--amber:#B85042;--amber-lt:#FFF8F6;
+  --slate:#1E293B;--mid:#475569;--muted:#94A3B8;
+  --gray:#F4F7FB;--border:#E2E8F0;--white:#FFFFFF;
+  --success-bg:#EAF3DE;--success:#3B6D11;
+  --danger-bg:#FCEBEB;--danger:#A32D2D;
+  --warning-bg:#FAEEDA;--warning:#854F0B;
+  --accent-bg:#E6F1FB;--accent:#185FA5;
+}
+body{font-family:'Inter',sans-serif;background:#F8FAFC;color:var(--slate);min-height:100vh;padding:0}
+#wrap{max-width:660px;margin:0 auto;padding:2rem 1rem 4rem}
+.logo{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+.logo-mark{width:36px;height:36px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;font-weight:600}
+.logo-text{font-size:14px;font-weight:500;color:var(--slate)}
+.logo-sub{font-size:11px;color:var(--muted)}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.badge{font-size:11px;padding:3px 10px;border-radius:6px;font-weight:500;display:inline-flex;align-items:center;gap:4px}
+.ba{background:var(--accent-bg);color:var(--accent)}
+.bs{background:var(--success-bg);color:var(--success)}
+.bd{background:var(--danger-bg);color:var(--danger)}
+.bw{background:var(--warning-bg);color:var(--warning)}
+.hbar{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;border-bottom:1px solid var(--border);padding-bottom:1rem;margin-bottom:1.25rem}
+.timer-box{display:flex;align-items:center;gap:8px;background:var(--gray);border:1px solid var(--border);border-radius:8px;padding:7px 12px}
+.timer-val{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--slate)}
+.timer-val.warn{color:var(--warning)}
+.timer-val.danger{color:var(--danger)}
+.cam-wrap{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.cam-box{width:150px;height:112px;border-radius:10px;overflow:hidden;border:2px solid var(--teal);background:#000;position:relative;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.cam-box video{width:100%;height:100%;object-fit:cover}
+.cam-rec{position:absolute;top:6px;left:6px;width:8px;height:8px;border-radius:50%;background:#e53535;animation:blink 1s infinite}
+.cam-lbl{font-size:10px;color:var(--muted)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.prog{height:3px;background:var(--gray);border-radius:2px;margin-bottom:1.25rem}
+.prog-fill{height:100%;background:var(--teal);border-radius:2px;transition:width 0.3s}
+.q-text{font-size:15px;font-weight:500;color:var(--slate);line-height:1.65;margin-bottom:6px}
+.q-sub{font-size:12px;color:var(--mid);line-height:1.6;margin-bottom:1rem}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border:1px solid var(--border);border-radius:8px;cursor:pointer;margin-bottom:7px;background:#fff;transition:all 0.12s;user-select:none}
+.opt:hover{border-color:var(--teal);background:var(--teal-lt)}
+.opt.sel{border-color:var(--teal);background:var(--teal-lt)}
+.opt input{margin-top:2px;flex-shrink:0;accent-color:var(--teal)}
+.opt-text{font-size:13px;color:var(--slate);line-height:1.5}
+textarea{width:100%;min-height:90px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;color:var(--slate);background:#fff;resize:vertical;font-family:'Inter',sans-serif;line-height:1.5}
+textarea:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(15,110,86,0.1)}
+.tf-row{display:flex;gap:8px}
+.tf-btn{flex:1;padding:11px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;background:#fff;color:var(--slate);transition:all 0.12s;font-family:'Inter',sans-serif}
+.tf-btn:hover{border-color:var(--teal);background:var(--teal-lt)}
+.tf-btn.sel{border-color:var(--teal);background:var(--teal-lt);color:var(--teal)}
+.nav{display:flex;justify-content:space-between;align-items:center;padding-top:1rem;border-top:1px solid var(--border);margin-top:1.25rem}
+button{padding:9px 18px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-family:'Inter',sans-serif;font-weight:500;background:#fff;color:var(--slate);transition:all 0.12s}
+button:hover{background:var(--gray)}
+button.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+button.primary:hover{background:#0a5a45}
+button:disabled{opacity:0.35;cursor:not-allowed}
+.err{font-size:12px;color:var(--danger);margin-top:6px;min-height:18px}
+.vlog{max-height:120px;overflow-y:auto;background:var(--gray);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:11px;font-family:monospace;color:var(--mid);line-height:1.7}
+.gate-icon{font-size:40px;text-align:center;margin-bottom:1rem;color:var(--teal)}
+.chklist{list-style:none;margin:1rem 0}
+.chklist li{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--mid);padding:5px 0;line-height:1.5}
+.chklist li i{color:var(--teal);margin-top:1px;flex-shrink:0}
+.result-score{font-size:52px;font-weight:600;color:var(--slate);text-align:center;margin-bottom:4px}
+.result-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:1rem}
+.brow{display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--border)}
+.brow:last-child{border:none}
+.brow-l{color:var(--mid)}
+.brow-r{font-weight:600}
+.brow-r.good{color:var(--success)}
+.brow-r.ok{color:var(--warning)}
+.brow-r.low{color:var(--danger)}
+.q-rev{background:var(--gray);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+.q-rev-q{font-size:12px;font-weight:500;color:var(--slate);margin-bottom:4px}
+.q-rev-a{font-size:12px;color:var(--mid);line-height:1.5}
+.q-rev-a.c{color:var(--success)}
+.q-rev-a.w{color:var(--danger)}
+.integrity-box{background:var(--danger-bg);border:1px solid #f09595;border-left:4px solid var(--danger);border-radius:8px;padding:14px;margin-bottom:1rem}
+.integrity-box p{font-size:13px;color:var(--danger);line-height:1.6}
+.warn-banner{background:var(--warning-bg);border:1px solid #FAC775;border-left:4px solid var(--amber);border-radius:8px;padding:10px 14px;margin-bottom:1rem;font-size:13px;color:var(--warning);display:none}
+.warn-banner.show{display:block}
+.sec-head{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin:1.25rem 0 0.75rem;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.preview-vid{width:220px;height:165px;border-radius:10px;border:2px solid var(--teal);background:#000;display:block;margin:0 auto 12px;object-fit:cover}
+h2.page-title{font-size:20px;font-weight:600;color:var(--slate);margin-bottom:6px}
+.page-sub{font-size:13px;color:var(--mid);line-height:1.6}
+.info-row{display:flex;gap:8px;flex-wrap:wrap;margin:1rem 0}
+.info-pill{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--mid);background:var(--gray);border:1px solid var(--border);border-radius:20px;padding:5px 12px}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div class="logo">
+    <img src="/images/logo-dark.png" alt="GoLive Digital Solutions" style="height:120px;object-fit:contain">
+  </div>
+  <div id="app"></div>
+</div>
+
+<script>
+const QUESTIONS=[
+  {id:'q1',sec:'Section A — DNS & domains',type:'mcq',
+   text:'A client\'s website is showing a "domain not found" error after they transferred their domain to GoLive Naija. The domain was transferred yesterday. What is the most likely cause?',
+   opts:['GoLive\'s server is down','DNS propagation has not completed yet — this can take up to 48 hours','The client needs to buy the domain again','The website files need to be re-uploaded'],
+   correct:1,explain:'DNS propagation after a domain transfer can take 24–48 hours globally. This is normal and the client should be reassured, not panicked.'},
+  {id:'q2',sec:'Section A — DNS & domains',type:'mcq',
+   text:'A client wants their email to route to Google Workspace. Which DNS record type do you need to update?',
+   opts:['A record','CNAME record','MX record','TXT record'],
+   correct:2,explain:'MX (Mail Exchange) records control where email for a domain is delivered. Changing MX records to point to Google\'s mail servers routes email to Google Workspace.'},
+  {id:'q3',sec:'Section A — DNS & domains',type:'tf',
+   text:'An A record maps a domain name to an IPv4 address.',
+   correct:'True',explain:'An A record (Address record) maps a hostname to its IPv4 address. This is how domain names resolve to the server\'s IP address.'},
+  {id:'q4',sec:'Section A — DNS & domains',type:'mcq',
+   text:'A client asks why their website is showing as "Not Secure" in the browser. What is the most likely cause?',
+   opts:['Their internet connection is slow','Their SSL certificate has expired or is not installed','Their website has too many images','Their hosting plan has expired'],
+   correct:1,explain:'A "Not Secure" warning in browsers means the site is either not using HTTPS or the SSL certificate is missing, expired, or incorrectly configured.'},
+  {id:'q5',sec:'Section A — DNS & domains',type:'mcq',
+   text:'What does TTL stand for in DNS, and what does it control?',
+   opts:['Total Transfer Limit — controls file upload sizes','Time To Live — controls how long DNS records are cached before being refreshed','Transfer Time Limit — controls how long domain transfers take','Traffic Threshold Level — controls server load'],
+   correct:1,explain:'TTL (Time To Live) is the duration in seconds that a DNS record is cached by resolvers. Lower TTL means changes propagate faster but increase DNS query load.'},
+  {id:'q6',sec:'Section B — Hosting & cPanel',type:'mcq',
+   text:'A client calls saying their website loads very slowly. After checking, you see the server CPU is at 95%. What is your immediate first step?',
+   opts:['Tell the client to restart their computer','Identify which processes or scripts are consuming the most CPU using the server\'s resource monitor, then escalate to senior technical staff','Immediately migrate the client to a new server without investigation','Increase the client\'s hosting plan without investigating the cause'],
+   correct:1,explain:'Diagnose before acting. Identify the specific process causing the spike — it could be a rogue plugin, a traffic surge, or a malware script. Document findings before escalating.'},
+  {id:'q7',sec:'Section B — Hosting & cPanel',type:'mcq',
+   text:'A client wants to create a new email address using their domain (e.g. info@theircompany.com). Where in cPanel do you set this up?',
+   opts:['File Manager','Email Accounts','MySQL Databases','Softaculous Apps Installer'],
+   correct:1,explain:'Email Accounts in cPanel is where you create, manage, and configure email addresses for a domain hosted on the server.'},
+  {id:'q8',sec:'Section B — Hosting & cPanel',type:'tf',
+   text:'If a client\'s hosting account is suspended for non-payment, their website and email stop working immediately.',
+   correct:'True',explain:'A suspended hosting account takes all associated services offline — website, email, databases, and subdomains — until the account is reactivated after payment.'},
+  {id:'q9',sec:'Section B — Hosting & cPanel',type:'mcq',
+   text:'A client reports that their website was working yesterday but now shows a blank white page. What are the first two things you check?',
+   opts:['Check if the domain has expired, then check error logs for PHP or application errors','Reinstall the website from scratch','Call the client back and tell them to wait 24 hours','Increase the server RAM immediately'],
+   correct:0,explain:'A blank white page (White Screen of Death) in web hosting is typically caused by a PHP error or a failed plugin/theme update. Error logs reveal the exact cause quickly.'},
+  {id:'q10',sec:'Section C — Customer support',type:'text',
+   text:'A client submits a ticket at 2am saying their business email is not working and they are losing customers. Write a professional support response acknowledging the issue and setting expectations.',
+   sub:'Be empathetic, clear about next steps, and professional. Do not over-promise resolution time.',
+   placeholder:'Dear [Client name]...'},
+  {id:'q11',sec:'Section C — Customer support',type:'text',
+   text:'You are ending your day shift and handing over to the night shift technician. Write a brief handover note covering: 2 open tickets, a scheduled maintenance window at 11pm, and a client who called twice about a slow website.',
+   sub:'Be concise and structured so the night shift technician has everything they need.',
+   placeholder:'Handover note — [Date]...'},
+  {id:'q12',sec:'Section D — Judgement',type:'mcq',
+   text:'During your shift a server monitoring alert fires showing disk usage at 98% on a shared hosting server. You are not authorised to delete files without approval. What do you do?',
+   opts:['Ignore it — 98% is not 100%','Immediately escalate to your senior technician and document the alert with timestamp, server name, and disk usage figure','Delete the largest files you can find to free up space','Restart the server to clear cache'],
+   correct:1,explain:'Disk usage at 98% is a critical alert — at 100% the server stops functioning. Escalate immediately with full documentation. Do not take unauthorised action on shared hosting servers.'},
+  {id:'q13',sec:'Section D — Judgement',type:'mcq',
+   text:'A client calls and claims their account was hacked and demands you reset their password immediately over the phone. What do you do?',
+   opts:['Reset the password immediately to help the client','Verify the caller\'s identity against account records first, then follow the official password reset procedure — never reset based on an unverified phone call','Tell them to submit a ticket and hang up','Give them the current password so they can log in'],
+   correct:1,explain:'Social engineering attacks often come as urgent password reset requests. Always verify identity against account records before any security action. An unverified phone request should never trigger a password reset.'},
+  {id:'q14',sec:'Section D — Judgement',type:'tf',
+   text:'If a client\'s website is hacked and contains malware, your first action should be to take the site offline immediately to prevent the malware from spreading to other hosted sites.',
+   correct:'True',explain:'Malware on shared hosting can spread to other accounts on the same server. Isolating the compromised site immediately is the correct first step, followed by investigation, cleaning, and notification.'},
+  {id:'q15',sec:'Section E — Reasoning',type:'mcq',
+   text:'GoLive Naija runs 24-hour hosting support across a day shift (8am–8pm) and night shift (8pm–6am). A client submits a critical ticket at 7:45pm. You are the day shift technician with 15 minutes left. What do you do?',
+   opts:['Log off at 8pm — it is not your problem after your shift ends','Immediately start working the ticket, brief the incoming night shift technician on its status before you leave, and ensure it is marked as in-progress','Tell the client to wait until tomorrow morning','Only look at the ticket if it takes less than 15 minutes to fix'],
+   correct:1,explain:'A critical ticket 15 minutes before shift end must be triaged and handed over — not ignored. Start it, document what you have done, and give the night shift technician a clear brief. Client continuity is the priority.'},
+]
+
+const TOTAL=30*60
+let st={phase:'code-gate',codeVerified:false,consentGiven:false,candidateName:'',candidateEmail:'',candidateRole:'',appRef:'',camGranted:false,stream:null,recorder:null,chunks:[],recBlob:null,violations:[],tabSwitches:0,pasteTries:0,current:0,answers:{},textAnswers:{},secs:TOTAL,timerInterval:null}
+
+function logV(msg){const t=new Date().toLocaleTimeString();st.violations.push(`[${t}] ${msg}`)}
+function fmt(s){const m=Math.floor(s/60),ss=s%60;return `${m}:${ss.toString().padStart(2,'0')}`}
+function scoreFor(q,ans){if(q.type==='mcq')return ans===q.correct?1:0;if(q.type==='tf')return ans===q.correct?1:0;return null}
+function calcScores(){let got=0,max=0;QUESTIONS.forEach(q=>{if(q.type!=='text'){max++;if(st.answers[q.id]!==undefined)got+=scoreFor(q,st.answers[q.id])}});return{got,max}}
+function sectionScores(){const s={};QUESTIONS.forEach(q=>{if(q.type==='text')return;const k=q.sec.match(/Section ([A-Z])/)[1];if(!s[k])s[k]={g:0,m:0};s[k].m++;if(st.answers[q.id]!==undefined&&scoreFor(q,st.answers[q.id])===1)s[k].g++});return s}
+
+function render(){document.getElementById('app').innerHTML=renderPhase();attach()}
+
+function renderPhase(){
+  if(st.phase==='code-gate')return renderCodeGate()
+  if(st.phase==='consent')return renderConsent()
+  if(st.phase==='declined')return renderDeclined()
+  if(st.phase==='save-later')return renderSaveLater()
+  if(st.phase==='intake')return renderIntake()
+  if(st.phase==='ref-confirm')return renderRefConfirm()
+  if(st.phase==='gate')return renderGate()
+  if(st.phase==='confirm')return renderConfirm()
+  if(st.phase==='quiz')return renderQuiz()
+  return renderResult()
+}
+
+function renderCodeGate(){return `
+<div style="text-align:center;padding:1rem 0 1.5rem">
+  <h2 class="page-title">GoLive Careers</h2>
+  <p class="page-sub" style="max-width:400px;margin:0 auto 1.5rem">This assessment is by invitation only. Enter the access code sent to you by the GoLive LinkedIn page to continue.</p>
+</div>
+<div class="card">
+  <div style="margin-bottom:1rem">
+    <label style="display:block;font-size:13px;font-weight:500;color:var(--slate);margin-bottom:5px">Role applying for <span style="color:var(--danger)">*</span></label>
+    <select id="cg-role" disabled style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;color:var(--slate);background:#fff" onchange="document.getElementById('cg-err').textContent=''">
+      <option value="Hosting Support Technician" selected>Hosting Support Technician</option>
+    </select>
+  </div>
+  <div style="margin-bottom:0.5rem">
+    <label style="display:block;font-size:13px;font-weight:500;color:var(--slate);margin-bottom:5px">Access code <span style="color:var(--danger)">*</span></label>
+    <input type="text" id="cg-code" placeholder="Enter your access code" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;color:var(--slate);background:#fff;letter-spacing:0.1em;text-transform:uppercase" oninput="this.value=this.value.toUpperCase();document.getElementById('cg-err').textContent=''">
+  </div>
+  <p style="font-size:11px;color:var(--muted);margin-top:6px">Don't have a code? Message the <a href="https://www.linkedin.com/company/51717921" target="_blank" style="color:var(--teal);text-decoration:none;font-weight:500">GoLive LinkedIn page</a> expressing your interest.</p>
+</div>
+<div class="err" id="cg-err" style="margin-bottom:10px"></div>
+<button class="primary" id="cg-btn" onclick="verifyCode()"><i class="ti ti-arrow-right"></i> Verify access code</button>`}
+
+async function verifyCode(){
+  const role=document.getElementById('cg-role').value
+  const code=document.getElementById('cg-code').value.trim()
+  const err=document.getElementById('cg-err')
+  const btn=document.getElementById('cg-btn')
+  if(!role){err.textContent='Please select the role you are applying for.';return}
+  if(!code){err.textContent='Please enter your access code.';return}
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Verifying...'}
+  try{
+    const res=await fetch('/api/assessments/verify-code',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({code,role})
+    })
+    const data=await res.json()
+    if(data.valid){
+      st.codeVerified=true
+      st.candidateRole=role
+      st.phase='consent'
+      render()
+    }else{
+      err.textContent=data.message||'Invalid access code.'
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-arrow-right"></i> Verify access code'}
+    }
+  }catch(e){
+    err.textContent='Verification failed. Please try again.'
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-arrow-right"></i> Verify access code'}
+  }
+}
+
+function renderConsent(){return `
+<div style="margin-bottom:1.5rem">
+  <p style="font-size:11px;font-weight:600;color:var(--teal);letter-spacing:0.1em;margin-bottom:4px">BEFORE YOU BEGIN</p>
+  <h2 class="page-title" style="font-size:22px">Assessment terms &amp; conditions</h2>
+  <p class="page-sub">Please read carefully. You must accept these terms before proceeding.</p>
+</div>
+
+<div class="card" style="border-left:4px solid var(--danger);background:#FFFBFB">
+  <p style="font-size:13px;font-weight:600;color:var(--danger);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-video"></i> Session recording</p>
+  <p style="font-size:13px;color:var(--slate);line-height:1.7;margin-bottom:0">Your camera will be active and your full session will be recorded from the moment you begin until submission. This recording is reviewed by the GoLive hiring team as part of the assessment process. By proceeding you consent to being recorded. You must remain visible on camera at all times during the assessment.</p>
+</div>
+
+<div class="card" style="margin-top:0.75rem;border-left:4px solid var(--amber)">
+  <p style="font-size:13px;font-weight:600;color:var(--warning);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-shield-exclamation"></i> Integrity monitoring — the following will be detected and logged</p>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    ${[
+      ['Tab switching','Navigating away from this page or switching to another browser tab will be detected and timestamped. Each instance is logged as a violation.'],
+      ['Window focus loss','Clicking outside the assessment window — including switching to another application — is logged.'],
+      ['Copy & paste','All paste attempts are blocked. Keyboard shortcuts including Ctrl+C, Ctrl+V, Ctrl+U, Ctrl+F and right-click are disabled.'],
+      ['External assistance','The use of AI tools, search engines, reference materials, or assistance from another person is strictly prohibited. This constitutes academic dishonesty and will result in immediate disqualification.'],
+      ['One attempt only','You are permitted one attempt at this assessment per role. A second attempt using the same email address will be automatically blocked.'],
+    ].map(([t,d])=>`
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <i class="ti ti-circle-x" style="color:var(--danger);flex-shrink:0;margin-top:1px"></i>
+        <div><p style="font-size:13px;font-weight:500;color:var(--slate);margin-bottom:2px">${t}</p><p style="font-size:12px;color:var(--mid);line-height:1.5">${d}</p></div>
+      </div>`).join('')}
+  </div>
+</div>
+
+<div class="card" style="margin-top:0.75rem;border-left:4px solid var(--teal);background:#FAFFFE">
+  <p style="font-size:13px;font-weight:600;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-info-circle"></i> Assessment details</p>
+  <div style="display:flex;flex-direction:column;gap:6px">
+    ${[
+      ['Duration','30 minutes — the timer begins immediately when you click Begin assessment.'],
+      ['Format','15 questions — multiple choice, true/false, and two short written answers.'],
+      ['Device','Laptop or desktop required. Camera must be working before you proceed.'],
+      ['Environment','Complete the assessment in a quiet location. Ensure stable internet connection.'],
+      ['Results','Your score and session recording are securely uploaded to GoLive after submission.'],
+    ].map(([t,d])=>`
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <i class="ti ti-check" style="color:var(--teal);flex-shrink:0;margin-top:1px"></i>
+        <p style="font-size:12px;color:var(--mid);line-height:1.5"><span style="font-weight:500;color:var(--slate)">${t}: </span>${d}</p>
+      </div>`).join('')}
+  </div>
+</div>
+
+<div style="background:var(--gray);border:1px solid var(--border);border-radius:8px;padding:14px;margin-top:0.75rem;margin-bottom:1.25rem">
+  <p style="font-size:12px;color:var(--mid);line-height:1.6;text-align:center">By clicking <strong>Accept &amp; Continue</strong> you confirm that you have read and understood these terms, you consent to being recorded, and you agree to complete this assessment independently without any external assistance.</p>
+</div>
+
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+  <button class="primary" style="flex:1;min-width:160px" onclick="acceptConsent()"><i class="ti ti-check"></i> Accept &amp; continue</button>
+  <button style="flex:1;min-width:120px" onclick="st.phase='save-later';render()"><i class="ti ti-bookmark"></i> Save for later</button>
+  <button style="flex:1;min-width:100px;border-color:var(--danger);color:var(--danger)" onclick="st.phase='declined';render()"><i class="ti ti-x"></i> Decline</button>
+</div>`}
+
+function acceptConsent(){
+  st.consentGiven=true
+  st.phase='intake'
+  render()
+}
+
+function renderDeclined(){return `
+<div style="text-align:center;padding:2rem 0">
+  <div style="width:56px;height:56px;background:var(--danger-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+    <i class="ti ti-x" style="font-size:24px;color:var(--danger)"></i>
+  </div>
+  <h2 class="page-title">Assessment declined</h2>
+  <p class="page-sub" style="max-width:400px;margin:0 auto 1.5rem">You have chosen not to proceed with the assessment. Your application will not be progressed at this time.</p>
+  <p style="font-size:13px;color:var(--mid);line-height:1.6;max-width:380px;margin:0 auto 1.5rem">If you change your mind, please contact <a href="mailto:talent.acquisition@golivecompany.com" style="color:var(--teal);text-decoration:none;font-weight:500">talent.acquisition@golivecompany.com</a> and we will advise if the position is still open.</p>
+  <button onclick="st.phase='consent';render()"><i class="ti ti-arrow-left"></i> Go back and review</button>
+</div>`}
+
+function renderSaveLater(){return `
+<div style="text-align:center;padding:2rem 0">
+  <div style="width:56px;height:56px;background:var(--accent-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+    <i class="ti ti-bookmark" style="font-size:24px;color:var(--accent)"></i>
+  </div>
+  <h2 class="page-title">Saved for later</h2>
+  <p class="page-sub" style="max-width:420px;margin:0 auto 1.5rem">No problem — you can return to complete the assessment when you are ready. Bookmark this page or note down the details below.</p>
+  <div class="card" style="text-align:left;max-width:400px;margin:0 auto 1.5rem">
+    <p style="font-size:11px;font-weight:600;color:var(--teal);letter-spacing:0.1em;margin-bottom:8px">YOUR ASSESSMENT DETAILS</p>
+    <div style="font-size:13px;color:var(--slate);line-height:2">
+      <div><span style="color:var(--mid);font-weight:500">Role: </span>${st.candidateRole}</div>
+      <div><span style="color:var(--mid);font-weight:500">URL: </span>${window.location.href}</div>
+      <div><span style="color:var(--mid);font-weight:500">Your access code: </span><em style="color:var(--muted)">Use the code already provided to you</em></div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--muted);margin-bottom:1.25rem">When you are ready, return to this page, enter your access code, and accept the terms to begin.</p>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <button class="primary" onclick="st.phase='consent';render()"><i class="ti ti-arrow-left"></i> Return and accept terms</button>
+    <button onclick="window.print()"><i class="ti ti-printer"></i> Print this page</button>
+  </div>
+</div>`}
+
+function renderIntake(){return `
+<div style="text-align:center;padding:1rem 0 0.5rem">
+  <h2 class="page-title">Hosting Support Technician</h2>
+  <p class="page-sub" style="max-width:420px;margin:0 auto 1.5rem">Please enter your details before beginning. This information will be included in your assessment submission.</p>
+</div>
+<div class="card">
+  <div style="margin-bottom:1rem">
+    <label style="display:block;font-size:13px;font-weight:500;color:var(--slate);margin-bottom:5px">Full name <span style="color:var(--danger)">*</span></label>
+    <input type="text" id="inp-name" placeholder="Enter your full name" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;color:var(--slate);background:#fff" oninput="document.getElementById('intake-err').textContent=''">
+  </div>
+  <div style="margin-bottom:1rem">
+    <label style="display:block;font-size:13px;font-weight:500;color:var(--slate);margin-bottom:5px">Email address <span style="color:var(--danger)">*</span></label>
+    <input type="email" id="inp-email" placeholder="Enter your email address" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;color:var(--slate);background:#fff" oninput="document.getElementById('intake-err').textContent=''">
+  </div>
+  <div style="margin-bottom:0.5rem">
+    <label style="display:block;font-size:13px;font-weight:500;color:var(--slate);margin-bottom:5px">Role applying for <span style="color:var(--danger)">*</span></label>
+        <div id="inp-role-display" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;color:var(--slate);background:var(--gray)">${st.candidateRole}</div>
+    <select id="inp-role" style="display:none"><option value="Hosting Support Technician" selected>Hosting Support Technician</option></select>
+  </div>
+</div>
+<div class="err" id="intake-err" style="margin-bottom:10px"></div>
+<button class="primary" id="intake-btn" onclick="submitIntake()"><i class="ti ti-arrow-right"></i> Continue to camera verification</button>`}
+
+async function submitIntake(){
+  const name=document.getElementById('inp-name').value.trim()
+  const email=document.getElementById('inp-email').value.trim()
+  const role=document.getElementById('inp-role').value
+  const err=document.getElementById('intake-err')
+  const btn=document.getElementById('intake-btn')
+  if(!name){err.textContent='Please enter your full name.';return}
+  if(!email||!email.includes('@')){err.textContent='Please enter a valid email address.';return}
+  if(!role){err.textContent='Please select the role you are applying for.';return}
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Registering application...'}
+  try{
+    const res=await fetch('/api/applications/register',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-upload-token':'golive-assessment-2026'},
+      body:JSON.stringify({name,email,role})
+    })
+    const data=await res.json()
+    if(!data.allowed){
+      err.textContent=data.message||'You have already applied for this role. Only one application is permitted.'
+      if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-arrow-right"></i> Continue to camera verification'}
+      return
+    }
+    st.candidateName=name
+    st.candidateEmail=email
+    st.candidateRole=role
+    st.appRef=data.ref
+    st.phase='ref-confirm'
+    render()
+  }catch(e){
+    console.warn('Registration failed, allowing through',e)
+    st.candidateName=name
+    st.candidateEmail=email
+    st.candidateRole=role
+    st.phase='gate'
+    render()
+  }
+}
+
+function renderRefConfirm(){return `
+<div style="text-align:center;padding:1rem 0 0.5rem">
+  <div style="width:56px;height:56px;background:#E1F5EE;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+    <i class="ti ti-check" style="font-size:24px;color:#0F6E56"></i>
+  </div>
+  <h2 class="page-title">Application registered</h2>
+  <p class="page-sub" style="max-width:420px;margin:0 auto 1.5rem">Your application reference number has been emailed to <strong>${st.candidateEmail}</strong>. Please save it — you will need it for all future correspondence.</p>
+</div>
+<div class="card" style="text-align:center">
+  <p style="font-size:11px;font-weight:600;color:var(--teal);letter-spacing:0.1em;margin-bottom:6px">APPLICATION REFERENCE</p>
+  <p style="font-size:32px;font-weight:700;color:var(--slate);letter-spacing:0.05em;margin-bottom:4px">${st.appRef}</p>
+  <p style="font-size:11px;color:var(--muted)">${st.candidateRole}</p>
+</div>
+<p style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:1rem">Next step: grant camera access and begin your 30-minute skills assessment.</p>
+<button class="primary" onclick="st.phase='gate';render()"><i class="ti ti-camera"></i> Continue to camera verification</button>`}
+
+function renderGate(){return `
+<div style="text-align:center;padding:1rem 0 0.5rem">
+  <div class="gate-icon"><i class="ti ti-camera"></i></div>
+  <h2 class="page-title">Camera access required</h2>
+  <p class="page-sub" style="max-width:420px;margin:0 auto 1.5rem">Hosting Support Technician assessment. Your camera must remain active throughout. The session will be recorded for review by the hiring team.</p>
+</div>
+<div class="card">
+  <p style="font-size:13px;font-weight:600;color:var(--slate);margin-bottom:10px">Assessment rules</p>
+  <ul class="chklist">
+    <li><i class="ti ti-camera-check"></i>Camera must stay active for the full 30 minutes</li>
+    <li><i class="ti ti-browser-x"></i>Switching tabs or windows is detected and logged</li>
+    <li><i class="ti ti-copy-x"></i>Copy and paste is blocked and flagged</li>
+    <li><i class="ti ti-device-mobile-off"></i>No AI tools, search engines, or external help permitted</li>
+    <li><i class="ti ti-clock"></i>30 minutes — auto-submits when time runs out</li>
+    <li><i class="ti ti-download"></i>Session recording available to download at the end</li>
+  </ul>
+  <div class="info-row">
+    <span class="info-pill"><i class="ti ti-list-check"></i>15 questions</span>
+    <span class="info-pill"><i class="ti ti-clock"></i>30 minutes</span>
+    <span class="info-pill"><i class="ti ti-user"></i>Hosting Support Technician</span>
+  </div>
+</div>
+<div class="err" id="cam-err" style="margin-bottom:10px"></div>
+<button class="primary" onclick="requestCam()"><i class="ti ti-camera"></i> Grant camera access and continue</button>`}
+
+function renderConfirm(){return `
+<div style="text-align:center;padding:1rem 0">
+  <video class="preview-vid" id="preview-vid" autoplay muted playsinline></video>
+  <div style="margin-bottom:1rem"><span class="badge bs"><i class="ti ti-check"></i> Camera active</span></div>
+  <h2 class="page-title">Camera confirmed</h2>
+  <p class="page-sub" style="max-width:360px;margin:0 auto 1.5rem;line-height:1.6">Make sure your face is clearly visible. Recording begins when you start. Answer all questions as best you can — you have 30 minutes.</p>
+  <button class="primary" onclick="startTest()"><i class="ti ti-player-play"></i> Begin assessment</button>
+</div>`}
+
+function renderQuiz(){
+  const q=QUESTIONS[st.current]
+  const pct=Math.round((st.current/QUESTIONS.length)*100)
+  const tc=st.secs<120?'danger':st.secs<300?'warn':''
+  const vCount=st.violations.length
+  let qHtml=''
+  if(q.type==='mcq'){
+    qHtml=q.opts.map((o,i)=>`<div class="opt ${st.answers[q.id]===i?'sel':''}" onclick="pick('${q.id}',${i})"><input type="radio" name="${q.id}" ${st.answers[q.id]===i?'checked':''}><span class="opt-text">${o}</span></div>`).join('')
+  }else if(q.type==='tf'){
+    const a=st.answers[q.id]
+    qHtml=`<div class="tf-row"><button class="tf-btn ${a==='True'?'sel':''}" onclick="pickTF('${q.id}','True')">True</button><button class="tf-btn ${a==='False'?'sel':''}" onclick="pickTF('${q.id}','False')">False</button></div>`
+  }else{
+    qHtml=`<textarea id="ta_${q.id}" placeholder="${q.placeholder||''}" onblur="saveTA('${q.id}')">${st.textAnswers[q.id]||''}</textarea>`
+  }
+  const warn=st.tabSwitches>0||st.pasteTries>0
+  return `
+<div class="hbar">
+  <div><span class="badge ba">${q.sec}</span><p style="font-size:11px;color:var(--muted);margin-top:5px">Question ${st.current+1} of ${QUESTIONS.length}</p></div>
+  <div style="display:flex;gap:8px;align-items:center">
+    ${vCount>0?`<span class="badge bd"><i class="ti ti-alert-triangle"></i> ${vCount} flag${vCount!==1?'s':''}</span>`:''}
+    <div class="timer-box"><i class="ti ti-clock" style="color:var(--muted);font-size:14px"></i><span class="timer-val ${tc}" id="tmr">${fmt(st.secs)}</span></div>
+  </div>
+</div>
+<div class="warn-banner ${warn?'show':''}" id="wb">
+  <i class="ti ti-alert-triangle"></i> ${st.tabSwitches>0?`Tab switch detected (${st.tabSwitches}×).`:''} ${st.pasteTries>0?`Paste blocked (${st.pasteTries}×).`:''} All violations are recorded.
+</div>
+<div class="prog"><div class="prog-fill" style="width:${pct}%"></div></div>
+<p class="q-text">${q.text}</p>
+${q.sub?`<p class="q-sub">${q.sub}</p>`:''}
+${qHtml}
+<div class="err" id="qerr"></div>
+<div class="nav">
+  <span style="font-size:11px;color:var(--muted)">${st.current+1} / ${QUESTIONS.length}</span>
+  <div style="display:flex;gap:8px">
+    ${st.current>0?'<button onclick="prev()"><i class="ti ti-arrow-left"></i> Back</button>':''}
+    ${st.current<QUESTIONS.length-1?`<button class="primary" onclick="nxt()">Next <i class="ti ti-arrow-right"></i></button>`:`<button class="primary" onclick="finish()">Submit assessment</button>`}
+  </div>
+</div>`}
+
+function renderResult(){
+  const{got,max}=calcScores()
+  const pct=Math.round(got/max*100)
+  const vd=pct>=75?'bs':pct>=50?'bw':'bd'
+  const vl=pct>=75?'Strong result':pct>=50?'Borderline — review carefully':'Needs improvement'
+  const secs=sectionScores()
+  const sNames={A:'Administrative skills',B:'Digital tools',C:'Professional judgement',E:'Situation handling',F:'Reasoning'}
+  const vCount=st.violations.length
+  const integrity=st.tabSwitches>2||st.pasteTries>2
+  return `
+<div style="text-align:center;margin-bottom:1.5rem">
+  <p style="font-size:13px;font-weight:500;color:var(--mid);margin-bottom:4px">${st.candidateName} &nbsp;·&nbsp; ${st.candidateRole}</p><div class="result-score">${got}/${max}</div>
+  <div class="result-sub">auto-scored questions · ${pct}%</div>
+  <span class="badge ${vd}">${vl}</span>
+</div>
+${integrity?`<div class="integrity-box"><p><strong><i class="ti ti-shield-exclamation"></i> Integrity concern:</strong> Multiple violations detected (${vCount} total — ${st.tabSwitches} tab switch${st.tabSwitches!==1?'es':''}, ${st.pasteTries} paste attempt${st.pasteTries!==1?'s':''}). Review the session recording before making any hiring decision.</p></div>`:''}
+${vCount>0&&!integrity?`<div class="warn-banner show"><i class="ti ti-alert-triangle"></i> ${vCount} integrity flag${vCount!==1?'s':''} recorded. Review log and recording below.</div>`:''}
+<div class="card">
+  <p class="sec-head">Score by section</p>
+  ${Object.entries(secs).map(([k,d])=>{const p=Math.round(d.g/d.m*100);const cls=p>=75?'good':p>=50?'ok':'low';return `<div class="brow"><span class="brow-l">${sNames[k]||k}</span><span class="brow-r ${cls}">${d.g}/${d.m} &nbsp;·&nbsp; ${p}%</span></div>`}).join('')}
+</div>
+<div class="card">
+  <p class="sec-head">Integrity log</p>
+  <div class="vlog">${st.violations.length>0?st.violations.map(v=>`<div>${v}</div>`).join(''):'<span style="color:var(--muted)">No violations recorded.</span>'}</div>
+</div>
+${st.recBlob?`<div class="card"><p class="sec-head">Session recording</p><p style="font-size:13px;color:var(--mid);margin-bottom:12px">Your recording is being uploaded to the GoLive server automatically. If upload fails, download and email it to talent.acquisition@golivecompany.com.</p><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="primary" id="upload-btn" onclick="uploadRec()"><i class="ti ti-cloud-upload"></i> Upload to server</button><button onclick="downloadRec()"><i class="ti ti-download"></i> Download instead</button></div><p id="upload-status" style="font-size:12px;margin-top:8px"></p></div>`:''}
+<div class="card">
+  <p class="sec-head">Written responses — interviewer review</p>
+  ${QUESTIONS.filter(q=>q.type==='text').map(q=>`<div class="q-rev"><p class="q-rev-q">${q.text.substring(0,110)}…</p><p class="q-rev-a">${st.textAnswers[q.id]||'<em style="color:var(--muted)">No response entered</em>'}</p></div>`).join('')}
+</div>
+<div class="card">
+  <p class="sec-head">Question review</p>
+  ${QUESTIONS.filter(q=>q.type!=='text').map(q=>{const a=st.answers[q.id];const c=a!==undefined&&scoreFor(q,a)===1;return `<div class="q-rev"><p class="q-rev-q">Q${QUESTIONS.indexOf(q)+1}. ${q.text.substring(0,100)}…</p><p class="q-rev-a ${c?'c':'w'}">${c?'✓ Correct':'✗ Incorrect — correct: '+(q.type==='mcq'?q.opts[q.correct]:q.correct)}</p>${!c?`<p style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5">${q.explain}</p>`:''}</div>`}).join('')}
+</div>
+<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:1.5rem">GoLive Digital Solutions Company Ltd · RC1644767 · talent.acquisition@golivecompany.com</p>`}
+
+function attach(){
+  if(st.phase==='confirm'){const v=document.getElementById('preview-vid');if(v&&st.stream)v.srcObject=st.stream}
+  if(st.phase==='quiz'){clearInterval(st.timerInterval);st.timerInterval=setInterval(()=>{st.secs--;const d=document.getElementById('tmr');if(d){d.textContent=fmt(st.secs);d.className='timer-val'+(st.secs<120?' danger':st.secs<300?' warn':'')}if(st.secs<=0){clearInterval(st.timerInterval);stopRec();st.phase='result';render()}},1000);injectCam()}
+}
+
+function injectCam(){
+  if(document.querySelector('.cam-wrap'))return
+  const cw=document.createElement('div')
+  cw.className='cam-wrap'
+  cw.innerHTML=`<div class="cam-box"><video id="live-cam" autoplay muted playsinline></video><div class="cam-rec"></div></div><span class="cam-lbl">Recording in progress</span>`
+  document.body.appendChild(cw)
+  const lv=document.getElementById('live-cam')
+  if(lv&&st.stream)lv.srcObject=st.stream
+}
+
+async function requestCam(){
+  const err=document.getElementById('cam-err')
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{width:640,height:480},audio:false})
+    st.stream=s;st.camGranted=true;st.phase='confirm';render()
+  }catch(e){if(err)err.textContent='Camera access denied. You must grant camera permission to proceed with this assessment.'}
+}
+
+function startTest(){
+  st.phase='quiz';startRec();setupAntiCheat();render()
+}
+
+function startRec(){
+  if(!st.stream)return
+  try{
+    const mr=new MediaRecorder(st.stream,{mimeType:'video/webm;codecs=vp9'})
+    mr.ondataavailable=e=>{if(e.data&&e.data.size>0)st.chunks.push(e.data)}
+    mr.onstop=()=>{st.recBlob=new Blob(st.chunks,{type:'video/webm'})}
+    mr.start(1000);st.recorder=mr
+  }catch(e){
+    try{const mr=new MediaRecorder(st.stream);mr.ondataavailable=e=>{if(e.data&&e.data.size>0)st.chunks.push(e.data)};mr.onstop=()=>{st.recBlob=new Blob(st.chunks,{type:'video/webm'})};mr.start(1000);st.recorder=mr}catch(e2){logV('Recording not supported in this browser')}
+  }
+}
+
+function stopRec(){
+  if(st.recorder&&st.recorder.state!=='inactive')try{st.recorder.stop()}catch(e){}
+  if(st.stream)st.stream.getTracks().forEach(t=>t.stop())
+  const cw=document.querySelector('.cam-wrap');if(cw)cw.remove()
+}
+
+function setupAntiCheat(){
+  document.addEventListener('visibilitychange',()=>{if(document.hidden&&st.phase==='quiz'){st.tabSwitches++;logV(`Tab/window hidden (total: ${st.tabSwitches})`);const wb=document.getElementById('wb');if(wb){wb.classList.add('show');wb.innerHTML=`<i class="ti ti-alert-triangle"></i> Tab switch detected (${st.tabSwitches}× flagged). All violations are recorded.`}}})
+  window.addEventListener('blur',()=>{if(st.phase==='quiz')logV('Window lost focus')})
+  document.addEventListener('paste',e=>{if(st.phase==='quiz'){e.preventDefault();st.pasteTries++;logV(`Paste attempt blocked (total: ${st.pasteTries})`);const wb=document.getElementById('wb');if(wb){wb.classList.add('show');wb.innerHTML=`<i class="ti ti-alert-triangle"></i> Paste blocked (${st.pasteTries}× detected). All violations are recorded.`}}})
+  document.addEventListener('contextmenu',e=>{if(st.phase==='quiz')e.preventDefault()})
+  document.addEventListener('keydown',e=>{if(st.phase!=='quiz')return;if((e.ctrlKey||e.metaKey)&&['c','v','u','s','a','p','f'].includes(e.key.toLowerCase())){e.preventDefault();if(e.key.toLowerCase()==='v'){st.pasteTries++;logV(`Paste shortcut blocked (total: ${st.pasteTries})`)}else{logV(`Shortcut blocked: Ctrl+${e.key.toUpperCase()}`)}}})
+}
+
+function pick(id,i){st.answers[id]=i;render()}
+function pickTF(id,v){st.answers[id]=v;render()}
+function saveTA(id){const el=document.getElementById('ta_'+id);if(el)st.textAnswers[id]=el.value}
+
+function nxt(){
+  const q=QUESTIONS[st.current]
+  if(q.type==='text'){const el=document.getElementById('ta_'+q.id);if(el)st.textAnswers[q.id]=el.value}
+  const ok=q.type==='text'?(st.textAnswers[q.id]||'').trim().length>0:st.answers[q.id]!==undefined
+  if(!ok){const e=document.getElementById('qerr');if(e)e.textContent=q.type==='text'?'Enter a response before continuing.':'Select an answer before continuing.';return}
+  st.current++;render()
+}
+
+function prev(){
+  const q=QUESTIONS[st.current]
+  if(q.type==='text'){const el=document.getElementById('ta_'+q.id);if(el)st.textAnswers[q.id]=el.value}
+  st.current--;render()
+}
+
+function finish(){
+  const q=QUESTIONS[st.current]
+  if(q.type==='text'){const el=document.getElementById('ta_'+q.id);if(el)st.textAnswers[q.id]=el.value}
+  const ok=q.type==='text'?(st.textAnswers[q.id]||'').trim().length>0:st.answers[q.id]!==undefined
+  if(!ok){const e=document.getElementById('qerr');if(e)e.textContent=q.type==='text'?'Enter a response before submitting.':'Select an answer before submitting.';return}
+  clearInterval(st.timerInterval);stopRec();setTimeout(()=>{st.phase='result';render();setTimeout(()=>uploadRec(),1000)},600)
+}
+
+async function uploadRec(){
+  if(!st.recBlob)return
+  const btn=document.getElementById('upload-btn')
+  const status=document.getElementById('upload-status')
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Uploading...'}
+  try{
+    const fd=new FormData()
+    fd.append('recording',new File([st.recBlob],'recording.webm',{type:'video/webm'}))
+    fd.append('candidate',st.candidateName)
+    fd.append('ref',st.appRef||'')
+    fd.append('email',st.candidateEmail)
+    fd.append('role',st.candidateRole)
+    // Build full transcript
+    const transcript = QUESTIONS.map((q,i) => {
+      const ans = st.answers[q.id]
+      const textAns = st.textAnswers[q.id] || ''
+      const correct = q.type === 'text' ? null : scoreFor(q, ans) === 1
+      return {
+        number: i + 1,
+        section: q.sec,
+        type: q.type,
+        question: q.text,
+        answer: q.type === 'mcq' ? (ans !== undefined ? q.opts[ans] : 'No answer') :
+                q.type === 'tf' ? (ans || 'No answer') : textAns,
+        correct,
+        correctAnswer: q.type === 'mcq' ? q.opts[q.correct] :
+                       q.type === 'tf' ? q.correct : null,
+        explanation: q.explain || null,
+      }
+    })
+    fd.append('transcript', JSON.stringify(transcript))
+    fd.append('violations', JSON.stringify(st.violations))
+    fd.append('tabSwitches', String(st.tabSwitches))
+    fd.append('pasteTries', String(st.pasteTries))
+    const {got,max}=calcScores()
+    fd.append('score',got+'-'+max)
+    const res=await fetch('/api/save-recording',{method:'POST',headers:{'x-upload-token':'golive-assessment-2026'},body:fd})
+    const data=await res.json()
+    if(data.success){
+      if(status){status.textContent='Recording saved to server successfully.';status.style.color='var(--success)'}
+      if(btn){btn.innerHTML='<i class="ti ti-check"></i> Saved to server';btn.style.background='var(--success-bg)';btn.style.color='var(--success)';btn.style.borderColor='#c0dd97'}
+    }else{throw new Error(data.error)}
+  }catch(e){
+    if(status){status.textContent='Upload failed — downloading file instead.';status.style.color='var(--danger)'}
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Retry upload'}
+    downloadRec()
+  }
+}
+
+async function uploadRec(){
+  if(!st.recBlob)return
+  const btn=document.getElementById('upload-btn')
+  const status=document.getElementById('upload-status')
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Uploading...'}
+  try{
+    const fd=new FormData()
+    fd.append('recording',new File([st.recBlob],'recording.webm',{type:'video/webm'}))
+    fd.append('candidate',st.candidateName)
+    fd.append('ref',st.appRef||'')
+    fd.append('email',st.candidateEmail)
+    fd.append('role',st.candidateRole)
+    // Build full transcript
+    const transcript = QUESTIONS.map((q,i) => {
+      const ans = st.answers[q.id]
+      const textAns = st.textAnswers[q.id] || ''
+      const correct = q.type === 'text' ? null : scoreFor(q, ans) === 1
+      return {
+        number: i + 1,
+        section: q.sec,
+        type: q.type,
+        question: q.text,
+        answer: q.type === 'mcq' ? (ans !== undefined ? q.opts[ans] : 'No answer') :
+                q.type === 'tf' ? (ans || 'No answer') : textAns,
+        correct,
+        correctAnswer: q.type === 'mcq' ? q.opts[q.correct] :
+                       q.type === 'tf' ? q.correct : null,
+        explanation: q.explain || null,
+      }
+    })
+    fd.append('transcript', JSON.stringify(transcript))
+    fd.append('violations', JSON.stringify(st.violations))
+    fd.append('tabSwitches', String(st.tabSwitches))
+    fd.append('pasteTries', String(st.pasteTries))
+    const {got,max}=calcScores()
+    fd.append('score',got+'-'+max)
+    const res=await fetch('/api/save-recording',{method:'POST',headers:{'x-upload-token':'golive-assessment-2026'},body:fd})
+    const data=await res.json()
+    if(data.success){
+      if(status){status.textContent='Recording saved to server successfully.';status.style.color='var(--success)'}
+      if(btn){btn.innerHTML='<i class="ti ti-check"></i> Saved to server';btn.style.background='var(--success-bg)';btn.style.color='var(--success)';btn.style.borderColor='#c0dd97'}
+    }else{throw new Error(data.error)}
+  }catch(e){
+    if(status){status.textContent='Upload failed — downloading file instead.';status.style.color='var(--danger)'}
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Retry upload'}
+    downloadRec()
+  }
+}
+
+function downloadRec(){
+  if(!st.recBlob)return
+  const url=URL.createObjectURL(st.recBlob)
+  const a=document.createElement('a')
+  a.href=url
+  a.download=`GoLive_Assessment_${new Date().toISOString().slice(0,10)}.webm`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+render()
+</script>
+</body>
+</html>
