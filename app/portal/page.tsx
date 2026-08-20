@@ -1375,10 +1375,13 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
         })
       })
 
-      lines.push({
-        label: 'One-time setup & migration fee',
-        value: `${sym}${setupFee.toLocaleString()}`,
-      })
+      // A ₦0 line invites the question "why is this here" and adds nothing.
+      if (setupFee > 0) {
+        lines.push({
+          label: 'One-time setup & migration fee',
+          value: `${sym}${setupFee.toLocaleString()}`,
+        })
+      }
 
       if (discountPercent > 0) {
         lines.push({
@@ -1456,7 +1459,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
         totalLabel: `${headlineLabel}${vatRate > 0 ? ' (incl. VAT)' : ''}`,
         totalValue: `${sym}${grandTotalFirstYear.toLocaleString(undefined, { maximumFractionDigits: 0 })}`,
         totalNote: currency !== 'USD' && usdRate > 0
-          ? `≈ $${grandTotalUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })} at 1 USD = ₦${usdRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+          ? `≈ $${grandTotalUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} at 1 USD = ₦${usdRate.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
           : undefined,
         features: [...(pkgFeatures[pkg] || []), ...activeAddOns.map(a => a.label)],
         azureNote: azureNote.trim() || undefined,

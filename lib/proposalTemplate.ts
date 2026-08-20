@@ -143,18 +143,24 @@ export function renderProposalHtml(d: ProposalData): string {
 
   /* Figures align only if they share a column width. Arial-metric fonts are
      tabular by default; this makes it explicit and survives a font swap.    */
-  .figure, .fig { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1; }
+  /* Liberation Sans sets the naira sign tight against the following digit.
+     DejaVu carries a better-spaced glyph and matching tabular figures.      */
+  .figure, .fig, td.figure, td.total-value {
+    font-family: 'DejaVu Sans', 'Liberation Sans', Arial, sans-serif;
+    font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1;
+  }
 
   /* ── letterhead ───────────────────────────────────────────────────────── */
   .letterhead {
     display: flex; justify-content: space-between; align-items: flex-start;
     padding-bottom: 10pt; border-bottom: 2pt solid #16232e;
   }
-  /* The logo PNG is square with generous transparent padding. Cropping it
-     here rather than re-exporting keeps the header compact — the old layout
-     lost roughly 40% of page one to that padding.                           */
-  .logo-clip { width: 150pt; height: 42pt; overflow: hidden; position: relative; }
-  .logo-clip img { position: absolute; top: -34pt; left: -6pt; width: 162pt; height: auto; }
+  /* The source PNG is square (2400x2400) with transparent padding around the
+     lockup. Cropping to the wordmark needs the real offsets, and guessing at
+     them cut the logo in half — so it is shown whole at a controlled height.
+     A tightly-trimmed export would let this sit larger in the same space.   */
+  .logo-clip { height: 58pt; display: flex; align-items: center; }
+  .logo-clip img { height: 58pt; width: auto; display: block; }
 
   .issuer { text-align: right; font-size: 7.5pt; color: #5c7184; line-height: 1.6; }
   .issuer strong { display: block; font-size: 9pt; color: #16232e; letter-spacing: 0.2pt; }
@@ -178,9 +184,9 @@ export function renderProposalHtml(d: ProposalData): string {
 
   /* ── section headings ─────────────────────────────────────────────────── */
   h2 {
-    font-size: 8pt; font-weight: 700; letter-spacing: 1.2pt; text-transform: uppercase;
+    font-size: 8pt; font-weight: 700; letter-spacing: 0.7pt; text-transform: uppercase;
     color: #16232e; padding-bottom: 4pt; border-bottom: 0.75pt solid #16232e;
-    margin: 16pt 0 8pt;
+    margin: 13pt 0 7pt;
     /* A heading must never be the last thing on a page. */
     break-after: avoid; page-break-after: avoid;
   }
@@ -207,7 +213,10 @@ export function renderProposalHtml(d: ProposalData): string {
   .total-note { font-size: 7.5pt; color: #8a99a5; text-align: right; }
 
   /* ── included ─────────────────────────────────────────────────────────── */
-  ul.features { columns: 2; column-gap: 24pt; list-style: none; break-inside: avoid; }
+  /* break-inside on the multicol container pushed the whole Payment section
+     onto page two even with room to spare. The list items still avoid
+     splitting individually, which is what actually matters.                 */
+  ul.features { columns: 2; column-gap: 24pt; list-style: none; }
   ul.features li { font-size: 8.5pt; padding-left: 10pt; margin-bottom: 3.5pt;
                    position: relative; break-inside: avoid; }
   ul.features li::before { content: ''; position: absolute; left: 0; top: 4.5pt;
