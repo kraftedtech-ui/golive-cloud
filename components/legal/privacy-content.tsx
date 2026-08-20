@@ -18,6 +18,8 @@ const retentionRows = [
   { category: "Support communications", period: "3 years", reason: "Quality assurance and dispute resolution" },
   { category: "Marketing preferences", period: "Until consent withdrawn + 1 year", reason: "Consent-based processing" },
   { category: "Website visitor logs", period: "90 days", reason: "Security monitoring" },
+  { category: "Candidate assessment recordings & transcripts", period: "60 days from submission", reason: "Review of a proctored assessment; deleted automatically thereafter" },
+  { category: "Candidate application records", period: "12 months from application", reason: "Recruitment decision record and duplicate-application checks" },
 ]
 
 export const privacySections = [
@@ -60,6 +62,7 @@ export function PrivacyContent() {
             ["Microsoft tenant data", "Tenant ID, domain, license count and subscription details (as your CSP)."],
             ["Transaction data", "Services purchased, invoices, payment metadata and renewal dates."],
             ["Technical data", "IP address, device type, browser and usage analytics from cloud.golivecompany.com."],
+            ["Recruitment data", "If you apply for a role: your name, email address, the position applied for, your assessment answers, and — where the assessment is proctored — a video and audio recording of your session, a transcript of it, and a log of tab switches and paste attempts."],
           ].map(([label, desc]) => (
             <li key={label as string} className="flex gap-3">
               <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#00c8c8]" />
@@ -67,6 +70,9 @@ export function PrivacyContent() {
             </li>
           ))}
         </ul>
+        <InfoBox title="Proctored candidate assessments">
+          Our recruitment assessments are proctored. Your camera and microphone record for the duration of the assessment, and tab switches and paste attempts are logged. You are told this before the assessment begins and must accept it to proceed. The recording and transcript are used solely to review your assessment, are seen only by the hiring team, and are deleted 60 days after submission. You may ask us to delete them sooner by writing to talent.acquisition@golivecompany.com.
+        </InfoBox>
         <InfoBox title="Microsoft data access">
           As your Microsoft CSP, GoLive has administrative access to your tenant. We do NOT access the content of your emails, files, Teams messages or other Microsoft 365 data unless you explicitly grant access for a specific support purpose.
         </InfoBox>
