@@ -72,6 +72,7 @@ async function verifyCode(){
     const data=await res.json()
     if(data.valid){
       st.codeVerified=true
+      st.token=data.token||''
       st.candidateRole=role
       st.phase='consent'
       render()
@@ -216,7 +217,7 @@ async function submitIntake(){
   try{
     const res=await fetch('/api/applications/register',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-upload-token':'golive-assessment-2026'},
+      headers:{'Content-Type':'application/json','x-assessment-token':st.token||''},
       body:JSON.stringify({name,email,role})
     })
     const data=await res.json()
@@ -229,15 +230,15 @@ async function submitIntake(){
     st.candidateEmail=email
     st.candidateRole=role
     st.appRef=data.ref
+    if(data.token)st.token=data.token
     st.phase='ref-confirm'
     render()
   }catch(e){
-    console.warn('Registration failed, allowing through',e)
-    st.candidateName=name
-    st.candidateEmail=email
-    st.candidateRole=role
-    st.phase='gate'
-    render()
+    // Previously advanced the candidate anyway, skipping the duplicate check
+    // and leaving the submission with no Application record.
+    console.error('Registration could not be completed',e)
+    err.textContent='We could not register your application. Please check your connection and try again, or contact talent.acquisition@golivecompany.com.'
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-arrow-right"></i> Continue to camera verification'}
   }
 }
 
@@ -481,7 +482,7 @@ async function uploadRec(){
     fd.append('pasteTries', String(st.pasteTries))
     const {got,max}=calcScores()
     fd.append('score',got+'-'+max)
-    const res=await fetch('/api/save-recording',{method:'POST',headers:{'x-upload-token':'golive-assessment-2026'},body:fd})
+    const res=await fetch('/api/save-recording',{method:'POST',headers:{'x-assessment-token':st.token||''},body:fd})
     const data=await res.json()
     if(data.success){
       if(status){status.textContent='Recording saved to server successfully.';status.style.color='var(--success)'}
@@ -530,7 +531,7 @@ async function uploadRec(){
     fd.append('pasteTries', String(st.pasteTries))
     const {got,max}=calcScores()
     fd.append('score',got+'-'+max)
-    const res=await fetch('/api/save-recording',{method:'POST',headers:{'x-upload-token':'golive-assessment-2026'},body:fd})
+    const res=await fetch('/api/save-recording',{method:'POST',headers:{'x-assessment-token':st.token||''},body:fd})
     const data=await res.json()
     if(data.success){
       if(status){status.textContent='Recording saved to server successfully.';status.style.color='var(--success)'}

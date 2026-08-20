@@ -4,8 +4,8 @@ import path from 'path'
 import { Resend } from 'resend'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
+import { claimsFromRequest } from '@/lib/assessmentToken'
 
-const SECRET = process.env.ASSESSMENT_UPLOAD_SECRET || 'golive-assessment-2026'
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export const maxDuration = 60
@@ -13,9 +13,12 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.headers.get('x-upload-token')
-    if (token !== SECRET) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+    const claims = claimsFromRequest(req)
+    if (!claims || !claims.ref) {
+      return NextResponse.json(
+        { error: 'Your session has expired. Please re-enter your access code.' },
+        { status: 401 }
+      )
     }
 
     const recordingsDir = path.join(process.cwd(), 'recordings')
@@ -23,15 +26,18 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData()
     const file = formData.get('recording') as File | null
-    const candidate = (formData.get('candidate') as string) || 'unknown'
-    const email = (formData.get('email') as string) || ''
-    const role = (formData.get('role') as string) || 'Unknown Role'
+    // From the signed token, never the form body. Otherwise anyone holding
+    // the endpoint URL could post a recording under another candidate's name
+    // and score, and trigger an email from talent.acquisition@ saying so.
+    const candidate = claims.name || 'unknown'
+    const email = claims.email || ''
+    const role = claims.role
     const score = (formData.get('score') as string) || '0'
     const transcriptRaw = (formData.get('transcript') as string) || '[]'
     const violationsRaw = (formData.get('violations') as string) || '[]'
     const tabSwitches = parseInt(formData.get('tabSwitches') as string || '0')
     const pasteTries = parseInt(formData.get('pasteTries') as string || '0')
-    const appRef = (formData.get('ref') as string) || ''
+    const appRef = claims.ref
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 })

@@ -73,6 +73,7 @@ jobs:
           git show origin/main:lib/currency.ts > lib/currency.ts
           git show origin/main:lib/auth.ts > lib/auth.ts
           git show origin/main:lib/apiAuth.ts > lib/apiAuth.ts
+          git show origin/main:lib/assessmentToken.ts > lib/assessmentToken.ts
           git show origin/main:lib/exchangeRates.ts > lib/exchangeRates.ts
           git show origin/main:models/Lead.ts > models/Lead.ts
           git show origin/main:models/Notification.ts > models/Notification.ts

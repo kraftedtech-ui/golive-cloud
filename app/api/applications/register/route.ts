@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import { Resend } from 'resend'
+import { claimsFromRequest, signAssessmentToken } from '@/lib/assessmentToken'
 
-const SECRET = process.env.ASSESSMENT_UPLOAD_SECRET || 'golive-assessment-2026'
 const resend = new Resend(process.env.RESEND_API_KEY)
 export const dynamic = 'force-dynamic'
 
@@ -25,15 +25,21 @@ async function generateRef(): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.headers.get('x-upload-token')
-    if (token !== SECRET) {
-      return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+    const claims = claimsFromRequest(req)
+    if (!claims) {
+      return NextResponse.json(
+        { error: 'Your session has expired. Please re-enter your access code.' },
+        { status: 401 }
+      )
     }
 
-    const { name, email, role } = await req.json()
-    if (!name || !email || !role) {
-      return NextResponse.json({ error: 'name, email and role required' }, { status: 400 })
+    const { name, email } = await req.json()
+    if (!name || !email) {
+      return NextResponse.json({ error: 'name and email required' }, { status: 400 })
     }
+    // Role comes from the signed token, not the request body — a candidate
+    // cannot register for a role whose access code they never had.
+    const role = claims.role
 
     await connectDB()
 
@@ -97,7 +103,16 @@ export async function POST(req: NextRequest) {
       `
     }).catch((e: Error) => console.error('[register] email error:', e))
 
-    return NextResponse.json({ allowed: true, ref })
+    // Re-issue with the candidate's identity bound in, so save-recording can
+    // trust who is submitting rather than believing the form body.
+    const boundToken = signAssessmentToken({
+      role,
+      ref,
+      email: email.toLowerCase().trim(),
+      name: name.trim(),
+    })
+
+    return NextResponse.json({ allowed: true, ref, token: boundToken })
   } catch (err) {
     console.error('[register] error:', err)
     return NextResponse.json({ error: 'Registration failed' }, { status: 500 })
