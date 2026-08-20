@@ -1833,7 +1833,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
 
         <button onClick={generateProposalPdf} disabled={!selectedLead || catalogMissing || addOnsMissing || discountBlocked || savingDoc || pdfBusy}
           className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed">
-          🖨️ Generate & Print PDF
+          {pdfBusy ? "Generating PDF…" : "Save & download PDF"}
         </button>
         {!selectedLead && <p className="text-center text-xs text-muted-foreground">Select a lead to enable proposal generation</p>}
         {docMsg && <p className="text-center text-xs text-teal-700">{docMsg}</p>}
