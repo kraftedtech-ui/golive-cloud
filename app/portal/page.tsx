@@ -1888,7 +1888,9 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
                   const latest = g.docs[0]
                   const earlier = g.docs.slice(1)
                   // The current deal is open by default; older ones are not.
-                  const isOpen = openGroups[g.id] ?? (gi === 0)
+                  // Every group starts collapsed to its latest version. The
+                  // panel was longer than the form that produces it.
+                  const isOpen = openGroups[g.id] ?? false
                   const shown = isOpen ? g.docs : [latest]
 
                   return (

@@ -89,7 +89,11 @@ export function Sidebar({ active, onNavigate }: { active: string; onNavigate: (k
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-sidebar-border bg-gradient-to-b from-[#10293c] via-sidebar to-[#0a1c2b] text-sidebar-foreground lg:flex">
       {/* Brand */}
       <div className="flex items-center gap-3 border-b border-sidebar-border/60 px-5 py-[18px]">
-        <img src="/images/logo-dark.png" alt="GoLive" style={{ height: 80, width: 'auto', mixBlendMode: 'screen' }} />
+        <span aria-hidden="true" style={{ display: 'block', width: 10, height: 10, borderRadius: 2, background: '#00c8c8' }} />
+        <span className="leading-tight">
+          <span className="block text-[15px] font-semibold tracking-tight text-white">GoLive</span>
+          <span className="block text-[10px] tracking-wide text-sidebar-foreground/70">Cloud portal</span>
+        </span>
       </div>
 
       {/* User */}
