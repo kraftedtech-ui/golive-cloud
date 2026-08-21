@@ -137,7 +137,7 @@ export default function PortalPage() {
   // than during the previous render" (error #310), crashing the whole page.
   // This is exactly what was happening on every hard refresh of /portal.
   if (status === 'loading') return (
-    <div className="flex min-h-screen items-center justify-center bg-[#f4f7fb]">
+    <div data-theme="portal" className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-sm text-[#5c7184]">Loading portal...</div>
     </div>
   )
@@ -183,7 +183,7 @@ export default function PortalPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb]">
+    <div data-theme="portal" className="min-h-screen bg-background">
       <SessionExpiryWarning />
       <Sidebar active={page} onNavigate={setPage} />
       <div className="lg:pl-64">
@@ -853,6 +853,7 @@ const DEFAULT_VAT_RATES: Record<string, number> = {
   USD: 0,    // no default — depends where the customer is established
 }
 
+/* themed */
 function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed }: {
   leads: Lead[]; isAdmin: boolean; userEmail: string
   prefill?: { leadId: string; packageKey: string; addOnKeys: string[] } | null
@@ -1543,15 +1544,15 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
             {leads.filter(l => !['Won','Lost'].includes(l.status)).filter(l => isAdmin || l.assignedToEmail === userEmail).map(l => <option key={l._id} value={l._id}>{l.company} — {l.country} ({l.status})</option>)}
           </select>
           {!isAdmin && leads.filter(l => !['Won','Lost'].includes(l.status)).filter(l => l.assignedToEmail === userEmail).length === 0 && (
-            <p className="mt-1.5 text-[11px] text-amber-600">You don't have any assigned leads yet. Ask your admin to assign you a lead first.</p>
+            <p className="mt-1.5 text-[11px] state-thin">You don't have any assigned leads yet. Ask your admin to assign you a lead first.</p>
           )}
           {lead && (
             <div className="mt-2 rounded-lg bg-[#e8f4fb] border border-[#c8e6f0] px-3 py-2 text-xs">
-              <div className="font-semibold text-[#0d2233]">{lead.company}</div>
-              <div className="text-[#5c7184]">{lead.contact} · {lead.email}</div>
-              {lead.phone && <div className="text-[#5c7184]">{lead.phone}</div>}
-              <div className="text-[#5c7184]">{lead.industry} · {lead.users} users · {lead.country}</div>
-              {(lead.services?.[0] || (lead as any).currentEmail) && <div className="text-[#0096c7] mt-0.5">Current: {lead.services?.[0] || (lead as any).currentEmail}</div>}
+              <div className="font-semibold text-foreground">{lead.company}</div>
+              <div className="text-muted-foreground">{lead.contact} · {lead.email}</div>
+              {lead.phone && <div className="text-muted-foreground">{lead.phone}</div>}
+              <div className="text-muted-foreground">{lead.industry} · {lead.users} users · {lead.country}</div>
+              {(lead.services?.[0] || (lead as any).currentEmail) && <div className="text-primary mt-0.5">Current: {lead.services?.[0] || (lead as any).currentEmail}</div>}
             </div>
           )}
         </div>
@@ -1584,7 +1585,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           <label className="mb-1.5 block text-xs font-medium text-foreground">Setup Fee ({sym.trim()})</label>
           <input type="number" value={setupInput} onChange={e => { handleSetupInputChange(e.target.value); setSetupFeeSource(null) }} className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/30" />
           {setupFeeSource ? (
-            <p className="mt-1 text-[10px] text-teal-700">📎 {setupFeeSource}</p>
+            <p className="mt-1 text-[10px] state-healthy">📎 {setupFeeSource}</p>
           ) : (
             <p className="mt-1 text-[10px] text-muted-foreground">No Discovery Assessment on file for this lead — using a rough default. Run one first for an accurate, scope-based fee.</p>
           )}
@@ -1656,7 +1657,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
                   <span className="font-medium text-foreground">{l.qty}× {l.skuTitle}</span>
                   <span className="block text-[10px] text-muted-foreground">
                     {l.termDuration === 'P1Y' ? '12-month term' : 'Monthly term'} · billed {l.billingPlan.toLowerCase()}
-                    {l.overrideUSD !== undefined && <span className="text-amber-600"> · price overridden from ${l.retailUSD.toFixed(2)}</span>}
+                    {l.overrideUSD !== undefined && <span className="state-thin"> · price overridden from ${l.retailUSD.toFixed(2)}</span>}
                   </span>
                 </span>
                 <span className="flex-shrink-0 text-muted-foreground">
@@ -1666,7 +1667,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
             ))}
           </div>
           {catalogLines.length > 0 && isAdmin && (
-            <p className={`mt-1 text-[10px] ${customLinesMargin < 0.05 ? 'text-amber-700' : 'text-muted-foreground'}`}>
+            <p className={`mt-1 text-[10px] ${customLinesMargin < 0.05 ? 'state-thin' : 'text-muted-foreground'}`}>
               Blended margin on these lines: {(customLinesMargin * 100).toFixed(1)}%
               {customLinesMargin < 0.05 && ' — below the 5% floor, check the overrides.'}
             </p>
@@ -1705,7 +1706,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
             </p>
           )}
           {vatEnabled && !customerTIN.trim() && currency === 'NGN' && (
-            <p className="text-[10px] text-amber-700">A customer TIN is needed before this can be cleared as a B2B e-invoice.</p>
+            <p className="text-[10px] state-thin">A customer TIN is needed before this can be cleared as a B2B e-invoice.</p>
           )}
           {vatEnabled && vatAmount > 0 && (
             <p className="text-[10px] text-muted-foreground">
@@ -1753,21 +1754,21 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="rounded-lg bg-white px-2.5 py-1.5">
                 <p className="text-[10px] text-muted-foreground">Gross profit</p>
-                <p className="font-semibold text-foreground">{sym}{convertFromUSD(grossProfitAfterUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                <p className="font-semibold text-foreground fig">{sym}{convertFromUSD(grossProfitAfterUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
                 {discountPercent > 0 && (
                   <p className="text-[10px] text-muted-foreground">was {sym}{convertFromUSD(grossProfitBeforeUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
                 )}
               </div>
               <div className="rounded-lg bg-white px-2.5 py-1.5">
                 <p className="text-[10px] text-muted-foreground">Commission forecast</p>
-                <p className="font-semibold text-foreground">₦{commissionNGN.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                <p className="font-semibold text-foreground fig">₦{commissionNGN.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
                 <p className="text-[10px] text-muted-foreground">{(COMMISSION_RATE * 100).toFixed(0)}% of GP · full 12-month term</p>
               </div>
             </div>
 
             <div className="rounded-lg bg-white px-2.5 py-1.5 text-xs">
               <p className="text-[10px] text-muted-foreground">Payable on this invoice</p>
-              <p className="font-semibold text-foreground">₦{commissionPayableNGN.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+              <p className="font-semibold text-foreground fig">₦{commissionPayableNGN.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
               <p className="text-[10px] text-muted-foreground">
                 {commissionMonthsPaid} of 12 months paid for
                 {commissionMonthsPaid < 12
@@ -1858,7 +1859,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           {pdfBusy ? "Generating PDF…" : "Save & download PDF"}
         </button>
         {!selectedLead && <p className="text-center text-xs text-muted-foreground">Select a lead to enable proposal generation</p>}
-        {docMsg && <p className="text-center text-xs text-teal-700">{docMsg}</p>}
+        {docMsg && <p className="text-center text-xs state-healthy">{docMsg}</p>}
 
         {savedDocs.length > 0 && (
           <div className="rounded-xl border border-border p-3">
@@ -1886,8 +1887,8 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
                         className="mt-0.5 block w-full rounded border border-border bg-white px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground hover:bg-secondary/50">
                         Download PDF
                       </button>
-                      <span className={`block text-[9px] font-semibold uppercase tracking-wide ${
-                        d.outcome === 'accepted' ? 'text-green-700'
+                      <span className={`block text-[9px] font-normal tracking-wide text-muted-foreground ${
+                        d.outcome === 'accepted' ? 'state-healthy'
                         : d.outcome === 'open' ? 'text-primary'
                         : 'text-muted-foreground'}`}>{d.outcome}</span>
                     </span>
@@ -1938,21 +1939,21 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Package</span><span className="font-medium">{pkg}</span></div>
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Billing plan</span><span className="font-medium">{nce.label}</span></div>
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Users</span><span className="font-medium">{users}</span></div>
-          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Package price per user {periodLabel}</span><span className="font-medium">{sym}{pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Package price per user {periodLabel}</span><span className="font-medium fig">{sym}{pricePerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
           {activeAddOns.length > 0 && (
-            <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Add-ons ({activeAddOns.length}) per user {periodLabel}</span><span className="font-medium">{sym}{addOnsPerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
+            <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Add-ons ({activeAddOns.length}) per user {periodLabel}</span><span className="font-medium fig">{sym}{addOnsPerUserConverted.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span></div>
           )}
-          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">{nce.periodsPerYear === 1 ? 'Annual total' : 'Monthly total'}</span><span className="font-semibold text-sm">{sym}{periodTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">{nce.periodsPerYear === 1 ? 'Annual total' : 'Monthly total'}</span><span className="font-semibold text-sm fig">{sym}{periodTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
           {nce.periodsPerYear > 1 && (
-            <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">12-month total</span><span className="font-semibold">{sym}{annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
+            <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">12-month total</span><span className="font-semibold fig">{sym}{annualTotal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
           )}
           {catalogLines.map(l => (
             <div key={l._id} className="flex justify-between py-1 border-b border-border/50">
               <span className="text-muted-foreground">{l.qty}× {l.skuTitle} <span className="text-[10px]">({l.billingPlan.toLowerCase()})</span></span>
-              <span className="font-medium">{sym}{convertFromUSD(unitUSD(l) * l.qty, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}/{l.billingPlan === 'Monthly' ? 'mo' : 'yr'}</span>
+              <span className="font-medium fig">{sym}{convertFromUSD(unitUSD(l) * l.qty, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}/{l.billingPlan === 'Monthly' ? 'mo' : 'yr'}</span>
             </div>
           ))}
-          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Setup fee</span><span className="font-medium">{sym}{setupFee.toLocaleString()}</span></div>
+          <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Setup fee</span><span className="font-medium fig">{sym}{setupFee.toLocaleString()}</span></div>
           {discountPercent > 0 && (
             <div className="flex justify-between py-1 border-b border-border/50 text-primary">
               <span>Discount ({discountPercent}%)</span>
@@ -1963,11 +1964,11 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
             <>
               <div className="flex justify-between py-1 border-b border-border/50">
                 <span className="text-muted-foreground">{isMonthlyCommitment ? 'First month subtotal (excl. VAT)' : 'Subtotal (excl. VAT)'}</span>
-                <span className="font-medium">{sym}{headlineBase.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="font-medium fig">{sym}{headlineBase.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/50">
                 <span className="text-muted-foreground">VAT ({vatRate}%)</span>
-                <span className="font-medium">{sym}{headlineVAT.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="font-medium fig">{sym}{headlineVAT.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
             </>
           )}
@@ -1981,11 +1982,11 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
             <>
               <div className="flex justify-between py-1 border-b border-border/50">
                 <span className="text-muted-foreground">Monthly charge (excl. VAT)</span>
-                <span className="font-medium">{sym}{monthlyNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="font-medium fig">{sym}{monthlyNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/50">
                 <span className="text-muted-foreground">× {advMonths} months in advance</span>
-                <span className="font-medium">{sym}{advanceNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                <span className="font-medium fig">{sym}{advanceNet.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-border/50 text-xs text-muted-foreground">
                 <span>Covers</span>
@@ -1993,7 +1994,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
               </div>
             </>
           )}
-          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">{headlineLabel}</span><span className="font-bold text-primary text-base">{sym}{(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
+          <div className="flex justify-between py-2 mt-1"><span className="font-bold text-foreground">{headlineLabel}</span><span className="fig-lead text-foreground text-base">{sym}{(grandTotalFirstYear).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span></div>
           {monthlyLinesUSD > 0 && (
             <div className="flex justify-between py-1 text-xs text-muted-foreground border-t border-dashed border-border/40 mt-1">
               <span>of which recurring monthly add-ons</span>

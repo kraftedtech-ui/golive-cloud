@@ -125,3 +125,123 @@
     box-shadow: 0 0 0 1px rgb(11 29 46 / 0.06), 0 2px 8px -2px rgb(11 29 46 / 0.08);
   }
 }
+/* ─────────────────────────────────────────────────────────────────────────
+   Portal theme
+   ─────────────────────────────────────────────────────────────────────────
+   Scoped to [data-theme='portal'] so the public marketing pages keep their
+   own softer treatment — they are selling, the portal is working.
+
+   Three changes carry most of it:
+
+   1. Colour means something. Teal was on eyebrows, ticks, pills, borders and
+      buttons at once, so a 0% margin warning had to compete with decoration.
+      Here teal is interactive only — links, focus, selected nav — and the
+      semantic colours are reserved for what they describe.
+
+   2. Figures are set as figures. Tabular numerals, right-aligned, so a
+      column of naira actually forms a column. This is a portal about money;
+      proportional digits in a price list is the loudest tell that it isn't.
+
+   3. Hairlines instead of shadows, 6px instead of 12px. Enterprise finance
+      tools sit at small radii — the large-radius, soft-shadow card is a
+      consumer SaaS idiom and it reads as one.
+
+   Append to app/globals.css.
+   ───────────────────────────────────────────────────────────────────────── */
+
+[data-theme='portal'] {
+  /* Canvas is a neutral cool grey, not a blue wash. The blue tint made every
+     surface feel like part of the brand rather than a working ground. */
+  --background: #f2f4f6;
+  --foreground: #14212b;
+
+  --card: #ffffff;
+  --card-foreground: #14212b;
+  --popover: #ffffff;
+  --popover-foreground: #14212b;
+
+  /* Interactive only. If it is teal, you can click it. */
+  --primary: #0096c7;
+  --primary-foreground: #ffffff;
+  --ring: #0096c7;
+
+  --secondary: #e9edf1;
+  --secondary-foreground: #14212b;
+  --muted: #eef1f4;
+  --muted-foreground: #5a6b78;
+  --accent: #e6f4f9;
+  --accent-foreground: #0a4a5e;
+
+  /* Reserved for margin, payment and commission state — never decoration. */
+  --success: #2f6b4f;
+  --warning: #8a5a12;
+  --destructive: #a03a3a;
+
+  --border: #dce1e6;
+  --input: #cdd5dc;
+
+  /* 6px. Controls inherit smaller, cards stay modest. */
+  --radius: 0.375rem;
+
+  /* Sidebar keeps the deep ink but loses the blue cast in its text, which
+     was low-contrast against the navy and hard to scan. */
+  --sidebar: #14212b;
+  --sidebar-foreground: #a9bac6;
+  --sidebar-primary: #0096c7;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e2f3d;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #263947;
+  --sidebar-ring: #0096c7;
+
+  /* Charts: one ramp, not five unrelated hues. */
+  --chart-1: #0096c7;
+  --chart-2: #4fb3d4;
+  --chart-3: #14212b;
+  --chart-4: #8aa4b5;
+  --chart-5: #c3d0d9;
+}
+
+/* Shadows carried a "premium" brand tint that read as decoration. In the
+   portal, separation comes from a hairline and a change of surface. */
+[data-theme='portal'] .shadow-sm,
+[data-theme='portal'] .shadow,
+[data-theme='portal'] .shadow-md,
+[data-theme='portal'] .shadow-lg,
+[data-theme='portal'] .shadow-elevated,
+[data-theme='portal'] .shadow-elevated-lg,
+[data-theme='portal'] .shadow-ring-soft {
+  box-shadow: none;
+}
+
+/* Anything raised keeps a hairline so it does not dissolve into the canvas. */
+[data-theme='portal'] .shadow-sm,
+[data-theme='portal'] .shadow,
+[data-theme='portal'] .shadow-md,
+[data-theme='portal'] .shadow-lg {
+  border: 1px solid var(--border);
+}
+
+@layer utilities {
+  /* Every monetary figure. Tabular numerals give each digit the same advance
+     width, so figures in a column align on their places without a table. */
+  .fig {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+    letter-spacing: -0.01em;
+  }
+
+  /* A figure that is the answer to the screen's question — a total, a
+     headline margin. Slightly tighter and heavier than body. */
+  .fig-lead {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  /* Margin and payment state. Used on text, never on a whole surface. */
+  .state-healthy { color: var(--success); }
+  .state-thin    { color: var(--warning); }
+  .state-loss    { color: var(--destructive); }
+}
