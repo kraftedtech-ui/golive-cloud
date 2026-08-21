@@ -1760,6 +1760,9 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
               <div className="rounded-lg bg-white px-2.5 py-1.5">
                 <p className="text-[10px] text-muted-foreground">Gross profit</p>
                 <p className="font-semibold text-foreground fig">{sym}{convertFromUSD(grossProfitAfterUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                {currency !== 'NGN' && (
+                  <p className="text-[10px] text-muted-foreground fig">₦{grossProfitAfterNGN.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+                )}
                 {discountPercent > 0 && (
                   <p className="text-[10px] text-muted-foreground">was {sym}{convertFromUSD(grossProfitBeforeUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
                 )}
