@@ -127,7 +127,7 @@ cd /www/wwwroot/golive-cloud && env -i \
 
 Do not remove bootloader packages remotely without console access.
 
-**`next.config.mjs` exists on the server but not in git**, and Next prefers `.mjs` over `.ts` — so the `next.config.ts` that `deploy.sh` pulls on every deploy is **ignored**. The `.mjs` contains only a Pages-Router `api` key (inert in App Router) and a Server Actions body limit that does not govern route handlers. It is doing nothing except shadowing the tracked config. Unresolved.
+**`next.config.mjs` removed 21 August 2026.** It shadowed the tracked `next.config.ts` (Next prefers `.mjs`), so the config the deploy pulled was never in effect. It held only an `api.bodyParser` key — Pages Router only, inert in the App Router — and a Server Actions body limit that does not govern route handlers. Both were presumably added while debugging large assessment uploads; neither did anything. The real upload cap lives in `app/api/save-recording/route.ts`. Backup at `/root/next.config.mjs.removed-2026-08-21`. Do not reinstate.
 
 ---
 
