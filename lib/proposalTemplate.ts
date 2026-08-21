@@ -159,8 +159,8 @@ export function renderProposalHtml(d: ProposalData): string {
      lockup. Cropping to the wordmark needs the real offsets, and guessing at
      them cut the logo in half — so it is shown whole at a controlled height.
      A tightly-trimmed export would let this sit larger in the same space.   */
-  .logo-clip { height: 58pt; display: flex; align-items: center; }
-  .logo-clip img { height: 58pt; width: auto; display: block; }
+  .logo-clip { height: 42pt; display: flex; align-items: center; }
+  .logo-clip img { height: 42pt; width: auto; display: block; }
 
   .issuer { text-align: right; font-size: 7.5pt; color: #5c7184; line-height: 1.6; }
   .issuer strong { display: block; font-size: 9pt; color: #16232e; letter-spacing: 0.2pt; }

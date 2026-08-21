@@ -217,6 +217,7 @@ jobs:
           mkdir -p public/images
           git show origin/main:public/images/ndpr-badge.png > public/images/ndpr-badge.png
           git show origin/main:public/images/logo-dark.png > public/images/logo-dark.png
+          git show origin/main:public/images/logo-dark-trimmed.png > public/images/logo-dark-trimmed.png
           git show origin/main:public/favicon.ico > public/favicon.ico
           git show origin/main:public/favicon-16x16.png > public/favicon-16x16.png
           git show origin/main:public/favicon-32x32.png > public/favicon-32x32.png

@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     if (!data.logoDataUri) {
       try {
         const logo = await readFile(
-          path.join(process.cwd(), 'public', 'images', 'logo-dark.png')
+          path.join(process.cwd(), 'public', 'images', 'logo-dark-trimmed.png')
         )
         data.logoDataUri = `data:image/png;base64,${logo.toString('base64')}`
       } catch {
