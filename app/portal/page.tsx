@@ -1323,6 +1323,26 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
    * record — and a re-print creates a new version rather than a second
    * document carrying a different number for the same quote.
    */
+  /** Re-download a past version from its archived copy, as the customer received it. */
+  async function downloadArchivedPdf(id: string, label: string) {
+    setDocMsg(`Retrieving ${label}…`)
+    try {
+      const res = await fetch(`/api/proposals/pdf/${id}`)
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}))
+        setDocMsg(e.error || 'Could not retrieve that version.')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = `${label}.pdf`
+      document.body.appendChild(a); a.click(); document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      setDocMsg(`Downloaded ${label}`)
+    } catch { setDocMsg('Network error retrieving that version.') }
+  }
+
   const generateProposalPdf = async () => {
     if (!lead) { setDocMsg('Select a lead first.'); return }
     setPdfBusy(true)
@@ -1437,6 +1457,8 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
       }
 
       const payload = {
+        // Lets the render route archive the document against this version.
+        documentId: saved._id,
         reference: saved.reference,
         issuedOn: today,
         validUntil: new Date(Date.now() + 5 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
@@ -1860,6 +1882,10 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
                       <span className="font-medium text-foreground">
                         {CURRENCY_SYMBOLS[d.currency] || d.currency}{Math.round(d.grossTotal).toLocaleString()}
                       </span>
+                      <button type="button" onClick={() => downloadArchivedPdf(d._id, d.invoiceNumber || d.reference)}
+                        className="mt-0.5 block w-full rounded border border-border bg-white px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground hover:bg-secondary/50">
+                        Download PDF
+                      </button>
                       <span className={`block text-[9px] font-semibold uppercase tracking-wide ${
                         d.outcome === 'accepted' ? 'text-green-700'
                         : d.outcome === 'open' ? 'text-primary'

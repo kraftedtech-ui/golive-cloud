@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { requireSession } from '@/lib/apiAuth'
+import { connectDB } from '@/lib/mongodb'
+import { SalesDocument } from '@/models/SalesDocument'
 import {
   renderProposalHtml,
   proposalHeaderTemplate,
@@ -70,8 +72,9 @@ export async function POST(req: NextRequest) {
       args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
     })
 
+    const html = renderProposalHtml(data)
     const page = await browser.newPage()
-    await page.setContent(renderProposalHtml(data), { waitUntil: 'load' })
+    await page.setContent(html, { waitUntil: 'load' })
     // Chromium applies screen styles to setContent by default.
     await page.emulateMediaType('print')
 
@@ -89,6 +92,31 @@ export async function POST(req: NextRequest) {
 
     await browser.close()
     browser = null
+
+    // Archive the document exactly as rendered. Without this a re-download
+    // would rebuild from current catalog pricing and today's FX rate, which
+    // would silently rewrite what the customer was actually sent — and this
+    // record is retained for six years.
+    const documentId = (data as unknown as { documentId?: string }).documentId
+    if (documentId) {
+      try {
+        await connectDB()
+        await SalesDocument.findByIdAndUpdate(documentId, {
+          $set: { renderedHtml: html },
+          $push: {
+            auditTrail: {
+              at: new Date(),
+              actorEmail: auth.email ?? undefined,
+              action: 'pdf_generated',
+              detail: `Document rendered and archived (${(pdf.length / 1024).toFixed(0)} KB)`,
+            },
+          },
+        })
+      } catch (e) {
+        // A failed archive must not stop the rep sending the proposal.
+        console.error('[proposals/pdf] could not archive rendered document:', e)
+      }
+    }
 
     const filename = `${data.reference}.pdf`
 
