@@ -1216,7 +1216,6 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const lead = leads.find(l => l._id === selectedLead)
   const today = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
   const expiry = new Date(Date.now() + 14 * 86400000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-  const proposalRef = `GL-PROP-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`
 
   /**
    * Persist what is on screen as a new version. Called before printing so
@@ -1535,7 +1534,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 p-5 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-8 p-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
       <div className="space-y-4">
         <div>
           <label className="mb-1.5 block text-xs font-medium text-foreground">Select Lead</label>
@@ -1547,12 +1546,12 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
             <p className="mt-1.5 text-[11px] state-thin">You don't have any assigned leads yet. Ask your admin to assign you a lead first.</p>
           )}
           {lead && (
-            <div className="mt-2 rounded-lg bg-[#e8f4fb] border border-[#c8e6f0] px-3 py-2 text-xs">
+            <div className="mt-2 rounded-md border border-border bg-secondary/40 px-3 py-2 text-xs">
               <div className="font-semibold text-foreground">{lead.company}</div>
               <div className="text-muted-foreground">{lead.contact} · {lead.email}</div>
               {lead.phone && <div className="text-muted-foreground">{lead.phone}</div>}
               <div className="text-muted-foreground">{lead.industry} · {lead.users} users · {lead.country}</div>
-              {(lead.services?.[0] || (lead as any).currentEmail) && <div className="text-primary mt-0.5">Current: {lead.services?.[0] || (lead as any).currentEmail}</div>}
+              {(lead.services?.[0] || (lead as any).currentEmail) && <div className="mt-0.5 text-muted-foreground">Currently on {lead.services?.[0] || (lead as any).currentEmail}</div>}
             </div>
           )}
         </div>
@@ -1632,7 +1631,12 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
                     <span className="text-muted-foreground"> — {addOn.blurb}</span>
                   </span>
                   <span className="flex-shrink-0 text-muted-foreground">
-                    {resolved ? `${sym}${convertFromUSD(retailUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 2 })} ${periodLabel}` : catalogLoading ? '…' : 'n/a'}
+                    {resolved ? (
+                      <>
+                        <span className="fig">{sym}{convertFromUSD(retailUSD, currency, fxRates).toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+                        <span className="text-muted-foreground"> {periodLabel}</span>
+                      </>
+                    ) : catalogLoading ? '…' : 'n/a'}
                   </span>
                 </label>
               )
@@ -1916,13 +1920,13 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
       </div>
 
       {/* Preview */}
-      <div id="proposal-print" className="rounded-xl border border-border bg-white p-5 text-sm">
+      <div id="proposal-print" className="h-fit rounded-md border border-border bg-card p-6 text-sm lg:sticky lg:top-5">
         <div className="flex items-start justify-between border-b border-border pb-4 mb-4">
           <div>
-            <img src="/images/logo-dark.png" alt="GoLive" style={{ width: 220, maxWidth: '100%', height: 'auto', display: 'block' }} />
+            <img src="/images/logo-dark.png" alt="GoLive" style={{ width: 170, maxWidth: '100%', height: 'auto', display: 'block' }} />
             <div className="text-[10px] text-muted-foreground mt-1">RC1644767 · contact@golivecompany.com</div>
           </div>
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-[#f0f8ff] px-3 py-2">
+          <div className="flex items-center gap-2 rounded-md border border-border px-3 py-2">
             <svg width="20" height="20" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
               <rect x="1" y="1" width="9" height="9" fill="#f25022"/>
               <rect x="11" y="1" width="9" height="9" fill="#7fba00"/>
@@ -1933,8 +1937,8 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           </div>
         </div>
         <div className="text-base font-bold text-foreground mb-1">Microsoft 365 Proposal</div>
-        <div className="text-[10px] text-muted-foreground mb-4">Ref: {proposalRef} · Valid 14 days from {today}</div>
-        {lead && <div className="mb-3 rounded-lg bg-secondary/50 px-3 py-2 text-xs"><span className="text-muted-foreground">Prepared for: </span><strong>{lead.company}</strong> — {lead.contact}</div>}
+        <div className="text-[10px] text-muted-foreground mb-4">Reference issued when you save · Valid 5 days from issue</div>
+        {lead && <div className="mb-3 border-b border-border pb-2 text-xs"><span className="text-muted-foreground">Prepared for </span><strong className="text-foreground">{lead.company}</strong><span className="text-muted-foreground"> · {lead.contact}</span></div>}
         <div className="space-y-2 text-xs">
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Package</span><span className="font-medium">{pkg}</span></div>
           <div className="flex justify-between py-1 border-b border-border/50"><span className="text-muted-foreground">Billing plan</span><span className="font-medium">{nce.label}</span></div>
@@ -2016,7 +2020,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
           <p className="text-muted-foreground">THE GOLIVE DIGITAL SOLN CO. LTD · 0588294971</p>
           <p className="text-muted-foreground">Tax ID 2522598389709</p>
         </div>
-        <div className="mt-3 rounded-lg bg-primary/10 p-2.5 text-[10px] text-primary">✓ Migration included &nbsp;·&nbsp; ✓ NDPA 2023 compliant &nbsp;·&nbsp; ✓ 30-day support</div>
+        <p className="mt-3 text-[10px] text-muted-foreground">Migration, NDPA 2023 compliance and 30-day support are stated on the issued document.</p>
       </div>
     </div>
   )
