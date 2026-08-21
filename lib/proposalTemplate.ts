@@ -227,6 +227,10 @@ export function renderProposalHtml(d: ProposalData): string {
              font-size: 8.5pt; margin: 10pt 0; break-inside: avoid; }
 
   /* ── bank ─────────────────────────────────────────────────────────────── */
+  /* The bank details and the instruction that tells the customer what to
+     do with them must travel together — split across a page break, page one
+     ends with an account number and no context. */
+  .payment-block { break-inside: avoid; page-break-inside: avoid; }
   table.bank { width: 100%; border-collapse: collapse; break-inside: avoid; }
   table.bank td { padding: 5pt 0; border-bottom: 0.5pt solid #e4e9ed; font-size: 9pt; }
   table.bank td:first-child { color: #4a5b68; width: 38%; }
@@ -309,6 +313,7 @@ export function renderProposalHtml(d: ProposalData): string {
   <h2>What is included</h2>
   <ul class="features">${featureCells}</ul>
 
+  <div class="payment-block">
   <h2>Payment</h2>
   <table class="bank">
     <tr><td>Account name</td><td>${esc(d.bank.accountName)}</td></tr>
@@ -319,6 +324,8 @@ export function renderProposalHtml(d: ProposalData): string {
   <div class="callout">
     Quote <strong>${esc(d.reference)}</strong> as the payment reference and email the remittance
     advice to contact@golivecompany.com. Provisioning begins once payment is confirmed.
+  </div>
+
   </div>
 
   <h2>Terms</h2>
