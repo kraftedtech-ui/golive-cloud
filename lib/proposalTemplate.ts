@@ -155,10 +155,10 @@ export function renderProposalHtml(d: ProposalData): string {
     display: flex; justify-content: space-between; align-items: flex-start;
     padding-bottom: 10pt; border-bottom: 2pt solid #16232e;
   }
-  /* The source PNG is square (2400x2400) with transparent padding around the
-     lockup. Cropping to the wordmark needs the real offsets, and guessing at
-     them cut the logo in half — so it is shown whole at a controlled height.
-     A tightly-trimmed export would let this sit larger in the same space.   */
+  /* Uses logo-dark-trimmed.png — the lockup cropped to its bounding box
+     (1748x705) from the original square 2400x2400 export, which was 79%
+     transparent padding and rendered the logo far smaller than its height
+     suggested. Trimmed with: convert logo-dark.png -trim +repage           */
   .logo-clip { height: 42pt; display: flex; align-items: center; }
   .logo-clip img { height: 42pt; width: auto; display: block; }
 
