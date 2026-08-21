@@ -123,7 +123,7 @@ cd /www/wwwroot/golive-cloud && env -i \
 
 ## Known broken state
 
-**`grub-efi-amd64-signed` fails to configure** — it expects `/dev/sda15`, which does not exist on this instance. Consequence: **every `apt-get install` exits non-zero even when the requested packages install correctly.** Read the "Setting up ..." lines rather than trusting the exit code.
+**EFI grub packages removed 21 August 2026.** They had been failing to configure (looking for a `/dev/sda15` ESP that does not exist), which made every `apt-get install` exit non-zero even on success. This machine boots **BIOS**, not UEFI: two NVMe disks in RAID1, `/boot` on md1, GRUB in the MBR of both disks, `grub-pc-bin` doing the work. The EFI packages were vestigial and never booted anything. Removed with `--allow-remove-essential`; `grub-common`, `grub2-common` and `grub-pc-bin` retained. **Never run `apt autoremove` on this box** — it proposes removing `grub2-common`, which is part of the working bootloader.
 
 Do not remove bootloader packages remotely without console access.
 
