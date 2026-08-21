@@ -33,10 +33,18 @@ export async function GET(req: NextRequest) {
     if (groupId) filter.revisionGroupId = groupId
     if (outcome) filter.outcome = outcome
 
-    const items = await SalesDocument.find(filter)
+    const docs = await SalesDocument.find(filter)
       .sort({ revisionGroupId: 1, version: -1 })
-      .select('-renderedHtml') // large; fetch per-document when actually needed
       .limit(200)
+      .lean()
+
+    // renderedHtml is ~30 KB per document — far too much to ship for a list.
+    // The client only needs to know whether a re-download is possible, so
+    // send a boolean and drop the payload.
+    const items = docs.map((d) => {
+      const { renderedHtml, ...rest } = d as Record<string, unknown>
+      return { ...rest, hasArchive: typeof renderedHtml === 'string' && renderedHtml.length > 0 }
+    })
 
     return NextResponse.json({ success: true, items })
   } catch (err) {

@@ -902,6 +902,7 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
   const [fxFetchedAt, setFxFetchedAt] = useState<string | null>(null)
   const [catalogLines, setCatalogLines] = useState<CatalogLine[]>([])
   const [pdfBusy, setPdfBusy] = useState(false)
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({})
   // Months paid up front on a P1M deal. 1 = plain monthly billing.
   const [advanceMonths, setAdvanceMonths] = useState(1)
   const [linePickerOpen, setLinePickerOpen] = useState(false)
@@ -1868,8 +1869,37 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
         {savedDocs.length > 0 && (
           <div className="rounded-xl border border-border p-3">
             <p className="mb-2 text-xs font-semibold text-foreground">Quote history</p>
-            <div className="space-y-1.5">
-              {savedDocs.map((d: any) => (
+            <div className="space-y-2.5">
+              {(() => {
+                // One entry per deal. A lead re-quoted three times has three
+                // revision groups; showing all their versions in one list made
+                // the panel longer than the form that produces it.
+                const groups: { id: string; docs: any[] }[] = []
+                for (const d of savedDocs) {
+                  const g = groups.find(x => x.id === d.revisionGroupId)
+                  if (g) g.docs.push(d)
+                  else groups.push({ id: d.revisionGroupId, docs: [d] })
+                }
+                groups.sort((a, b) =>
+                  new Date(b.docs[0].issuedAt).getTime() - new Date(a.docs[0].issuedAt).getTime()
+                )
+
+                return groups.map((g, gi) => {
+                  const latest = g.docs[0]
+                  const earlier = g.docs.slice(1)
+                  // The current deal is open by default; older ones are not.
+                  const isOpen = openGroups[g.id] ?? (gi === 0)
+                  const shown = isOpen ? g.docs : [latest]
+
+                  return (
+                    <div key={g.id} className={gi > 0 ? 'border-t border-border pt-2.5' : ''}>
+                      {gi > 0 && (
+                        <p className="mb-1.5 text-[10px] text-muted-foreground">
+                          Earlier quote · {new Date(latest.issuedAt).toLocaleDateString()}
+                        </p>
+                      )}
+                      <div className="space-y-1.5">
+                        {shown.map((d: any) => (
                 <div key={d._id} className={`rounded-lg border px-2.5 py-1.5 text-[11px] ${
                   d.outcome === 'accepted' ? 'border-green-300 bg-green-50'
                   : d.outcome === 'open' ? 'border-border bg-white'
@@ -1887,10 +1917,12 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
                       <span className="font-medium text-foreground">
                         {CURRENCY_SYMBOLS[d.currency] || d.currency}{Math.round(d.grossTotal).toLocaleString()}
                       </span>
-                      <button type="button" onClick={() => downloadArchivedPdf(d._id, d.invoiceNumber || d.reference)}
-                        className="mt-0.5 block w-full rounded border border-border bg-white px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground hover:bg-secondary/50">
-                        Download PDF
-                      </button>
+                      {d.hasArchive && (
+                        <button type="button" onClick={() => downloadArchivedPdf(d._id, d.invoiceNumber || d.reference)}
+                          className="mt-0.5 block w-full rounded border border-border bg-card px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground hover:bg-secondary/50">
+                          Download PDF
+                        </button>
+                      )}
                       <span className={`block text-[9px] font-normal tracking-wide text-muted-foreground ${
                         d.outcome === 'accepted' ? 'state-healthy'
                         : d.outcome === 'open' ? 'text-primary'
@@ -1910,7 +1942,20 @@ function ProposalContent({ leads, isAdmin, userEmail, prefill, onPrefillConsumed
                     </div>
                   )}
                 </div>
-              ))}
+                        ))}
+                      </div>
+                      {earlier.length > 0 && (
+                        <button type="button" onClick={() => setOpenGroups(p => ({ ...p, [g.id]: !isOpen }))}
+                          className="mt-1.5 text-[10px] text-primary hover:underline">
+                          {isOpen
+                            ? `Hide ${earlier.length} earlier version${earlier.length === 1 ? '' : 's'}`
+                            : `Show ${earlier.length} earlier version${earlier.length === 1 ? '' : 's'}`}
+                        </button>
+                      )}
+                    </div>
+                  )
+                })
+              })()}
             </div>
             <p className="mt-2 text-[10px] text-muted-foreground">
               Each generate saves a new version. Invoice numbers are only issued on acceptance, so abandoned quotes leave no gaps in the invoice sequence.
