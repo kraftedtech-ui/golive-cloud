@@ -28,13 +28,17 @@
 
 const fs = require('fs')
 const path = require('path')
+const crypto = require('crypto')
 
 const RETENTION_DAYS = 60
+// Candidate application records are anonymised, not deleted, after this.
+const APPLICATION_RETENTION_DAYS = 365
 const DRY_RUN = process.argv.includes('--dry-run')
 const ROOT = process.cwd()
 const RECORDINGS_DIR = path.join(ROOT, 'recordings')
 
 const cutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000)
+const appCutoff = new Date(Date.now() - APPLICATION_RETENTION_DAYS * 24 * 60 * 60 * 1000)
 
 function log(...a) { console.log(`[purge]${DRY_RUN ? ' (dry-run)' : ''}`, ...a) }
 
@@ -134,15 +138,76 @@ async function purseDatabase() {
     log(`scrubbed ${res.modifiedCount} record(s).`)
   }
 
+  const anonymised = await anonymiseApplications(mongoose)
+
   await mongoose.disconnect()
-  return count
+  return { scrubbed: count, anonymised }
+}
+
+/**
+ * Second retention pass: anonymise application records older than the
+ * application retention period.
+ *
+ * Name and email are replaced with a truncated HMAC. The key is the signing
+ * secret already used for assessment tokens, so the hash is stable across
+ * runs — the duplicate-application check keeps working — but cannot be
+ * reversed to recover the address.
+ *
+ * Everything that is not personal data is kept: ref, role, status, score,
+ * percentage, dates. That is the record of a hiring decision, not a record
+ * of a person.
+ */
+async function anonymiseApplications(mongoose) {
+  const col = mongoose.connection.db.collection('applications')
+
+  const key = readEnv('ASSESSMENT_SIGNING_SECRET') || 'no-secret-configured'
+  if (key === 'no-secret-configured') {
+    log('WARNING: ASSESSMENT_SIGNING_SECRET not set — hashes will not be stable across a secret rotation.')
+  }
+  const hash = (v) =>
+    crypto.createHmac('sha256', key).update(String(v).toLowerCase().trim()).digest('hex').slice(0, 16)
+
+  const filter = {
+    createdAt: { $lt: appCutoff },
+    // A hired candidate's record is an employment record now.
+    status: { $ne: 'onboarded' },
+    anonymisedAt: { $exists: false },
+  }
+
+  const due = await col.find(filter).project({ _id: 1, name: 1, email: 1, ref: 1 }).toArray()
+  log(`${due.length} application record(s) past ${APPLICATION_RETENTION_DAYS} days to anonymise.`)
+
+  if (!due.length || DRY_RUN) {
+    due.slice(0, 5).forEach((d) => log(`  would anonymise ${d.ref}`))
+    return due.length
+  }
+
+  for (const d of due) {
+    await col.updateOne(
+      { _id: d._id },
+      {
+        $set: {
+          name: `Candidate ${hash(d.email || d.ref)}`,
+          email: `${hash(d.email || d.ref)}@anonymised.invalid`,
+          notes: '',
+          anonymisedAt: new Date(),
+        },
+        $unset: { transcript: '', violations: '', assessmentFilename: '' },
+      }
+    )
+    log(`anonymised ${d.ref}`)
+  }
+
+  return due.length
 }
 
 ;(async () => {
   log(`retention ${RETENTION_DAYS} days · cutoff ${cutoff.toISOString()}`)
   const { deleted, bytes } = await purgeFiles()
-  const scrubbed = await purseDatabase()
-  log(`done — ${deleted} file(s), ${(bytes / 1048576).toFixed(1)} MB, ${scrubbed} record(s).`)
+  const db = await purseDatabase()
+  const scrubbed = typeof db === 'object' ? db.scrubbed : db
+  const anonymised = typeof db === 'object' ? db.anonymised : 0
+  log(`done — ${deleted} file(s), ${(bytes / 1048576).toFixed(1)} MB, ${scrubbed} scrubbed, ${anonymised} anonymised.`)
   process.exit(0)
 })().catch((e) => {
   console.error('[purge] failed:', e)
