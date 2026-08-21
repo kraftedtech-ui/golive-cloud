@@ -155,4 +155,4 @@ Do not remove bootloader packages remotely without console access.
 6. `npm run build`, then start under PM2 as `www`.
 7. Confirm: portal loads, a proposal PDF renders, an assessment page passes its code gate.
 
-Note step 4. `recordings/` is not in git and not in MongoDB. It holds candidate video, transcripts and proctoring logs, and is currently **not backed up anywhere**. That is the largest single gap in this setup.
+Note step 4. `recordings/` is not in git and not in MongoDB. It holds candidate video, transcripts and proctoring logs, is mirrored nightly at 04:00 by `/usr/local/bin/golive-backup-recordings.sh` to `/var/backups/golive/recordings/`, with a two-day attic for accidental deletion. That backup is **on the same disk**, so it does not protect against disk or server loss — moving the destination to a Hetzner Storage Box is a one-line change to `DST`.
