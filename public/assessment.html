@@ -6,7 +6,7 @@
 <title>GoLive — Operations Coordinator Assessment</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -162,10 +162,49 @@ const QUESTIONS=[
    text:'You receive simultaneous "urgent" requests from GoLive Forge (book a meeting room) and B2B Services (prepare a vendor proposal). How do you handle it?',
    opts:['Complete the B2B request first — it is client-facing','Ask each team which deadline is actually fixed versus which is perceived urgency, then sequence accordingly','Flip a coin since both are equally important','Tell both teams you cannot help simultaneously and ask them to resubmit tomorrow'],
    correct:1,explain:'Asking about actual vs. perceived urgency is the correct operational response. The coordinator\'s job is to triage effectively.'},
+
+  {id:'q16',sec:'Section G — Advanced administration',type:'mcq',
+   text:'The MD asks you to prepare a report showing how much the company has spent on vendor services in Q2, but the invoices are spread across three different email inboxes and a physical folder. How do you approach this?',
+   opts:['Ask the MD to gather the information himself since it is too disorganised','Create a systematic approach — work through each source in turn, log each invoice into a spreadsheet with vendor name, date, amount, and category, then reconcile the total before presenting','Estimate the total based on what you can find quickly','Only report on the digital invoices since the physical ones are too difficult to include'],
+   correct:1,explain:'Systematic collation across multiple sources is a core operations skill. Every invoice must be accounted for — estimating or excluding physical records would produce an inaccurate report that could affect financial decisions.'},
+  {id:'q17',sec:'Section G — Advanced administration',type:'mcq',
+   text:'You discover that a recurring supplier contract automatically renews in 7 days at a cost of ₦480,000. The MD has not reviewed it. What do you do?',
+   opts:['Let it renew — it is not your decision to cancel it','Immediately flag it to the MD in writing with the contract details, renewal date, cost, and a clear recommendation that they review it before the renewal date','Cancel the renewal without asking — GoLive can always re-subscribe later','Wait until the MD asks about it'],
+   correct:1,explain:'Contract renewals with significant cost implications must be surfaced to the decision-maker in advance with enough time to act. Flagging with full details is the coordinator\'s job — the decision belongs to the MD.'},
+  {id:'q18',sec:'Section G — Advanced administration',type:'mcq',
+   text:'You are managing meeting logistics for a client pitch. Two hours before the meeting, the video conferencing link stops working. The client is remote. What do you do?',
+   opts:['Cancel the meeting and apologise','Immediately try an alternative platform (Google Meet, WhatsApp video, phone call as last resort), email the client with the new link before they attempt to join, and notify the MD','Wait for the IT team to fix the original link','Tell the client the meeting is delayed until tomorrow'],
+   correct:1,explain:'Crisis management under time pressure is a key test of an operations coordinator. The goal is continuity — find a working alternative fast and communicate proactively to the client before they experience the problem.'},
+  {id:'q19',sec:'Section G — Advanced administration',type:'tf',
+   text:'A well-written set of meeting minutes should include your personal interpretation of what each agenda item means for the company.',
+   correct:'False',explain:'Minutes are a factual record of what was discussed, decided, and assigned. Personal interpretation, commentary, and analysis have no place in minutes — they belong in a separate memo or report if needed.'},
+  {id:'q20',sec:'Section G — Advanced administration',type:'mcq',
+   text:'GoLive is onboarding a new corporate client. You need to set up a shared folder structure in OneDrive that the client\'s team and GoLive\'s team can both access. Which approach is correct?',
+   opts:['Share your personal OneDrive folder with the client\'s email addresses','Create a shared SharePoint folder under the GoLive tenant, set appropriate permissions for internal and external users, and share a controlled access link with the client','Email all documents back and forth — shared folders are too complex','Use WhatsApp to share documents with the client'],
+   correct:1,explain:'SharePoint with controlled external sharing is the correct Microsoft 365 approach for client collaboration. Sharing personal OneDrive creates governance and data control issues. Email is not suitable for ongoing document collaboration.'},
+  {id:'q21',sec:'Section H — Compliance & data handling',type:'mcq',
+   text:'A client asks you to send them a copy of GoLive\'s internal staff salary structure to help them benchmark their own team. What do you do?',
+   opts:['Send it since they are a valued client','Decline politely and explain that internal HR data is confidential — offer to help them find publicly available salary benchmarking data instead','Ask the MD and send it if they say yes','Send only the junior staff salaries, not the senior ones'],
+   correct:1,explain:'Internal HR data is strictly confidential and is never shared externally regardless of the relationship with the requester. Offering an alternative shows professionalism without compromising the company.'},
+  {id:'q22',sec:'Section H — Compliance & data handling',type:'mcq',
+   text:'You receive an email that appears to be from GoLive\'s bank asking you to confirm account details by clicking a link. The email address is "alerts@firstbankng-secure.com." What do you do?',
+   opts:['Click the link and confirm the details as requested','Do not click anything — mark the email as suspicious, report it to the MD, and verify directly with the bank using a phone number from the bank\'s official website','Forward it to the MD and let them handle it','Reply to the email asking if it is legitimate'],
+   correct:1,explain:'This is a phishing email. The domain "firstbankng-secure.com" is not a legitimate bank domain. Never click links in suspicious emails. Always verify by calling the institution directly using contact details from their official website, not from the email itself.'},
+  {id:'q23',sec:'Section H — Compliance & data handling',type:'tf',
+   text:'Under Nigeria\'s NDPA 2023, an organisation is required to notify affected individuals if their personal data is breached.',
+   correct:'True',explain:'The Nigeria Data Protection Act 2023 requires organisations to notify both the Nigeria Data Protection Commission (NDPC) and affected data subjects of a breach within 72 hours of becoming aware of it. As Operations Coordinator you would be expected to understand this requirement.'},
+  {id:'q24',sec:'Section I — Reasoning under pressure',type:'mcq',
+   text:'It is 4:30pm on a Friday. You have three things left: 1) a staff timesheet report due to the MD by 5pm, 2) a vendor who needs a purchase order approved by end of day or they cannot deliver Monday, 3) a client who called about a billing query. The MD is unreachable. What is your sequence?',
+   opts:['Handle the billing query first since the client is waiting','Approve the purchase order first (operational dependency for Monday delivery), send the timesheet report (hard deadline with the MD), then log the billing query with a note that it will be addressed Monday morning','Work on the timesheet — it is the most important internal document','Call the vendor back on Monday morning'],
+   correct:1,explain:'The purchase order has an operational consequence for Monday — if it is not approved, delivery fails. The timesheet has a hard 5pm deadline. The billing query, while important, can be logged and addressed first thing Monday without immediate harm. Sequence by consequence.'},
+  {id:'q25',sec:'Section I — Reasoning under pressure',type:'mcq',
+   text:'The MD asks you to draft a formal letter to a government ministry on company letterhead. You have never done this before and are unsure of the correct format. What do you do?',
+   opts:['Draft something and hope for the right format','Research the correct formal letter format for Nigerian government correspondence, draft the letter, clearly label it as a draft, and ask the MD to review before it is sent','Tell the MD you cannot do it because you lack experience','Copy a letter from the internet and change the names'],
+   correct:1,explain:'Research, draft, label clearly, seek review — this is the correct approach for any unfamiliar task with formal or legal implications. Submitting an unchecked letter to a government ministry on company letterhead could have consequences. The MD\'s review before sending is non-negotiable.'},
 ]
 
 const ROLE={name:"Operations Coordinator",heading:"Candidate Assessment",intro:"This assessment is proctored."}
 </script>
-<script src="/assessment-core.js?v=1"></script>
+<script src="/assessment-core.js?v=3"></script>
 </body>
 </html>

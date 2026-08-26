@@ -31,6 +31,7 @@ function renderPhase(){
   if(st.phase==='gate')return renderGate()
   if(st.phase==='confirm')return renderConfirm()
   if(st.phase==='quiz')return renderQuiz()
+  if(st.phase==='uploading')return renderUploading()
   return renderResult()
 }
 
@@ -120,7 +121,7 @@ function renderConsent(){return `
   <div style="display:flex;flex-direction:column;gap:6px">
     ${[
       ['Duration','30 minutes — the timer begins immediately when you click Begin assessment.'],
-      ['Format','15 questions — multiple choice, true/false, and two short written answers.'],
+      ['Format',QUESTIONS.length+' questions — multiple choice, true/false, and two short written answers.'],
       ['Device','Laptop or desktop required. Camera must be working before you proceed.'],
       ['Environment','Complete the assessment in a quiet location. Ensure stable internet connection.'],
       ['Results','Your score and session recording are securely uploaded to GoLive after submission.'],
@@ -275,7 +276,7 @@ function renderGate(){return `
     <li><i class="ti ti-download"></i>Session recording available to download at the end</li>
   </ul>
   <div class="info-row">
-    <span class="info-pill"><i class="ti ti-list-check"></i>15 questions</span>
+    <span class="info-pill"><i class="ti ti-list-check"></i>${QUESTIONS.length} questions</span>
     <span class="info-pill"><i class="ti ti-clock"></i>30 minutes</span>
     <span class="info-pill"><i class="ti ti-user"></i>${ROLE.name}</span>
   </div>
@@ -356,7 +357,7 @@ ${vCount>0&&!integrity?`<div class="warn-banner show"><i class="ti ti-alert-tria
   <p class="sec-head">Integrity log</p>
   <div class="vlog">${st.violations.length>0?st.violations.map(v=>`<div>${v}</div>`).join(''):'<span style="color:var(--muted)">No violations recorded.</span>'}</div>
 </div>
-${st.recBlob?`<div class="card"><p class="sec-head">Session recording</p><p style="font-size:13px;color:var(--mid);margin-bottom:12px">Your recording is being uploaded to the GoLive server automatically. If upload fails, download and email it to talent.acquisition@golivecompany.com.</p><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="primary" id="upload-btn" onclick="uploadRec()"><i class="ti ti-cloud-upload"></i> Upload to server</button><button onclick="downloadRec()"><i class="ti ti-download"></i> Download instead</button></div><p id="upload-status" style="font-size:12px;margin-top:8px"></p></div>`:''}
+${st.recBlob&&!st.uploadDone?`<div class="card"><p class="sec-head">Session recording</p><p style="font-size:13px;color:var(--mid);margin-bottom:12px">Your recording is being uploaded to the GoLive server automatically. If upload fails, download and email it to talent.acquisition@golivecompany.com.</p><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="primary" id="upload-btn" onclick="uploadRec()"><i class="ti ti-cloud-upload"></i> Upload to server</button><button onclick="downloadRec()"><i class="ti ti-download"></i> Download instead</button></div><p id="upload-status" style="font-size:12px;margin-top:8px"></p></div>`:''}
 <div class="card">
   <p class="sec-head">Written responses — interviewer review</p>
   ${QUESTIONS.filter(q=>q.type==='text').map(q=>`<div class="q-rev"><p class="q-rev-q">${q.text.substring(0,110)}…</p><p class="q-rev-a">${st.textAnswers[q.id]||'<em style="color:var(--muted)">No response entered</em>'}</p></div>`).join('')}
@@ -369,7 +370,7 @@ ${st.recBlob?`<div class="card"><p class="sec-head">Session recording</p><p styl
 
 function attach(){
   if(st.phase==='confirm'){const v=document.getElementById('preview-vid');if(v&&st.stream)v.srcObject=st.stream}
-  if(st.phase==='quiz'){clearInterval(st.timerInterval);st.timerInterval=setInterval(()=>{st.secs--;const d=document.getElementById('tmr');if(d){d.textContent=fmt(st.secs);d.className='timer-val'+(st.secs<120?' danger':st.secs<300?' warn':'')}if(st.secs<=0){clearInterval(st.timerInterval);stopRec();st.phase='result';render()}},1000);injectCam()}
+  if(st.phase==='quiz'){clearInterval(st.timerInterval);st.timerInterval=setInterval(()=>{st.secs--;const d=document.getElementById('tmr');if(d){d.textContent=fmt(st.secs);d.className='timer-val'+(st.secs<120?' danger':st.secs<300?' warn':'')}if(st.secs<=0){clearInterval(st.timerInterval);stopRec();st.phase='uploading';render();waitForBlob()}},1000);injectCam()}
 }
 
 function injectCam(){
@@ -391,18 +392,18 @@ async function requestCam(){
 }
 
 function startTest(){
-  st.phase='quiz';startRec();setupAntiCheat();render()
+  st.phase='quiz';startRec();setupAntiCheat();window.onbeforeunload=()=>'Your assessment is in progress.';render()
 }
 
 function startRec(){
   if(!st.stream)return
   try{
-    const mr=new MediaRecorder(st.stream,{mimeType:'video/webm;codecs=vp9'})
+    const mr=new MediaRecorder(st.stream,{mimeType:'video/webm;codecs=vp9',videoBitsPerSecond:250000})
     mr.ondataavailable=e=>{if(e.data&&e.data.size>0)st.chunks.push(e.data)}
     mr.onstop=()=>{st.recBlob=new Blob(st.chunks,{type:'video/webm'})}
     mr.start(1000);st.recorder=mr
   }catch(e){
-    try{const mr=new MediaRecorder(st.stream);mr.ondataavailable=e=>{if(e.data&&e.data.size>0)st.chunks.push(e.data)};mr.onstop=()=>{st.recBlob=new Blob(st.chunks,{type:'video/webm'})};mr.start(1000);st.recorder=mr}catch(e2){logV('Recording not supported in this browser')}
+    try{const mr=new MediaRecorder(st.stream,{videoBitsPerSecond:250000});mr.ondataavailable=e=>{if(e.data&&e.data.size>0)st.chunks.push(e.data)};mr.onstop=()=>{st.recBlob=new Blob(st.chunks,{type:'video/webm'})};mr.start(1000);st.recorder=mr}catch(e2){logV('Recording not supported in this browser')}
   }
 }
 
@@ -443,7 +444,75 @@ function finish(){
   if(q.type==='text'){const el=document.getElementById('ta_'+q.id);if(el)st.textAnswers[q.id]=el.value}
   const ok=q.type==='text'?(st.textAnswers[q.id]||'').trim().length>0:st.answers[q.id]!==undefined
   if(!ok){const e=document.getElementById('qerr');if(e)e.textContent=q.type==='text'?'Enter a response before submitting.':'Select an answer before submitting.';return}
-  clearInterval(st.timerInterval);stopRec();setTimeout(()=>{st.phase='result';render();setTimeout(()=>uploadRec(),1000)},600)
+  clearInterval(st.timerInterval);stopRec();st.phase='uploading';render();waitForBlob()
+}
+
+function buildFD(){
+  const fd=new FormData()
+  fd.append('recording',new File([st.recBlob],'recording.webm',{type:'video/webm'}))
+  fd.append('candidate',st.candidateName)
+  fd.append('ref',st.appRef||'')
+  fd.append('email',st.candidateEmail)
+  fd.append('role',st.candidateRole)
+  const transcript=QUESTIONS.map((q,i)=>{
+    const ans=st.answers[q.id]
+    const textAns=st.textAnswers[q.id]||''
+    const correct=q.type==='text'?null:scoreFor(q,ans)===1
+    return {number:i+1,section:q.sec,type:q.type,question:q.text,
+      answer:q.type==='mcq'?(ans!==undefined?q.opts[ans]:'No answer'):q.type==='tf'?(ans||'No answer'):textAns,
+      correct,
+      correctAnswer:q.type==='mcq'?q.opts[q.correct]:q.type==='tf'?q.correct:null,
+      explanation:q.explain||null}
+  })
+  fd.append('transcript',JSON.stringify(transcript))
+  fd.append('violations',JSON.stringify(st.violations))
+  fd.append('tabSwitches',String(st.tabSwitches))
+  fd.append('pasteTries',String(st.pasteTries))
+  const{got,max}=calcScores()
+  fd.append('score',got+'-'+max)
+  return fd
+}
+
+function waitForBlob(tries){
+  tries=tries||0
+  if(st.recBlob){uploadGated();return}
+  if(tries>20){window.onbeforeunload=null;st.phase='result';render();return}
+  setTimeout(()=>waitForBlob(tries+1),300)
+}
+
+function renderUploading(){return `
+<div style="text-align:center;max-width:420px;margin:3rem auto">
+  <p style="font-size:11px;font-weight:600;color:var(--teal);letter-spacing:0.1em;margin-bottom:4px">SUBMISSION IN PROGRESS</p>
+  <h2 class="page-title" style="font-size:22px">Uploading your session</h2>
+  <p class="page-sub" style="margin:0 auto 1.5rem;line-height:1.6">Do not close this window. Your results will be shown as soon as the upload completes.</p>
+  <div style="background:var(--gray);border:1px solid var(--border);border-radius:99px;height:10px;overflow:hidden;margin-bottom:8px"><div id="up-bar" style="height:100%;width:0%;background:var(--teal);transition:width .3s"></div></div>
+  <p id="up-pct" style="font-size:12px;color:var(--muted)">Preparing upload…</p>
+  <p id="up-err" style="display:none;font-size:12px;color:var(--danger);margin-top:10px"></p>
+  <div style="display:flex;gap:8px;justify-content:center;margin-top:12px">
+    <button class="primary" id="up-retry" style="display:none" onclick="uploadGated()"><i class="ti ti-refresh"></i> Retry upload</button>
+    <button id="up-download" style="display:none" onclick="downloadRec()"><i class="ti ti-download"></i> Download recording</button>
+  </div>
+</div>`}
+
+function uploadGated(){
+  const er=document.getElementById('up-err');if(er)er.style.display='none'
+  const rb=document.getElementById('up-retry');if(rb)rb.style.display='none'
+  const xhr=new XMLHttpRequest()
+  xhr.open('POST','/api/save-recording')
+  xhr.setRequestHeader('x-assessment-token',st.token||'')
+  xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);const b=document.getElementById('up-bar');const t=document.getElementById('up-pct');if(b)b.style.width=p+'%';if(t)t.textContent='Uploading — '+p+'%'}}
+  xhr.onload=()=>{let ok=false;try{ok=!!JSON.parse(xhr.responseText).success}catch(e){}
+    if(xhr.status===200&&ok){st.uploadDone=true;window.onbeforeunload=null;st.phase='result';render()}
+    else uploadFail('Server rejected the upload ('+xhr.status+').')}
+  xhr.onerror=()=>uploadFail('Connection lost during upload.')
+  xhr.send(buildFD())
+}
+
+function uploadFail(msg){
+  st.upTries=(st.upTries||0)+1
+  const e=document.getElementById('up-err');if(e){e.style.display='block';e.textContent=msg+' Your recording is safe in this window — retry when your connection is stable.'}
+  const r=document.getElementById('up-retry');if(r)r.style.display='inline-flex'
+  if(st.upTries>=2){const d=document.getElementById('up-download');if(d)d.style.display='inline-flex'}
 }
 
 async function uploadRec(){
@@ -452,95 +521,16 @@ async function uploadRec(){
   const status=document.getElementById('upload-status')
   if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Uploading...'}
   try{
-    const fd=new FormData()
-    fd.append('recording',new File([st.recBlob],'recording.webm',{type:'video/webm'}))
-    fd.append('candidate',st.candidateName)
-    fd.append('ref',st.appRef||'')
-    fd.append('email',st.candidateEmail)
-    fd.append('role',st.candidateRole)
-    // Build full transcript
-    const transcript = QUESTIONS.map((q,i) => {
-      const ans = st.answers[q.id]
-      const textAns = st.textAnswers[q.id] || ''
-      const correct = q.type === 'text' ? null : scoreFor(q, ans) === 1
-      return {
-        number: i + 1,
-        section: q.sec,
-        type: q.type,
-        question: q.text,
-        answer: q.type === 'mcq' ? (ans !== undefined ? q.opts[ans] : 'No answer') :
-                q.type === 'tf' ? (ans || 'No answer') : textAns,
-        correct,
-        correctAnswer: q.type === 'mcq' ? q.opts[q.correct] :
-                       q.type === 'tf' ? q.correct : null,
-        explanation: q.explain || null,
-      }
-    })
-    fd.append('transcript', JSON.stringify(transcript))
-    fd.append('violations', JSON.stringify(st.violations))
-    fd.append('tabSwitches', String(st.tabSwitches))
-    fd.append('pasteTries', String(st.pasteTries))
-    const {got,max}=calcScores()
-    fd.append('score',got+'-'+max)
-    const res=await fetch('/api/save-recording',{method:'POST',headers:{'x-assessment-token':st.token||''},body:fd})
+    const res=await fetch('/api/save-recording',{method:'POST',headers:{'x-assessment-token':st.token||''},body:buildFD()})
     const data=await res.json()
     if(data.success){
+      st.uploadDone=true;window.onbeforeunload=null
       if(status){status.textContent='Recording saved to server successfully.';status.style.color='var(--success)'}
       if(btn){btn.innerHTML='<i class="ti ti-check"></i> Saved to server';btn.style.background='var(--success-bg)';btn.style.color='var(--success)';btn.style.borderColor='#c0dd97'}
     }else{throw new Error(data.error)}
   }catch(e){
-    if(status){status.textContent='Upload failed — downloading file instead.';status.style.color='var(--danger)'}
+    if(status){status.textContent='Upload failed — you can retry or download the file.';status.style.color='var(--danger)'}
     if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Retry upload'}
-    downloadRec()
-  }
-}
-
-async function uploadRec(){
-  if(!st.recBlob)return
-  const btn=document.getElementById('upload-btn')
-  const status=document.getElementById('upload-status')
-  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Uploading...'}
-  try{
-    const fd=new FormData()
-    fd.append('recording',new File([st.recBlob],'recording.webm',{type:'video/webm'}))
-    fd.append('candidate',st.candidateName)
-    fd.append('ref',st.appRef||'')
-    fd.append('email',st.candidateEmail)
-    fd.append('role',st.candidateRole)
-    // Build full transcript
-    const transcript = QUESTIONS.map((q,i) => {
-      const ans = st.answers[q.id]
-      const textAns = st.textAnswers[q.id] || ''
-      const correct = q.type === 'text' ? null : scoreFor(q, ans) === 1
-      return {
-        number: i + 1,
-        section: q.sec,
-        type: q.type,
-        question: q.text,
-        answer: q.type === 'mcq' ? (ans !== undefined ? q.opts[ans] : 'No answer') :
-                q.type === 'tf' ? (ans || 'No answer') : textAns,
-        correct,
-        correctAnswer: q.type === 'mcq' ? q.opts[q.correct] :
-                       q.type === 'tf' ? q.correct : null,
-        explanation: q.explain || null,
-      }
-    })
-    fd.append('transcript', JSON.stringify(transcript))
-    fd.append('violations', JSON.stringify(st.violations))
-    fd.append('tabSwitches', String(st.tabSwitches))
-    fd.append('pasteTries', String(st.pasteTries))
-    const {got,max}=calcScores()
-    fd.append('score',got+'-'+max)
-    const res=await fetch('/api/save-recording',{method:'POST',headers:{'x-assessment-token':st.token||''},body:fd})
-    const data=await res.json()
-    if(data.success){
-      if(status){status.textContent='Recording saved to server successfully.';status.style.color='var(--success)'}
-      if(btn){btn.innerHTML='<i class="ti ti-check"></i> Saved to server';btn.style.background='var(--success-bg)';btn.style.color='var(--success)';btn.style.borderColor='#c0dd97'}
-    }else{throw new Error(data.error)}
-  }catch(e){
-    if(status){status.textContent='Upload failed — downloading file instead.';status.style.color='var(--danger)'}
-    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Retry upload'}
-    downloadRec()
   }
 }
 

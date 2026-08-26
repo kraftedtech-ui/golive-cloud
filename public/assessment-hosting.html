@@ -6,7 +6,7 @@
 <title>GoLive — Hosting Support Technician Assessment</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/tabler-icons.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -162,10 +162,50 @@ const QUESTIONS=[
    text:'GoLive Naija runs 24-hour hosting support across a day shift (8am–8pm) and night shift (8pm–6am). A client submits a critical ticket at 7:45pm. You are the day shift technician with 15 minutes left. What do you do?',
    opts:['Log off at 8pm — it is not your problem after your shift ends','Immediately start working the ticket, brief the incoming night shift technician on its status before you leave, and ensure it is marked as in-progress','Tell the client to wait until tomorrow morning','Only look at the ticket if it takes less than 15 minutes to fix'],
    correct:1,explain:'A critical ticket 15 minutes before shift end must be triaged and handed over — not ignored. Start it, document what you have done, and give the night shift technician a clear brief. Client continuity is the priority.'},
+
+  {id:'q16',sec:'Section F — Email authentication & security',type:'mcq',
+   text:'A client reports their emails are landing in recipients\' spam folders despite having a valid MX record. Which DNS record is most likely missing or misconfigured?',
+   opts:['A record','CNAME record','SPF, DKIM, or DMARC record','NS record'],
+   correct:2,explain:'SPF, DKIM, and DMARC are email authentication records that verify a sending domain is legitimate. Without them, emails from the domain are treated as suspicious by receiving mail servers. This is one of the most common causes of legitimate email landing in spam.'},
+  {id:'q17',sec:'Section F — Email authentication & security',type:'mcq',
+   text:'What does DMARC stand for and what does it do?',
+   opts:['Domain Mail Authentication Record Certification — certifies your domain with email providers','Domain-based Message Authentication, Reporting and Conformance — tells receiving servers how to handle emails that fail SPF or DKIM checks','Dynamic Mail Access and Relay Control — controls email forwarding','Domain Management and Record Configuration — manages all DNS records'],
+   correct:1,explain:'DMARC tells receiving mail servers what to do when an email fails SPF or DKIM authentication — reject it, quarantine it, or deliver it. It also enables reporting so domain owners can see who is sending email on their behalf.'},
+  {id:'q18',sec:'Section F — Email authentication & security',type:'tf',
+   text:'A wildcard SSL certificate (*.golivecompany.com) covers both golivecompany.com and all its subdomains such as mail.golivecompany.com and cloud.golivecompany.com.',
+   correct:'False',explain:'A wildcard certificate covers subdomains (*.golivecompany.com = mail.golivecompany.com, cloud.golivecompany.com) but does NOT cover the apex/root domain (golivecompany.com) by default. A separate SAN entry or additional certificate is required for the root domain.'},
+  {id:'q19',sec:'Section G — Server & performance',type:'mcq',
+   text:'A shared hosting server has 200 active websites. One website is suddenly experiencing a traffic spike from a viral social media post. How could this affect other websites on the same server?',
+   opts:['It has no effect — each website is isolated','The traffic spike consumes server CPU and RAM resources shared across all 200 sites, potentially causing slowdowns or timeouts on unrelated websites — this is the risk of shared hosting over VPS or dedicated hosting','Only websites in the same cPanel account are affected','The viral website will automatically be migrated to a separate server'],
+   correct:1,explain:'Shared hosting means shared resources. A traffic spike on one account can degrade performance for all other accounts on the same server. This is why high-traffic or business-critical websites should be on VPS or dedicated hosting with guaranteed resource allocation.'},
+  {id:'q20',sec:'Section G — Server & performance',type:'mcq',
+   text:'A client\'s website loads in 12 seconds. After investigation you find their homepage has 45 uncompressed images totalling 18MB. What is your recommended fix?',
+   opts:['Tell the client to use a faster internet connection','Compress and resize the images using tools like TinyPNG or ShortPixel, implement lazy loading so images below the fold only load when scrolled to, and recommend converting images to WebP format','Upgrade the client\'s hosting plan to a higher tier','Delete half the images from the page'],
+   correct:1,explain:'Image optimisation is the single most impactful performance fix for image-heavy pages. Compression, proper sizing, lazy loading, and modern formats (WebP) can reduce page load from 12 seconds to under 3 seconds without removing any content.'},
+  {id:'q21',sec:'Section G — Server & performance',type:'mcq',
+   text:'A client wants to set up a subdomain "shop.theirdomain.com" pointing to a Shopify store. What DNS record do you create?',
+   opts:['An MX record pointing to Shopify\'s servers','A CNAME record pointing shop.theirdomain.com to Shopify\'s provided CNAME value (e.g. shops.myshopify.com)','An A record pointing to the main website\'s IP address','A TXT record with the Shopify verification code'],
+   correct:1,explain:'Subdomains pointing to third-party platforms use CNAME records. Shopify provides a CNAME target value during custom domain setup. An A record would only work if pointing to a static IP, which Shopify does not use for custom storefronts.'},
+  {id:'q22',sec:'Section H — Advanced troubleshooting',type:'mcq',
+   text:'A client reports that their website shows the correct content in Nigeria but shows an old cached version of the page to visitors in the UK. What is the most likely cause?',
+   opts:['The website has two different versions for different countries','A CDN (Content Delivery Network) is serving a cached version from a UK edge server that has not been purged since the last update','The UK visitors\' browsers have old cookies','The domain DNS is not propagating correctly in Europe'],
+   correct:1,explain:'CDN edge servers cache website content geographically. If the cache is not purged after a content update, visitors in different regions see different versions. The fix is to trigger a cache purge from the CDN control panel (Cloudflare, BunnyCDN, etc.) after every significant content update.'},
+  {id:'q23',sec:'Section H — Advanced troubleshooting',type:'mcq',
+   text:'A client\'s WordPress site is infected with malware that is redirecting visitors to a gambling website. The client is panicking. What are your steps in order?',
+   opts:['Restore from the most recent backup immediately without any other steps','1) Take the site offline to prevent further visitor harm, 2) notify the client, 3) identify and remove the malicious code using a malware scanner, 4) harden the installation (update WordPress, plugins, change passwords, remove unknown admin users), 5) restore or clean the site, 6) scan again before bringing it back online','Tell the client to delete their website and start again','Change the WordPress admin password and hope the malware stops'],
+   correct:1,explain:'Malware remediation has a specific sequence — isolate, identify, clean, harden, verify, restore. Taking it offline first prevents ongoing harm to visitors. Simply restoring from backup without removing the vulnerability means the site will be reinfected immediately.'},
+  {id:'q24',sec:'Section I — Shift operations',type:'mcq',
+   text:'During your shift you receive 8 support tickets simultaneously: 3 are "website down" reports, 2 are email configuration requests, 2 are billing queries, and 1 is a general enquiry. How do you triage?',
+   opts:['Work through them in the order they were received','Prioritise the 3 "website down" tickets first (highest business impact), then email configuration (blocks business communication), then billing queries (financial impact), then general enquiry — escalate if the website down tickets require senior intervention','Handle the easiest ones first to clear the queue quickly','Assign all tickets to the next shift'],
+   correct:1,explain:'Triage by business impact, not arrival order. A website down is the highest severity — it means a business is losing revenue and credibility every minute. Email configuration is second because it blocks communication. Billing queries are third. General enquiries have the least urgency.'},
+  {id:'q25',sec:'Section I — Shift operations',type:'mcq',
+   text:'It is 3am on your night shift. The server monitoring system alerts you that a shared hosting server\'s RAM is at 92% and rising. You do not have permission to restart services unilaterally. There is no response from your senior on WhatsApp. What do you do?',
+   opts:['Restart the server immediately to prevent it crashing','Document the alert with full details and timestamp, attempt to reach the senior via phone call (not just WhatsApp), escalate to the next available contact in the escalation chain, and monitor the situation closely every 5 minutes — do not take unauthorised action on a live production server','Go to sleep and document it in the morning handover','Wait and see if it resolves itself'],
+   correct:1,explain:'A live shared hosting server at 92% RAM is critical but does not yet require unauthorised action. Escalate aggressively through all available channels — phone call, not just WhatsApp. Document everything. If RAM hits 100% and the senior is still unreachable, most escalation policies allow for defined emergency actions — but only if documented in the escalation procedure.'},
 ]
 
 const ROLE={name:"Hosting Support Technician",heading:"Hosting Support Technician",intro:"Hosting Support Technician assessment."}
 </script>
-<script src="/assessment-core.js?v=1"></script>
+<script src="/assessment-core.js?v=3"></script>
 </body>
 </html>
