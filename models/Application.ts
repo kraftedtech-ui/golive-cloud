@@ -15,6 +15,7 @@ export interface IApplication extends Document {
   violations?: string[]
   transcript?: object[]
   notes?: string
+  shortlistEmailSentAt?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -34,6 +35,7 @@ const ApplicationSchema = new Schema<IApplication>({
   violations:       [{ type: String }],
   transcript:       [{ type: Schema.Types.Mixed }],
   notes:            { type: String, default: '' },
+  shortlistEmailSentAt: { type: Date },
 }, { timestamps: true })
 
 export default mongoose.models.Application ||

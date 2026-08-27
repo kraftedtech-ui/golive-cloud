@@ -15,6 +15,14 @@
  *   · the .json metadata sidecar (transcript, violations, email)
  *   · the transcript, violations and recording filename on the Application
  *
+ * ACTIVE-PIPELINE EXEMPTION: candidates whose status is shortlisted,
+ * interviewed, offered or onboarded are still in (or concluded) an active
+ * hiring process, so their material is NOT purged at day 60 — retention
+ * remains "necessary for the purpose" while the process runs. This matches
+ * the wording sent to candidates in the shortlist invitation. Once a
+ * candidate is rejected (or remains merely assessed), the 60-day clock
+ * applies normally from assessment date.
+ *
  * The hiring outcome itself (score, percentage, date, status) is retained,
  * because that is the record of a business decision rather than raw
  * personal content, and may be needed to answer a discrimination claim.
@@ -33,6 +41,8 @@ const crypto = require('crypto')
 const RETENTION_DAYS = 60
 // Candidate application records are anonymised, not deleted, after this.
 const APPLICATION_RETENTION_DAYS = 365
+// Statuses exempt from the 60-day purge while the pipeline is live.
+const ACTIVE_PIPELINE = ['shortlisted', 'interviewed', 'offered', 'onboarded']
 const DRY_RUN = process.argv.includes('--dry-run')
 const ROOT = process.cwd()
 const RECORDINGS_DIR = path.join(ROOT, 'recordings')
@@ -42,7 +52,7 @@ const appCutoff = new Date(Date.now() - APPLICATION_RETENTION_DAYS * 24 * 60 * 6
 
 function log(...a) { console.log(`[purge]${DRY_RUN ? ' (dry-run)' : ''}`, ...a) }
 
-/** Read MONGODB_URI out of .env.local without pulling in dotenv. */
+/** Read a key out of .env.local without pulling in dotenv. */
 function readEnv(key) {
   const envPath = path.join(ROOT, '.env.local')
   if (!fs.existsSync(envPath)) return null
@@ -68,14 +78,23 @@ function submittedAt(filename, fullPath) {
   try { return fs.statSync(fullPath).mtime } catch { return new Date(0) }
 }
 
-async function purgeFiles() {
+/**
+ * Delete recordings/sidecars older than the retention window, EXCEPT files
+ * belonging to candidates in the active pipeline.
+ *
+ * `protectedStems` is a Set of assessmentFilename values (without
+ * extension) for active-pipeline candidates. Both the .webm and its .json
+ * sidecar share the stem, so one check covers both.
+ */
+async function purgeFiles(protectedStems) {
   if (!fs.existsSync(RECORDINGS_DIR)) {
     log('No recordings directory — nothing to do.')
-    return { deleted: 0, bytes: 0 }
+    return { deleted: 0, bytes: 0, protected: 0 }
   }
 
   let deleted = 0
   let bytes = 0
+  let shielded = 0
 
   for (const name of fs.readdirSync(RECORDINGS_DIR)) {
     const full = path.join(RECORDINGS_DIR, name)
@@ -86,6 +105,13 @@ async function purgeFiles() {
     const when = submittedAt(name, full)
     if (when >= cutoff) continue
 
+    const stem = name.replace(/\.(webm|json)$/i, '')
+    if (protectedStems.has(stem)) {
+      shielded++
+      log(`keep   ${name} (active pipeline)`)
+      continue
+    }
+
     const ageDays = Math.floor((Date.now() - when.getTime()) / 86400000)
     log(`delete ${name} (${ageDays} days old, ${(stat.size / 1048576).toFixed(1)} MB)`)
     bytes += stat.size
@@ -95,31 +121,18 @@ async function purgeFiles() {
     }
   }
 
-  return { deleted, bytes }
+  return { deleted, bytes, protected: shielded }
 }
 
-async function purseDatabase() {
-  const uri = readEnv('MONGODB_URI')
-  if (!uri) {
-    log('MONGODB_URI not found in .env.local — skipping database scrub.')
-    return 0
-  }
-
-  let mongoose
-  try {
-    mongoose = require('mongoose')
-  } catch {
-    log('mongoose not resolvable — run this from the app root. Skipping database scrub.')
-    return 0
-  }
-
-  await mongoose.connect(uri)
+async function purgeDatabase(mongoose) {
   const col = mongoose.connection.db.collection('applications')
 
-  // Only records whose assessment is older than the retention window, and
-  // which still carry raw personal content.
+  // Only records whose assessment is older than the retention window, which
+  // still carry raw personal content, and which are NOT in the active
+  // pipeline.
   const filter = {
     assessmentDate: { $lt: cutoff },
+    status: { $nin: ACTIVE_PIPELINE },
     $or: [
       { transcript: { $exists: true, $ne: [] } },
       { violations: { $exists: true, $ne: [] } },
@@ -139,8 +152,6 @@ async function purseDatabase() {
   }
 
   const anonymised = await anonymiseApplications(mongoose)
-
-  await mongoose.disconnect()
   return { scrubbed: count, anonymised }
 }
 
@@ -202,12 +213,55 @@ async function anonymiseApplications(mongoose) {
 }
 
 ;(async () => {
-  log(`retention ${RETENTION_DAYS} days · cutoff ${cutoff.toISOString()}`)
-  const { deleted, bytes } = await purgeFiles()
-  const db = await purseDatabase()
-  const scrubbed = typeof db === 'object' ? db.scrubbed : db
-  const anonymised = typeof db === 'object' ? db.anonymised : 0
-  log(`done — ${deleted} file(s), ${(bytes / 1048576).toFixed(1)} MB, ${scrubbed} scrubbed, ${anonymised} anonymised.`)
+  log(`retention ${RETENTION_DAYS} days · cutoff ${cutoff.toISOString()} · exempt: ${ACTIVE_PIPELINE.join(', ')}`)
+
+  // Connect to Mongo FIRST — the file pass needs to know which recordings
+  // belong to active-pipeline candidates before deleting anything.
+  const uri = readEnv('MONGODB_URI')
+  let mongoose = null
+  if (uri) {
+    try {
+      mongoose = require('mongoose')
+      await mongoose.connect(uri)
+    } catch (e) {
+      mongoose = null
+      log('Could not connect to MongoDB:', e.message)
+    }
+  } else {
+    log('MONGODB_URI not found in .env.local.')
+  }
+
+  let protectedStems = new Set()
+  if (mongoose) {
+    const col = mongoose.connection.db.collection('applications')
+    const active = await col
+      .find({ status: { $in: ACTIVE_PIPELINE }, assessmentFilename: { $exists: true, $ne: null } })
+      .project({ assessmentFilename: 1 })
+      .toArray()
+    protectedStems = new Set(
+      active.map((a) => String(a.assessmentFilename).replace(/\.(webm|json)$/i, ''))
+    )
+    log(`${protectedStems.size} active-pipeline recording(s) protected.`)
+  } else {
+    // Without the database we cannot tell which files are protected —
+    // deleting blind could destroy a shortlisted candidate's recording.
+    // Fail safe: skip file deletion entirely this run.
+    log('SKIPPING file purge — cannot determine active-pipeline exemptions without the database.')
+  }
+
+  let files = { deleted: 0, bytes: 0, protected: 0 }
+  if (mongoose) files = await purgeFiles(protectedStems)
+
+  let db = { scrubbed: 0, anonymised: 0 }
+  if (mongoose) {
+    db = await purgeDatabase(mongoose)
+    await mongoose.disconnect()
+  }
+
+  log(
+    `done — ${files.deleted} file(s) deleted, ${files.protected} protected, ` +
+    `${(files.bytes / 1048576).toFixed(1)} MB freed, ${db.scrubbed} scrubbed, ${db.anonymised} anonymised.`
+  )
   process.exit(0)
 })().catch((e) => {
   console.error('[purge] failed:', e)

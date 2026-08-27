@@ -14,7 +14,7 @@ type Application = {
   status: string; assessmentScore?: string; assessmentPct?: number
   assessmentDate?: string; assessmentFilename?: string
   tabSwitches?: number; pasteTries?: number; violations?: string[]
-  transcript?: QResult[]; notes?: string; createdAt: string
+  transcript?: QResult[]; notes?: string; shortlistEmailSentAt?: string; createdAt: string
 }
 
 const STATUS_FLOW = ['applied','assessed','shortlisted','interviewed','offered','onboarded','rejected']
@@ -57,14 +57,36 @@ export default function HRAssessmentsPanel() {
   useEffect(() => { load() }, [filterRole, filterStatus])
 
   async function updateStatus(ref: string, status: string) {
+    const app = apps.find(a => a.ref === ref)
+    let resendInvite = false
+    if (status === 'shortlisted' && app) {
+      if (!app.shortlistEmailSentAt) {
+        if (!window.confirm(
+          `Move ${app.name} to Shortlisted?\n\nThis will automatically email the interview invitation for "${app.role}" — salary range and booking link included — to ${app.email}.`
+        )) { load(); return }
+      } else {
+        if (!window.confirm(
+          `${app.name} already received the invitation on ${new Date(app.shortlistEmailSentAt).toLocaleString()}.\n\nSend it again?`
+        )) { load(); return }
+        resendInvite = true
+      }
+    }
     setUpdatingStatus(ref)
     try {
-      await fetch('/api/applications', {
+      const res = await fetch('/api/applications', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ref, status })
+        body: JSON.stringify({ ref, status, ...(resendInvite ? { resendInvite: true } : {}) })
       })
-      setApps(prev => prev.map(a => a.ref === ref ? { ...a, status } : a))
+      const data = await res.json().catch(() => ({} as Record<string, unknown>))
+      if (data.emailSent === true) {
+        alert(`Interview invitation sent to ${app?.email || ref}.`)
+      } else if (data.emailSent === false) {
+        alert(`Status updated, but the invitation email FAILED:\n${data.emailError || 'unknown error'}\n\nFix the issue, then set the status away and back to Shortlisted to re-send.`)
+      }
+      setApps(prev => prev.map(a => a.ref === ref
+        ? { ...a, status, shortlistEmailSentAt: (data.application as Application | undefined)?.shortlistEmailSentAt || a.shortlistEmailSentAt }
+        : a))
     } finally { setUpdatingStatus(null) }
   }
 

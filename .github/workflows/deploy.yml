@@ -74,6 +74,8 @@ jobs:
           git show origin/main:lib/auth.ts > lib/auth.ts
           git show origin/main:lib/apiAuth.ts > lib/apiAuth.ts
           git show origin/main:lib/assessmentToken.ts > lib/assessmentToken.ts
+	  git show origin/main:lib/shortlistConfig.ts > lib/shortlistConfig.ts
+          git show origin/main:lib/shortlistEmail.ts > lib/shortlistEmail.ts
           git show origin/main:lib/proposalTemplate.ts > lib/proposalTemplate.ts
           git show origin/main:lib/renderPdf.ts > lib/renderPdf.ts
           mkdir -p scripts
