@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { Download, RefreshCw, Video, TrendingUp, TrendingDown, Minus,
+import { Download, RefreshCw, Video, FileText, TrendingUp, TrendingDown, Minus,
          ChevronDown, ChevronUp, AlertTriangle, CheckCircle, XCircle,
          MessageSquare, Hash, User, Mail, Briefcase, Clock } from "lucide-react"
 
@@ -96,6 +96,21 @@ export default function HRAssessmentsPanel() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ref, notes: notes[ref] || '' })
     })
+  }
+
+  async function downloadTranscript(ref: string, name: string) {
+    setDownloading('t:' + ref)
+    try {
+      const res = await fetch(`/api/assessments/transcript?ref=${encodeURIComponent(ref)}`)
+      if (!res.ok) { alert('Transcript download failed (' + res.status + ')'); return }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${ref}_${name.replace(/[^a-z0-9]+/gi, '_')}_transcript.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally { setDownloading(null) }
   }
 
   async function download(filename: string) {
@@ -223,6 +238,14 @@ export default function HRAssessmentsPanel() {
                           className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50">
                           <Video className="size-3.5" />
                           {downloading === app.assessmentFilename ? '...' : 'Recording'}
+                        </button>
+                      )}
+                      {app.transcript && app.transcript.length > 0 && (
+                        <button onClick={() => downloadTranscript(app.ref, app.name)}
+                          disabled={downloading === 't:' + app.ref}
+                          className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50">
+                          <FileText className="size-3.5" />
+                          {downloading === 't:' + app.ref ? '...' : 'Transcript'}
                         </button>
                       )}
                       <button onClick={() => setExpanded(expanded === app.ref ? null : app.ref)}
