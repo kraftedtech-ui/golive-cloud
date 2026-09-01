@@ -202,6 +202,8 @@ jobs:
           git show origin/main:app/api/assessments/download/route.ts > app/api/assessments/download/route.ts
           git show origin/main:app/api/assessments/verify-code/route.ts > app/api/assessments/verify-code/route.ts
           git show origin/main:app/api/assessments/delete/route.ts > app/api/assessments/delete/route.ts
+          mkdir -p app/api/assessments/transcript
+          git show origin/main:app/api/assessments/transcript/route.ts > app/api/assessments/transcript/route.ts
 
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts
