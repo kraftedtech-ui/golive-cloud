@@ -1,6 +1,6 @@
 /**
- * rejectionEmail.ts — sends a polite rejection letter when an interviewed
- * candidate is moved to "rejected" in the HR panel.
+ * rejectionEmail.ts — sends a formal, courteous rejection letter when an
+ * interviewed candidate is moved to "rejected" in the HR panel.
  *
  * Fires once (guarded by rejectionEmailSentAt on the Application).
  * Sent via Resend as GoLive Talent Acquisition; replies land in the
@@ -13,6 +13,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 const FROM = 'GoLive Talent Acquisition <talent.acquisition@golivecompany.com>'
 const REPLY_TO = 'talent.acquisition@golivecompany.com'
+const CAREERS_URL = 'https://cloud.golivecompany.com/careers'
 
 export interface RejectionCandidate {
   name: string
@@ -25,18 +26,24 @@ export async function sendRejectionEmail(c: RejectionCandidate): Promise<{ ok: b
   const firstName = (c.name || '').trim().split(/\s+/)[0] || 'Candidate'
 
   const html = `
-<div style="font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#2d3436;line-height:1.65;max-width:620px;margin:0 auto">
+<div style="font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#2d3436;line-height:1.7;max-width:620px;margin:0 auto">
   <p>Dear ${firstName},</p>
 
-  <p>Thank you for the time and care you invested in your application for the <strong>${c.role}</strong> position at The GoLive Digital Solutions Company Ltd \u2014 from the assessment through to your interview. We know the process asked a lot of you, and we genuinely appreciate how you showed up for it.</p>
+  <p>Thank you for the time and effort you invested in your application for the <strong>${c.role}</strong> position at The GoLive Digital Solutions Company Ltd, from the online assessment through to your interview. We appreciate the professionalism you demonstrated at every stage of the process.</p>
 
-  <p>After careful consideration, we have decided to move forward with another candidate whose experience most closely matched our current needs. This was a competitive process with a strong field, and this decision is not a reflection of your ability \u2014 several capable people could not all fill one seat.</p>
+  <p>After careful consideration, we have decided to proceed with another candidate whose experience most closely matched our current requirements. This was a highly competitive process with a strong field of applicants, and our decision is not a reflection of your ability.</p>
 
-  <p>We would be glad to keep your details in view for future openings, and you are warmly encouraged to apply again as GoLive grows \u2014 we expect to hire across several roles in the coming year. In line with the Nigeria Data Protection Act 2023 and our Privacy Policy, your assessment data will be deleted under our standard retention schedule unless you apply for another role.</p>
+  <p>We would be pleased to keep your details on record for future opportunities, and we warmly encourage you to apply again as GoLive grows. Current and future openings, together with their salary ranges, are published on our careers page:</p>
 
-  <p>We wish you every success in your search, and thank you again for considering GoLive.</p>
+  <p style="text-align:center;margin:18px 0">
+    <a href="${CAREERS_URL}" style="color:#0e7c86;font-weight:600">${CAREERS_URL.replace('https://', '')}</a>
+  </p>
 
-  <p style="margin-bottom:2px">Warm regards,</p>
+  <p>In line with the Nigeria Data Protection Act 2023 and our Privacy Policy, your assessment data will be deleted in accordance with our standard retention schedule unless you apply for another role.</p>
+
+  <p>We wish you every success in your career, and we thank you again for your interest in GoLive.</p>
+
+  <p style="margin-bottom:2px">Yours sincerely,</p>
   <p style="margin-top:0">
     <strong style="color:#0e7c86">GoLive Talent Acquisition</strong><br>
     <span style="font-size:12px;color:#777">
