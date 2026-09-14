@@ -330,7 +330,7 @@ jobs:
           export NODE_ENV=production
           npm run build
           echo "=== Fixing ownership ==="
-          chown -R www:www /www/wwwroot/golive-cloud
+          find /www/wwwroot/golive-cloud -not -name ".user.ini" -exec chown www:www {} + 2>/dev/null || true
           echo "=== Restarting server ==="
           kill $(ps aux | grep "server.js" | grep -v grep | awk '{print $2}') 2>/dev/null || true
           sleep 3
