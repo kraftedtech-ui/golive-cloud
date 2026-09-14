@@ -76,6 +76,11 @@ jobs:
           git show origin/main:lib/assessmentToken.ts > lib/assessmentToken.ts
           git show origin/main:lib/shortlistConfig.ts > lib/shortlistConfig.ts
           git show origin/main:lib/shortlistEmail.ts > lib/shortlistEmail.ts
+          git show origin/main:lib/rejectionEmail.ts > lib/rejectionEmail.ts
+          git show origin/main:lib/offerConfig.ts > lib/offerConfig.ts
+          git show origin/main:lib/offerToken.ts > lib/offerToken.ts
+          git show origin/main:lib/offerLetter.ts > lib/offerLetter.ts
+          git show origin/main:lib/offerEmail.ts > lib/offerEmail.ts
           git show origin/main:lib/proposalTemplate.ts > lib/proposalTemplate.ts
           git show origin/main:lib/renderPdf.ts > lib/renderPdf.ts
           mkdir -p scripts
@@ -204,6 +209,12 @@ jobs:
           git show origin/main:app/api/assessments/delete/route.ts > app/api/assessments/delete/route.ts
           mkdir -p app/api/assessments/transcript
           git show origin/main:app/api/assessments/transcript/route.ts > app/api/assessments/transcript/route.ts
+          mkdir -p app/api/offer/sign app/api/offer/md-sign app/api/offer/pdf "app/offer/[token]" components/offer
+          git show origin/main:app/api/offer/sign/route.ts > app/api/offer/sign/route.ts
+          git show origin/main:app/api/offer/md-sign/route.ts > app/api/offer/md-sign/route.ts
+          git show origin/main:app/api/offer/pdf/route.ts > app/api/offer/pdf/route.ts
+          git show "origin/main:app/offer/[token]/page.tsx" > "app/offer/[token]/page.tsx"
+          git show origin/main:components/offer/OfferSignForm.tsx > components/offer/OfferSignForm.tsx
 
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts

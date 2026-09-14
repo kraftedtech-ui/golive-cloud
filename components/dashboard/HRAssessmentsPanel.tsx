@@ -14,7 +14,8 @@ type Application = {
   status: string; assessmentScore?: string; assessmentPct?: number
   assessmentDate?: string; assessmentFilename?: string
   tabSwitches?: number; pasteTries?: number; violations?: string[]
-  transcript?: QResult[]; notes?: string; shortlistEmailSentAt?: string; createdAt: string
+  transcript?: QResult[]; notes?: string; shortlistEmailSentAt?: string; rejectionEmailSentAt?: string;
+  offer?: { sentAt?: string; salary?: number; startDate?: string; candidateSignedAt?: string; candidateSignedName?: string; mdSignedAt?: string }; createdAt: string
 }
 
 const STATUS_FLOW = ['applied','assessed','shortlisted','interviewed','offered','onboarded','rejected']
@@ -59,6 +60,7 @@ export default function HRAssessmentsPanel() {
   async function updateStatus(ref: string, status: string) {
     const app = apps.find(a => a.ref === ref)
     let resendInvite = false
+    let offerTerms: { salary: number; startDate: string; deadlineDays: number } | null = null
     if (status === 'shortlisted' && app) {
       if (!app.shortlistEmailSentAt) {
         if (!window.confirm(
@@ -71,21 +73,43 @@ export default function HRAssessmentsPanel() {
         resendInvite = true
       }
     }
+    if (status === 'rejected' && app && app.status === 'interviewed' && !app.rejectionEmailSentAt) {
+      if (!window.confirm(
+        `Reject ${app.name}?\n\nBecause they were interviewed, this will email them a polite rejection letter for "${app.role}".`
+      )) { load(); return }
+    }
+    if (status === 'offered' && app && !app.offer?.sentAt) {
+      if (!window.confirm(
+        `Offer the ${app.role} role to ${app.name}?\n\nThis will email them a digital offer letter for electronic signature.`
+      )) { load(); return }
+      const salaryStr = window.prompt('Monthly gross salary in Naira (numbers only, e.g. 250000):', '')
+      if (salaryStr === null) { load(); return }
+      const salary = parseInt(salaryStr.replace(/[^0-9]/g, ''), 10)
+      const startDate = window.prompt('Start date (YYYY-MM-DD):', '')
+      if (startDate === null) { load(); return }
+      const daysStr = window.prompt('Acceptance deadline in days (1-21):', '5')
+      if (daysStr === null) { load(); return }
+      if (!salary || salary < 10000 || !/^\d{4}-\d{2}-\d{2}$/.test(startDate.trim())) {
+        alert('Invalid salary or start date — nothing was sent. Try again.')
+        load(); return
+      }
+      offerTerms = { salary, startDate: startDate.trim(), deadlineDays: parseInt(daysStr, 10) || 5 }
+    }
     setUpdatingStatus(ref)
     try {
       const res = await fetch('/api/applications', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ref, status, ...(resendInvite ? { resendInvite: true } : {}) })
+        body: JSON.stringify({ ref, status, ...(resendInvite ? { resendInvite: true } : {}), ...(offerTerms ? { offer: offerTerms } : {}) })
       })
       const data = await res.json().catch(() => ({} as Record<string, unknown>))
       if (data.emailSent === true) {
-        alert(`Interview invitation sent to ${app?.email || ref}.`)
+        alert(`Email sent to ${app?.email || ref}.`)
       } else if (data.emailSent === false) {
-        alert(`Status updated, but the invitation email FAILED:\n${data.emailError || 'unknown error'}\n\nFix the issue, then set the status away and back to Shortlisted to re-send.`)
+        alert(`Status updated, but the email FAILED:\n${data.emailError || 'unknown error'}`)
       }
       setApps(prev => prev.map(a => a.ref === ref
-        ? { ...a, status, shortlistEmailSentAt: (data.application as Application | undefined)?.shortlistEmailSentAt || a.shortlistEmailSentAt }
+        ? { ...a, status, shortlistEmailSentAt: (data.application as Application | undefined)?.shortlistEmailSentAt || a.shortlistEmailSentAt, rejectionEmailSentAt: (data.application as Application | undefined)?.rejectionEmailSentAt || a.rejectionEmailSentAt }
         : a))
     } finally { setUpdatingStatus(null) }
   }
@@ -108,6 +132,39 @@ export default function HRAssessmentsPanel() {
       const a = document.createElement('a')
       a.href = url
       a.download = `${ref}_${name.replace(/[^a-z0-9]+/gi, '_')}_transcript.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally { setDownloading(null) }
+  }
+
+  async function mdSignOffer(ref: string, name: string) {
+    if (!window.confirm(
+      `Countersign ${name}'s offer as MD?\n\nThis fully executes the offer and emails the candidate their signed copy.`
+    )) return
+    setUpdatingStatus(ref)
+    try {
+      const res = await fetch('/api/offer/md-sign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref })
+      })
+      const data = await res.json().catch(() => ({} as Record<string, unknown>))
+      if (!res.ok) { alert('Countersign failed: ' + (data.error || res.status)); return }
+      alert('Offer fully executed. ' + (data.emailSent ? 'The candidate has been emailed their signed copy.' : 'NOTE: the notification email failed — ' + (data.emailError || 'unknown error')))
+      load()
+    } finally { setUpdatingStatus(null) }
+  }
+
+  async function downloadOfferPdf(ref: string, name: string) {
+    setDownloading('o:' + ref)
+    try {
+      const res = await fetch(`/api/offer/pdf?ref=${encodeURIComponent(ref)}`)
+      if (!res.ok) { alert('Offer PDF failed (' + res.status + ')'); return }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${ref}_${name.replace(/[^a-z0-9]+/gi, '_')}_offer.pdf`
       a.click()
       URL.revokeObjectURL(url)
     } finally { setDownloading(null) }
@@ -246,6 +303,22 @@ export default function HRAssessmentsPanel() {
                           className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50">
                           <FileText className="size-3.5" />
                           {downloading === 't:' + app.ref ? '...' : 'Transcript'}
+                        </button>
+                      )}
+                      {app.offer?.sentAt && (
+                        <button onClick={() => downloadOfferPdf(app.ref, app.name)}
+                          disabled={downloading === 'o:' + app.ref}
+                          className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50">
+                          <Download className="size-3.5" />
+                          {downloading === 'o:' + app.ref ? '...' : (app.offer?.mdSignedAt ? 'Offer PDF ✓' : 'Offer PDF')}
+                        </button>
+                      )}
+                      {app.offer?.candidateSignedAt && !app.offer?.mdSignedAt && (
+                        <button onClick={() => mdSignOffer(app.ref, app.name)}
+                          disabled={updatingStatus === app.ref}
+                          className="flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition-colors disabled:opacity-50">
+                          <CheckCircle className="size-3.5" />
+                          Countersign offer
                         </button>
                       )}
                       <button onClick={() => setExpanded(expanded === app.ref ? null : app.ref)}

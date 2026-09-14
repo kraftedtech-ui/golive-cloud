@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import { sendShortlistEmail } from '@/lib/shortlistEmail'
+import { sendRejectionEmail } from '@/lib/rejectionEmail'
+import { sendOfferEmail } from '@/lib/offerEmail'
+import { signOfferToken } from '@/lib/offerToken'
+import { OFFER_CONFIG } from '@/lib/offerConfig'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,11 +42,13 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
   }
   await connectDB()
-  const { ref, status, notes, resendInvite } = await req.json()
+  const { ref, status, notes, resendInvite, offer: offerTerms } = await req.json()
   if (!ref) return NextResponse.json({ error: 'ref required' }, { status: 400 })
   const update: Record<string, string> = {}
   if (status) update.status = status
   if (notes !== undefined) update.notes = notes
+  const before = await Application.findOne({ ref }).select('status shortlistEmailSentAt rejectionEmailSentAt offer').lean() as { status?: string; rejectionEmailSentAt?: Date } | null
+  if (!before) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   const app = await Application.findOneAndUpdate({ ref }, update, { new: true })
   if (!app) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
@@ -66,6 +72,61 @@ export async function PATCH(req: NextRequest) {
       await app.save()
     } else {
       console.error(`[shortlist] invitation to ${app.ref} failed:`, result.error)
+    }
+  }
+
+  // Automated rejection letter: fires once when an interviewed candidate
+  // is moved to "rejected". Other rejections (parked reserves, test data)
+  // stay silent by design.
+  const shouldReject =
+    status === 'rejected' && before.status === 'interviewed' && !before.rejectionEmailSentAt
+  if (shouldReject) {
+    const result = await sendRejectionEmail({
+      name: app.name,
+      email: app.email,
+      role: app.role,
+      ref: app.ref,
+    })
+    emailSent = result.ok
+    emailError = result.error
+    if (result.ok) {
+      app.rejectionEmailSentAt = new Date()
+      await app.save()
+    } else {
+      console.error(`[rejection] letter to ${app.ref} failed:`, result.error)
+    }
+  }
+
+  // Digital offer: fires when the status moves to "offered" with terms
+  // attached and no offer has been sent before. The offer is only persisted
+  // if the email goes out — a failed send leaves the record clean to retry.
+  const beforeOffer = (before as { offer?: { sentAt?: Date } }).offer
+  const shouldOffer = status === 'offered' && offerTerms && !beforeOffer?.sentAt
+  if (shouldOffer) {
+    const cfg = OFFER_CONFIG[app.role]
+    const salary = Number(offerTerms.salary)
+    const startDate = String(offerTerms.startDate || '')
+    const days = Math.min(Math.max(parseInt(String(offerTerms.deadlineDays)) || 5, 1), 21)
+    if (!cfg) {
+      emailSent = false; emailError = `No offer config for role "${app.role}" — check lib/offerConfig.ts`
+    } else if (!salary || salary < 10000 || !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+      emailSent = false; emailError = 'Invalid salary or start date (use YYYY-MM-DD)'
+    } else {
+      const deadline = new Date(Date.now() + days * 864e5)
+      const token = signOfferToken(app.ref, deadline)
+      const result = await sendOfferEmail({
+        name: app.name, email: app.email, role: app.role, ref: app.ref,
+        salary, startDate, deadline, token,
+      })
+      emailSent = result.ok
+      emailError = result.error
+      if (result.ok) {
+        app.offer = { jobCode: cfg.jobCode, salary, startDate, deadline, sentAt: new Date() }
+        app.markModified('offer')
+        await app.save()
+      } else {
+        console.error(`[offer] send to ${app.ref} failed:`, result.error)
+      }
     }
   }
 

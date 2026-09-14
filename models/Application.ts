@@ -16,6 +16,19 @@ export interface IApplication extends Document {
   transcript?: object[]
   notes?: string
   shortlistEmailSentAt?: Date
+  rejectionEmailSentAt?: Date
+  offer?: {
+    jobCode?: string
+    salary?: number
+    startDate?: string
+    deadline?: Date
+    sentAt?: Date
+    candidateSignedAt?: Date
+    candidateSignedName?: string
+    candidateIp?: string
+    mdSignedAt?: Date
+    mdSignedName?: string
+  }
   createdAt: Date
   updatedAt: Date
 }
@@ -36,6 +49,19 @@ const ApplicationSchema = new Schema<IApplication>({
   transcript:       [{ type: Schema.Types.Mixed }],
   notes:            { type: String, default: '' },
   shortlistEmailSentAt: { type: Date },
+  rejectionEmailSentAt: { type: Date },
+  offer: {
+    jobCode: String,
+    salary: Number,
+    startDate: String,
+    deadline: Date,
+    sentAt: Date,
+    candidateSignedAt: Date,
+    candidateSignedName: String,
+    candidateIp: String,
+    mdSignedAt: Date,
+    mdSignedName: String,
+  },
 }, { timestamps: true })
 
 export default mongoose.models.Application ||
