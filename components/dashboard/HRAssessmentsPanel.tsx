@@ -344,6 +344,7 @@ export default function HRAssessmentsPanel() {
                           {downloading === 't:' + app.ref ? '...' : 'Transcript'}
                         </button>
                       )}
+                      <span className="text-[10px] text-muted-foreground self-center">HR v2</span>
                       {app.offer?.sentAt && (
                         <button onClick={() => downloadOfferPdf(app.ref, app.name)}
                           disabled={downloading === 'o:' + app.ref}
