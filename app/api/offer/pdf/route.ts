@@ -50,6 +50,7 @@ export async function GET(req: NextRequest) {
     deadline: app.offer.deadline, sentAt: app.offer.sentAt,
     candidateSignedAt: app.offer.candidateSignedAt, candidateSignedName: app.offer.candidateSignedName,
     candidateIp: app.offer.candidateIp, mdSignedAt: app.offer.mdSignedAt, mdSignedName: app.offer.mdSignedName,
+    employeeNumber: app.employeeNumber,
   })
 
   try {

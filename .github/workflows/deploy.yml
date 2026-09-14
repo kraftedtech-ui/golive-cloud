@@ -81,6 +81,8 @@ jobs:
           git show origin/main:lib/offerToken.ts > lib/offerToken.ts
           git show origin/main:lib/offerLetter.ts > lib/offerLetter.ts
           git show origin/main:lib/offerEmail.ts > lib/offerEmail.ts
+          git show origin/main:lib/onboardingToken.ts > lib/onboardingToken.ts
+          git show origin/main:lib/onboardingEmail.ts > lib/onboardingEmail.ts
           git show origin/main:lib/proposalTemplate.ts > lib/proposalTemplate.ts
           git show origin/main:lib/renderPdf.ts > lib/renderPdf.ts
           mkdir -p scripts
@@ -215,6 +217,13 @@ jobs:
           git show origin/main:app/api/offer/pdf/route.ts > app/api/offer/pdf/route.ts
           git show "origin/main:app/offer/[token]/page.tsx" > "app/offer/[token]/page.tsx"
           git show origin/main:components/offer/OfferSignForm.tsx > components/offer/OfferSignForm.tsx
+          mkdir -p app/api/onboarding/upload app/api/onboarding/send app/api/onboarding/file app/api/onboarding/ack "app/onboarding/[token]" components/onboarding
+          git show origin/main:app/api/onboarding/upload/route.ts > app/api/onboarding/upload/route.ts
+          git show origin/main:app/api/onboarding/send/route.ts > app/api/onboarding/send/route.ts
+          git show origin/main:app/api/onboarding/file/route.ts > app/api/onboarding/file/route.ts
+          git show origin/main:app/api/onboarding/ack/route.ts > app/api/onboarding/ack/route.ts
+          git show "origin/main:app/onboarding/[token]/page.tsx" > "app/onboarding/[token]/page.tsx"
+          git show origin/main:components/onboarding/OnboardAckForm.tsx > components/onboarding/OnboardAckForm.tsx
 
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts

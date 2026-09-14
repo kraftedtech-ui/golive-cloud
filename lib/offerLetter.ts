@@ -22,6 +22,7 @@ export interface OfferView {
   candidateIp?: string | null
   mdSignedAt?: Date | string | null
   mdSignedName?: string | null
+  employeeNumber?: string | null
 }
 
 const esc = (s: unknown) =>
@@ -33,7 +34,7 @@ export function buildOfferHtml(o: OfferView): string {
     ? `<div class="sigbox signed">\u2713 Digitally signed by <strong>${esc(o.candidateSignedName)}</strong> on ${fmtDateTime(o.candidateSignedAt)}${o.candidateIp ? ` &middot; IP ${esc(o.candidateIp)}` : ''}</div>`
     : `<div class="sigbox pending">Awaiting candidate signature${o.deadline ? ` &mdash; this offer lapses on ${fmtDate(o.deadline)}` : ''}</div>`
   const mdBlock = o.mdSignedAt
-    ? `<div class="sigbox signed">\u2713 Countersigned for the Company by <strong>${esc(o.mdSignedName || MD_NAME)}</strong> \u2014 ${MD_TITLE}, on ${fmtDateTime(o.mdSignedAt)}</div>`
+    ? `<div class="sigbox signed">\u2713 Countersigned for the Company by <strong>${esc(o.mdSignedName || MD_NAME)}</strong> \u2014 ${MD_TITLE}, on ${fmtDateTime(o.mdSignedAt)}${o.employeeNumber ? ` &middot; Employee No: <strong>${esc(o.employeeNumber)}</strong>` : ''}</div>`
     : `<div class="sigbox pending">To be countersigned by the Company upon acceptance</div>`
 
   return `

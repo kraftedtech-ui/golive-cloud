@@ -15,7 +15,9 @@ type Application = {
   assessmentDate?: string; assessmentFilename?: string
   tabSwitches?: number; pasteTries?: number; violations?: string[]
   transcript?: QResult[]; notes?: string; shortlistEmailSentAt?: string; rejectionEmailSentAt?: string;
-  offer?: { sentAt?: string; salary?: number; startDate?: string; candidateSignedAt?: string; candidateSignedName?: string; mdSignedAt?: string }; createdAt: string
+  offer?: { sentAt?: string; salary?: number; startDate?: string; candidateSignedAt?: string; candidateSignedName?: string; mdSignedAt?: string };
+  employeeNumber?: string;
+  onboarding?: { docs?: { filename: string; label?: string }[]; sentAt?: string; acknowledgedAt?: string }; createdAt: string
 }
 
 const STATUS_FLOW = ['applied','assessed','shortlisted','interviewed','offered','onboarded','rejected']
@@ -170,6 +172,43 @@ export default function HRAssessmentsPanel() {
     } finally { setDownloading(null) }
   }
 
+  async function uploadOnboardDoc(ref: string, e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (file.size > 15 * 1024 * 1024) { alert('Max file size is 15 MB.'); return }
+    setUpdatingStatus(ref)
+    try {
+      const fd = new FormData()
+      fd.append('ref', ref)
+      fd.append('file', file)
+      const res = await fetch('/api/onboarding/upload', { method: 'POST', body: fd })
+      const data = await res.json().catch(() => ({} as Record<string, unknown>))
+      if (!res.ok) { alert('Upload failed: ' + (data.error || res.status)); return }
+      alert('Uploaded: ' + file.name)
+      load()
+    } finally { setUpdatingStatus(null) }
+  }
+
+  async function sendOnboardingPack(ref: string, name: string, docCount: number, resend: boolean) {
+    if (!docCount) { alert('Upload at least one onboarding document first (Add doc).'); return }
+    if (!window.confirm(
+      (resend ? 'RE-send' : 'Send') + ` the onboarding pack (${docCount} document${docCount > 1 ? 's' : ''}) to ${name}?\n\nThe email includes the Background Check International screening notice.`
+    )) return
+    setUpdatingStatus(ref)
+    try {
+      const res = await fetch('/api/onboarding/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref })
+      })
+      const data = await res.json().catch(() => ({} as Record<string, unknown>))
+      if (!res.ok) { alert('Send failed: ' + (data.error || res.status)); return }
+      alert('Onboarding pack sent to ' + name + '.')
+      load()
+    } finally { setUpdatingStatus(null) }
+  }
+
   async function download(filename: string) {
     setDownloading(filename)
     try {
@@ -320,6 +359,27 @@ export default function HRAssessmentsPanel() {
                           <CheckCircle className="size-3.5" />
                           Countersign offer
                         </button>
+                      )}
+                      {app.offer?.mdSignedAt && (
+                        <>
+                          <label className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors cursor-pointer">
+                            <FileText className="size-3.5" />
+                            Add doc
+                            <input type="file" className="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx" onChange={(e) => uploadOnboardDoc(app.ref, e)} />
+                          </label>
+                          <button onClick={() => sendOnboardingPack(app.ref, app.name, app.onboarding?.docs?.length || 0, !!app.onboarding?.sentAt)}
+                            disabled={updatingStatus === app.ref}
+                            className={app.onboarding?.acknowledgedAt
+                              ? 'flex items-center gap-1 rounded-lg border border-green-300 bg-green-50 px-2 py-1 text-xs font-semibold text-green-800 transition-colors'
+                              : 'flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors disabled:opacity-50'}>
+                            <CheckCircle className="size-3.5" />
+                            {app.onboarding?.acknowledgedAt
+                              ? 'Onboarding \u2713'
+                              : app.onboarding?.sentAt
+                                ? `Resend pack (${app.onboarding?.docs?.length || 0})`
+                                : `Send pack (${app.onboarding?.docs?.length || 0})`}
+                          </button>
+                        </>
                       )}
                       <button onClick={() => setExpanded(expanded === app.ref ? null : app.ref)}
                         className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors">

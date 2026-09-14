@@ -29,6 +29,15 @@ export interface IApplication extends Document {
     mdSignedAt?: Date
     mdSignedName?: string
   }
+  employeeNumber?: string
+  onboarding?: {
+    docs?: { filename: string; label?: string; uploadedAt?: Date }[]
+    sentAt?: Date
+    acknowledgedAt?: Date
+    acknowledgedName?: string
+    ip?: string
+    bciConsentAt?: Date
+  }
   createdAt: Date
   updatedAt: Date
 }
@@ -61,6 +70,15 @@ const ApplicationSchema = new Schema<IApplication>({
     candidateIp: String,
     mdSignedAt: Date,
     mdSignedName: String,
+  },
+  employeeNumber: { type: String },
+  onboarding: {
+    docs: [{ filename: String, label: String, uploadedAt: Date, _id: false }],
+    sentAt: Date,
+    acknowledgedAt: Date,
+    acknowledgedName: String,
+    ip: String,
+    bciConsentAt: Date,
   },
 }, { timestamps: true })
 
