@@ -32,17 +32,18 @@ async function send(to: string, subject: string, html: string): Promise<{ ok: bo
 
 export function sendOfferEmail(p: {
   name: string; email: string; role: string; ref: string
-  salary: number; startDate: string; deadline: Date; token: string
+  salary: number; startDate: string; deadline: Date; token: string; jobCode: string
 }) {
   const firstName = (p.name || '').trim().split(/\s+/)[0] || 'Candidate'
   const link = `${PORTAL_URL}/offer/${p.token}`
   return send(
     p.email,
-    `Offer of Employment \u2014 ${p.role}, GoLive Digital Solutions (${p.ref})`,
+    `Offer of Employment \u2014 ${p.role} (${p.jobCode}), GoLive Digital Solutions (${p.ref})`,
     wrap(`
   <p>Dear ${firstName},</p>
   <p>Congratulations! Following your interview, we are delighted to extend you a formal <strong>Offer of Employment</strong> for the <strong>${p.role}</strong> position at The GoLive Digital Solutions Company Ltd.</p>
   <p style="margin:14px 0;padding:12px 16px;background:#f0f7f8;border:1px solid #cfe3e5;border-radius:8px">
+    <strong>Job Code:</strong> ${p.jobCode} &nbsp;&middot;&nbsp; <strong>Application:</strong> ${p.ref}<br>
     <strong>Salary:</strong> ${fmtNaira(p.salary)} monthly gross<br>
     <strong>Proposed start date:</strong> ${fmtDate(p.startDate)}<br>
     <strong>Offer valid until:</strong> ${fmtDate(p.deadline)}

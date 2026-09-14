@@ -116,7 +116,7 @@ export async function PATCH(req: NextRequest) {
       const token = signOfferToken(app.ref, deadline)
       const result = await sendOfferEmail({
         name: app.name, email: app.email, role: app.role, ref: app.ref,
-        salary, startDate, deadline, token,
+        salary, startDate, deadline, token, jobCode: cfg.jobCode,
       })
       emailSent = result.ok
       emailError = result.error
