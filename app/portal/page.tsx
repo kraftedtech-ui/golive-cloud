@@ -2230,7 +2230,12 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
                     <td className="px-4 py-3"><span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${u.active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{u.active ? '● Active' : '○ Inactive'}</span></td>
                     <td className="px-4 py-3">
                       {(() => {
-                        if (u.role === 'viewer') return <span className="text-[11px] text-muted-foreground">\u2014</span>
+                        if (u.role === 'viewer' || (u as any).commissionEligible === false) return (
+                          <div className="space-y-0.5">
+                            <span className="text-[11px] text-muted-foreground">Not applicable</span>
+                            <p className="text-[10px] text-muted-foreground/70">Role carries no commission</p>
+                          </div>
+                        )
                         const commissionInfo = deriveCommissionPeriod(u as any)
                         return (
                           <div className="space-y-1">
