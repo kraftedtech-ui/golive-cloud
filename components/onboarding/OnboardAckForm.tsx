@@ -26,7 +26,7 @@ export default function OnboardAckForm({
     return (
       <div style={box}>
         <p style={{ background: '#eef8f0', border: '1px solid #b7e0c1', color: '#1a5c2a', padding: '12px 16px', borderRadius: 8, fontSize: 14 }}>
-          \u2713 Onboarding acknowledgement complete \u2014 thank you. Keep your downloaded documents safe; the countersigned
+          ✓ Onboarding acknowledgement complete — thank you. Keep your downloaded documents safe; the countersigned
           copies will be handled during your first-day induction. See you on day one!
         </p>
       </div>
@@ -51,7 +51,7 @@ export default function OnboardAckForm({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error || 'Submission failed \u2014 please try again or contact talent.acquisition@golivecompany.com')
+        setError(data.error || 'Submission failed — please try again or contact talent.acquisition@golivecompany.com')
         return
       }
       setDone(true)
@@ -106,7 +106,7 @@ export default function OnboardAckForm({
           borderRadius: 8, padding: '12px 28px', fontSize: 15, fontWeight: 700, cursor: busy ? 'default' : 'pointer',
         }}
       >
-        {busy ? 'Submitting\u2026' : 'Complete onboarding acknowledgement'}
+        {busy ? 'Submitting…' : 'Complete onboarding acknowledgement'}
       </button>
     </div>
   )

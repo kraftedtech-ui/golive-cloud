@@ -95,7 +95,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ tok
             }}
           >
             <span>{d.label || d.filename}</span>
-            <span style={{ color: '#0e7c86', fontWeight: 700, fontSize: 13 }}>Download \u2193</span>
+            <span style={{ color: '#0e7c86', fontWeight: 700, fontSize: 13 }}>Download ↓</span>
           </a>
         ))}
       </div>
@@ -103,7 +103,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ tok
       <div style={{ background: '#fff8ec', border: '1px solid #f0d9a8', borderRadius: 8, padding: '12px 16px', fontSize: 13, lineHeight: 1.6, color: '#5c4400', marginBottom: 20 }}>
         <strong>Pre-employment screening.</strong> GoLive conducts background verification through our screening
         partner, <strong>Background Check International (BCI)</strong>. You will receive correspondence directly from
-        BCI regarding identity, education, and employment-history checks \u2014 this is legitimate and expected; please
+        BCI regarding identity, education, and employment-history checks — this is legitimate and expected; please
         respond to them promptly so your start date is not delayed. As stated in your offer letter, employment remains
         conditional on satisfactory completion of these checks. Your data is shared with BCI strictly for this purpose,
         in line with the Nigeria Data Protection Act 2023.

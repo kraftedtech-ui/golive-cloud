@@ -28,7 +28,7 @@ export default function OfferSignForm({
     return (
       <div style={box}>
         <p style={{ background: '#eef8f0', border: '1px solid #b7e0c1', color: '#1a5c2a', padding: '12px 16px', borderRadius: 8, fontSize: 14 }}>
-          \u2713 This offer is fully executed. A copy of the signed letter has been emailed to you \u2014 please keep it for your records.
+          ✓ This offer is fully executed. A copy of the signed letter has been emailed to you — please keep it for your records.
         </p>
       </div>
     )
@@ -38,7 +38,7 @@ export default function OfferSignForm({
     return (
       <div style={box}>
         <p style={{ background: '#eef8f0', border: '1px solid #b7e0c1', color: '#1a5c2a', padding: '12px 16px', borderRadius: 8, fontSize: 14 }}>
-          \u2713 Thank you \u2014 your signature has been recorded. The Managing Director will now countersign, and you will receive the fully executed letter by email shortly.
+          ✓ Thank you — your signature has been recorded. The Managing Director will now countersign, and you will receive the fully executed letter by email shortly.
         </p>
       </div>
     )
@@ -64,7 +64,7 @@ export default function OfferSignForm({
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        setError(data.error || 'Signing failed \u2014 please try again or contact talent.acquisition@golivecompany.com')
+        setError(data.error || 'Signing failed — please try again or contact talent.acquisition@golivecompany.com')
         return
       }
       setDone(true)
@@ -114,7 +114,7 @@ export default function OfferSignForm({
           padding: '12px 28px', fontSize: 15, fontWeight: 700, cursor: busy ? 'default' : 'pointer',
         }}
       >
-        {busy ? 'Recording signature\u2026' : 'Sign & accept offer'}
+        {busy ? 'Recording signature…' : 'Sign & accept offer'}
       </button>
     </div>
   )
