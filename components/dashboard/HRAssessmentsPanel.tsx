@@ -17,7 +17,9 @@ type Application = {
   transcript?: QResult[]; notes?: string; shortlistEmailSentAt?: string; rejectionEmailSentAt?: string;
   offer?: { sentAt?: string; salary?: number; startDate?: string; candidateSignedAt?: string; candidateSignedName?: string; mdSignedAt?: string };
   employeeNumber?: string;
-  onboarding?: { docs?: { filename: string; label?: string }[]; sentAt?: string; acknowledgedAt?: string }; createdAt: string
+  onboarding?: { docs?: { filename: string; label?: string }[]; sentAt?: string; acknowledgedAt?: string };
+  screening?: { status?: string; clearedAt?: string };
+  provisionedUserId?: string; actualStartDate?: string; createdAt: string
 }
 
 const STATUS_FLOW = ['applied','assessed','shortlisted','interviewed','offered','onboarded','rejected']
@@ -209,6 +211,50 @@ export default function HRAssessmentsPanel() {
     } finally { setUpdatingStatus(null) }
   }
 
+  async function setScreening(ref: string, name: string, status: string) {
+    if (status === 'cleared' && !window.confirm(
+      `Mark ${name}'s Background Check International screening as CLEARED?\n\nThis unlocks portal account creation for them.`
+    )) { load(); return }
+    setUpdatingStatus(ref)
+    try {
+      const res = await fetch('/api/onboarding/screening', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref, status })
+      })
+      const data = await res.json().catch(() => ({} as Record<string, unknown>))
+      if (!res.ok) { alert('Screening update failed: ' + (data.error || res.status)); return }
+      load()
+    } finally { setUpdatingStatus(null) }
+  }
+
+  async function provisionAccount(ref: string, name: string) {
+    const workEmail = window.prompt(`Work email for ${name} (e.g. firstname.lastname@golivecompany.com):`, '')
+    if (workEmail === null) return
+    const startDate = window.prompt('Confirmed start date (YYYY-MM-DD):', '')
+    if (startDate === null) return
+    if (!window.confirm(
+      `Create the portal account for ${name}?\n\nEmail: ${workEmail}\nStart date: ${startDate}\n\nAccess level is set by their role. They will be emailed sign-in details.`
+    )) return
+    setUpdatingStatus(ref)
+    try {
+      const res = await fetch('/api/onboarding/provision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref, workEmail: workEmail.trim(), startDate: startDate.trim() })
+      })
+      const data = await res.json().catch(() => ({} as Record<string, unknown>))
+      if (!res.ok) { alert('Provisioning failed: ' + (data.error || res.status)); return }
+      const u = data.user as { role?: string; commissionEligible?: boolean } | undefined
+      alert(
+        'Portal account created.\n\nAccess: ' + (u?.role || '?') +
+        '\nCommission: ' + (u?.commissionEligible ? 'eligible' : 'not applicable') +
+        (data.emailSent ? '\n\nSign-in details emailed to them.' : '\n\nEMAIL FAILED — temporary password: ' + (data.tempPassword || 'unknown'))
+      )
+      load()
+    } finally { setUpdatingStatus(null) }
+  }
+
   async function download(filename: string) {
     setDownloading(filename)
     try {
@@ -381,6 +427,36 @@ export default function HRAssessmentsPanel() {
                                 : `Send pack (${app.onboarding?.docs?.length || 0})`}
                           </button>
                         </>
+                      )}
+                      {app.onboarding?.acknowledgedAt && !app.provisionedUserId && (
+                        <select
+                          value={app.screening?.status || 'pending'}
+                          disabled={updatingStatus === app.ref}
+                          onChange={e => setScreening(app.ref, app.name, e.target.value)}
+                          className={app.screening?.status === 'cleared'
+                            ? 'rounded-lg border border-green-300 bg-green-50 px-2 py-1 text-xs font-semibold text-green-800'
+                            : app.screening?.status === 'failed'
+                              ? 'rounded-lg border border-red-300 bg-red-50 px-2 py-1 text-xs font-semibold text-red-700'
+                              : 'rounded-lg border border-border bg-white px-2 py-1 text-xs text-foreground'}>
+                          <option value="pending">BCI: not started</option>
+                          <option value="in_progress">BCI: in progress</option>
+                          <option value="cleared">BCI: cleared</option>
+                          <option value="failed">BCI: failed</option>
+                        </select>
+                      )}
+                      {app.screening?.status === 'cleared' && !app.provisionedUserId && (
+                        <button onClick={() => provisionAccount(app.ref, app.name)}
+                          disabled={updatingStatus === app.ref}
+                          className="flex items-center gap-1 rounded-lg border border-teal-300 bg-teal-50 px-2 py-1 text-xs font-semibold text-teal-800 hover:bg-teal-100 transition-colors disabled:opacity-50">
+                          <User className="size-3.5" />
+                          Create portal account
+                        </button>
+                      )}
+                      {app.provisionedUserId && (
+                        <span className="flex items-center gap-1 rounded-lg border border-green-300 bg-green-50 px-2 py-1 text-xs font-semibold text-green-800">
+                          <CheckCircle className="size-3.5" />
+                          Account created{app.actualStartDate ? ' · starts ' + app.actualStartDate : ''}
+                        </span>
                       )}
                       <button onClick={() => setExpanded(expanded === app.ref ? null : app.ref)}
                         className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors">

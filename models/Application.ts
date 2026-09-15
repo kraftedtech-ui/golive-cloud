@@ -38,6 +38,15 @@ export interface IApplication extends Document {
     ip?: string
     bciConsentAt?: Date
   }
+  screening?: {
+    provider?: string
+    status?: 'pending' | 'in_progress' | 'cleared' | 'failed'
+    initiatedAt?: Date
+    clearedAt?: Date
+    notes?: string
+  }
+  provisionedUserId?: string
+  actualStartDate?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -80,6 +89,15 @@ const ApplicationSchema = new Schema<IApplication>({
     ip: String,
     bciConsentAt: Date,
   },
+  screening: {
+    provider: String,
+    status: { type: String, enum: ['pending', 'in_progress', 'cleared', 'failed'] },
+    initiatedAt: Date,
+    clearedAt: Date,
+    notes: String,
+  },
+  provisionedUserId: { type: String },
+  actualStartDate: { type: String },
 }, { timestamps: true })
 
 export default mongoose.models.Application ||

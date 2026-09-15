@@ -16,6 +16,8 @@ export interface IUser extends Document {
   probationDays?: number
   /** Set to confirm early, or to record a confirmation that ran late. */
   confirmedAt?: Date
+  /** False for non-commission roles (their signed terms carry none). */
+  commissionEligible?: boolean
   phone?: string
   emailNotifications: boolean
   profilePicture?: string
@@ -41,6 +43,7 @@ const UserSchema = new Schema<IUser>(
     startDate: Date,
     probationDays: { type: Number, default: 90 },
     confirmedAt: Date,
+    commissionEligible: { type: Boolean, default: true },
     phone: String,
     emailNotifications: { type: Boolean, default: true },
     profilePicture: String,
