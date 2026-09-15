@@ -48,7 +48,7 @@ export function sendOnboardingPackEmail(p: {
   <p style="text-align:center;margin:22px 0">
     <a href="${link}" style="background:#0e7c86;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:6px;font-weight:600;display:inline-block">Open your onboarding pack</a>
   </p>
-  <p>Please download each document, read it carefully, and complete the acknowledgement on the same page by <strong>${fmtDate(p.deadline)}</strong>. Bring any questions to your first-day induction \u2014 nothing here is a trick, but everything here matters.</p>
+  <p>Please download each document, read it carefully, and complete the acknowledgement on the same page by <strong>${fmtDate(p.deadline)}</strong>. Should you have any questions regarding these documents, please raise them at your first-day induction.</p>
   <p style="margin:14px 0;padding:12px 16px;background:#fff8ec;border:1px solid #f0d9a8;border-radius:8px">
     <strong>Pre-employment screening \u2014 please read.</strong> As part of onboarding, GoLive conducts background verification through our screening partner, <strong>Background Check International (BCI)</strong>. You will receive correspondence directly from BCI regarding identity, education, and employment-history checks \u2014 this is legitimate and expected, and we ask that you respond to them promptly so your start date is not delayed. As stated in your offer letter, employment remains conditional on satisfactory completion of these checks. Your data is shared with BCI strictly for this purpose, in line with the Nigeria Data Protection Act 2023 and our Privacy Policy.
   </p>
