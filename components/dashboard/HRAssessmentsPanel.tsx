@@ -273,6 +273,24 @@ export default function HRAssessmentsPanel() {
     } finally { setUpdatingStatus(null) }
   }
 
+  async function downloadExecutedPack(ref: string, name: string) {
+    setDownloading('x:' + ref)
+    try {
+      const res = await fetch(`/api/onboarding/executed?ref=${encodeURIComponent(ref)}`)
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({} as Record<string, unknown>))
+        alert('Executed pack failed: ' + (d.error || res.status)); return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${ref}_${name.replace(/[^a-z0-9]+/gi, '_')}_ExecutedPack.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } finally { setDownloading(null) }
+  }
+
   async function download(filename: string) {
     setDownloading(filename)
     try {
@@ -482,6 +500,14 @@ export default function HRAssessmentsPanel() {
                           className="flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition-colors disabled:opacity-50">
                           <CheckCircle className="size-3.5" />
                           Countersign pack
+                        </button>
+                      )}
+                      {app.onboarding?.mdAckAt && (
+                        <button onClick={() => downloadExecutedPack(app.ref, app.name)}
+                          disabled={downloading === 'x:' + app.ref}
+                          className="flex items-center gap-1 rounded-lg border border-green-300 bg-green-50 px-2 py-1 text-xs font-semibold text-green-800 hover:bg-green-100 transition-colors disabled:opacity-50">
+                          <Download className="size-3.5" />
+                          {downloading === 'x:' + app.ref ? '...' : 'Executed pack'}
                         </button>
                       )}
                       <button onClick={() => setExpanded(expanded === app.ref ? null : app.ref)}

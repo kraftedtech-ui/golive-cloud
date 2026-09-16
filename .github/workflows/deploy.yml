@@ -83,6 +83,7 @@ jobs:
           git show origin/main:lib/offerEmail.ts > lib/offerEmail.ts
           git show origin/main:lib/onboardingToken.ts > lib/onboardingToken.ts
           git show origin/main:lib/onboardingEmail.ts > lib/onboardingEmail.ts
+          git show origin/main:lib/executedPack.ts > lib/executedPack.ts
           git show origin/main:lib/hireProvisioning.ts > lib/hireProvisioning.ts
           git show origin/main:lib/careersConfig.ts > lib/careersConfig.ts
           git show origin/main:lib/proposalTemplate.ts > lib/proposalTemplate.ts
@@ -226,6 +227,9 @@ jobs:
           git show origin/main:app/api/onboarding/ack/route.ts > app/api/onboarding/ack/route.ts
           mkdir -p app/api/onboarding/md-ack
           git show origin/main:app/api/onboarding/md-ack/route.ts > app/api/onboarding/md-ack/route.ts
+          mkdir -p app/api/onboarding/executed public/fonts
+          git show origin/main:app/api/onboarding/executed/route.ts > app/api/onboarding/executed/route.ts
+          git cat-file blob origin/main:public/fonts/GreatVibes-Regular.ttf > public/fonts/GreatVibes-Regular.ttf
           mkdir -p app/api/onboarding/screening app/api/onboarding/provision
           git show origin/main:app/api/onboarding/screening/route.ts > app/api/onboarding/screening/route.ts
           git show origin/main:app/api/onboarding/provision/route.ts > app/api/onboarding/provision/route.ts
