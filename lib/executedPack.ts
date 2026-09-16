@@ -98,7 +98,7 @@ export async function buildExecutedPack(input: ExecutedPackInput): Promise<Buffe
 
   const scriptBytes = loadScriptFont()
   const script: PDFFont = scriptBytes
-    ? await out.embedFont(scriptBytes)
+    ? await out.embedFont(scriptBytes, { subset: false })
     : await out.embedFont(StandardFonts.TimesRomanItalic)
 
   // ---------- certificate ----------
