@@ -6,9 +6,13 @@ import { sendOnboardingAckNotice } from '@/lib/onboardingEmail'
 
 export const dynamic = 'force-dynamic'
 
-// Public, token-authenticated: hire acknowledges the pack + BCI consent.
+// Public, token-authenticated: the hire acknowledges each document separately,
+// consents to BCI screening, and signs with their typed legal name.
+//
+// Per-document timestamps are recorded so the audit trail reflects what was
+// read and when, rather than one blanket acceptance.
 export async function POST(req: NextRequest) {
-  let body: { token?: string; typedName?: string; bciConsent?: boolean } = {}
+  let body: { token?: string; typedName?: string; bciConsent?: boolean; documents?: string[] } = {}
   try { body = await req.json() } catch { /* fallthrough */ }
 
   const v = verifyOnboardingToken(String(body.token || ''))
@@ -31,21 +35,33 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This onboarding pack has already been acknowledged.' }, { status: 409 })
   }
 
+  const docs = app.onboarding.docs || []
+  const confirmed = new Set((body.documents || []).map(String))
+  if (docs.length && confirmed.size < docs.length) {
+    return NextResponse.json({ error: 'Please confirm every document before signing.' }, { status: 400 })
+  }
+
   const ip =
     (req.headers.get('cf-connecting-ip') ||
       (req.headers.get('x-forwarded-for') || '').split(',')[0] ||
       'unknown').trim()
 
-  app.onboarding.acknowledgedAt = new Date()
+  const now = new Date()
+  for (const d of docs) {
+    if (confirmed.has(d.filename)) d.acknowledgedAt = now
+  }
+  app.onboarding.docs = docs
+  app.onboarding.acknowledgedAt = now
   app.onboarding.acknowledgedName = typedName
+  app.onboarding.signatureName = typedName
   app.onboarding.ip = ip
-  app.onboarding.bciConsentAt = new Date()
+  app.onboarding.bciConsentAt = now
   app.markModified('onboarding')
   await app.save()
 
   sendOnboardingAckNotice({
     name: app.name, ref: app.ref, role: app.role, employeeNumber: app.employeeNumber,
-    ackName: typedName, ip, bci: true, docCount: (app.onboarding.docs || []).length,
+    ackName: typedName, ip, bci: true, docCount: docs.length,
   }).catch((e) => console.error('[onboarding] ack-notice failed:', e))
 
   return NextResponse.json({ ok: true })

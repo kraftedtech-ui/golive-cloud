@@ -46,8 +46,12 @@ export default async function OnboardingPage({ params }: { params: Promise<{ tok
     ref: string; name: string; role: string; employeeNumber?: string
     onboarding?: {
       sentAt?: Date
-      docs?: { filename: string; label?: string }[]
+      docs?: { filename: string; label?: string; acknowledgedAt?: Date }[]
       acknowledgedAt?: Date
+      signatureName?: string
+      acknowledgedName?: string
+      mdAckName?: string
+      mdAckAt?: Date
     }
   } | null
 
@@ -61,7 +65,12 @@ export default async function OnboardingPage({ params }: { params: Promise<{ tok
   }
 
   const firstName = (app.name || '').trim().split(/\s+/)[0]
-  const docs = app.onboarding.docs || []
+  const rawDocs = app.onboarding.docs || []
+  const docs = rawDocs.map((d) => ({
+    filename: d.filename,
+    label: d.label || d.filename,
+    acknowledgedAt: d.acknowledgedAt ? String(d.acknowledgedAt) : null,
+  }))
 
   return (
     <Shell>
@@ -79,7 +88,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ tok
         )}
       </p>
       <p style={{ color: '#4b5563', fontSize: 13, lineHeight: 1.6, margin: '0 0 18px' }}>
-        Download and read each document, then complete the acknowledgement at the bottom of this page.
+        Download and read each document, then confirm each one individually and sign at the bottom of this page.
       </p>
 
       <h2 style={{ color: '#2d3436', fontSize: 15, margin: '0 0 8px' }}>Your documents</h2>
@@ -94,7 +103,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ tok
               textDecoration: 'none', color: '#2d3436', fontSize: 14, background: '#fbfdfd',
             }}
           >
-            <span>{d.label || d.filename}</span>
+            <span>{d.label}</span>
             <span style={{ color: '#0e7c86', fontWeight: 700, fontSize: 13 }}>Download ↓</span>
           </a>
         ))}
@@ -103,7 +112,7 @@ export default async function OnboardingPage({ params }: { params: Promise<{ tok
       <div style={{ background: '#fff8ec', border: '1px solid #f0d9a8', borderRadius: 8, padding: '12px 16px', fontSize: 13, lineHeight: 1.6, color: '#5c4400', marginBottom: 20 }}>
         <strong>Pre-employment screening.</strong> GoLive conducts background verification through our screening
         partner, <strong>Background Check International (BCI)</strong>. You will receive correspondence directly from
-        BCI regarding identity, education, and employment-history checks — this is legitimate and expected; please
+        BCI regarding identity, education, and employment-history checks. This is legitimate and expected; please
         respond to them promptly so your start date is not delayed. As stated in your offer letter, employment remains
         conditional on satisfactory completion of these checks. Your data is shared with BCI strictly for this purpose,
         in line with the Nigeria Data Protection Act 2023.
@@ -112,8 +121,12 @@ export default async function OnboardingPage({ params }: { params: Promise<{ tok
       <OnboardAckForm
         token={token}
         candidateName={app.name}
-        docCount={docs.length}
+        docs={docs}
         alreadyAcknowledged={!!app.onboarding.acknowledgedAt}
+        signatureName={app.onboarding.signatureName || app.onboarding.acknowledgedName || null}
+        signedAt={app.onboarding.acknowledgedAt ? String(app.onboarding.acknowledgedAt) : null}
+        mdAckName={app.onboarding.mdAckName || null}
+        mdAckAt={app.onboarding.mdAckAt ? String(app.onboarding.mdAckAt) : null}
       />
     </Shell>
   )

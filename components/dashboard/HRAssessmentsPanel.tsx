@@ -17,7 +17,7 @@ type Application = {
   transcript?: QResult[]; notes?: string; shortlistEmailSentAt?: string; rejectionEmailSentAt?: string;
   offer?: { sentAt?: string; salary?: number; startDate?: string; candidateSignedAt?: string; candidateSignedName?: string; mdSignedAt?: string };
   employeeNumber?: string;
-  onboarding?: { docs?: { filename: string; label?: string }[]; sentAt?: string; acknowledgedAt?: string };
+  onboarding?: { docs?: { filename: string; label?: string }[]; sentAt?: string; acknowledgedAt?: string; mdAckAt?: string };
   screening?: { status?: string; clearedAt?: string };
   provisionedUserId?: string; actualStartDate?: string; createdAt: string
 }
@@ -255,6 +255,24 @@ export default function HRAssessmentsPanel() {
     } finally { setUpdatingStatus(null) }
   }
 
+  async function mdAckPack(ref: string, name: string) {
+    if (!window.confirm(
+      `Countersign ${name}'s onboarding pack?\n\nThis records your signature against the documents they have already signed.`
+    )) return
+    setUpdatingStatus(ref)
+    try {
+      const res = await fetch('/api/onboarding/md-ack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref })
+      })
+      const data = await res.json().catch(() => ({} as Record<string, unknown>))
+      if (!res.ok) { alert('Countersign failed: ' + (data.error || res.status)); return }
+      alert('Onboarding pack countersigned.')
+      load()
+    } finally { setUpdatingStatus(null) }
+  }
+
   async function download(filename: string) {
     setDownloading(filename)
     try {
@@ -457,6 +475,14 @@ export default function HRAssessmentsPanel() {
                           <CheckCircle className="size-3.5" />
                           Account created{app.actualStartDate ? ' · starts ' + app.actualStartDate : ''}
                         </span>
+                      )}
+                      {app.onboarding?.acknowledgedAt && !app.onboarding?.mdAckAt && (
+                        <button onClick={() => mdAckPack(app.ref, app.name)}
+                          disabled={updatingStatus === app.ref}
+                          className="flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition-colors disabled:opacity-50">
+                          <CheckCircle className="size-3.5" />
+                          Countersign pack
+                        </button>
                       )}
                       <button onClick={() => setExpanded(expanded === app.ref ? null : app.ref)}
                         className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors">

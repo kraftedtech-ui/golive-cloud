@@ -224,6 +224,8 @@ jobs:
           git show origin/main:app/api/onboarding/send/route.ts > app/api/onboarding/send/route.ts
           git show origin/main:app/api/onboarding/file/route.ts > app/api/onboarding/file/route.ts
           git show origin/main:app/api/onboarding/ack/route.ts > app/api/onboarding/ack/route.ts
+          mkdir -p app/api/onboarding/md-ack
+          git show origin/main:app/api/onboarding/md-ack/route.ts > app/api/onboarding/md-ack/route.ts
           mkdir -p app/api/onboarding/screening app/api/onboarding/provision
           git show origin/main:app/api/onboarding/screening/route.ts > app/api/onboarding/screening/route.ts
           git show origin/main:app/api/onboarding/provision/route.ts > app/api/onboarding/provision/route.ts

@@ -31,12 +31,15 @@ export interface IApplication extends Document {
   }
   employeeNumber?: string
   onboarding?: {
-    docs?: { filename: string; label?: string; uploadedAt?: Date }[]
+    docs?: { filename: string; label?: string; uploadedAt?: Date; acknowledgedAt?: Date }[]
     sentAt?: Date
     acknowledgedAt?: Date
     acknowledgedName?: string
     ip?: string
     bciConsentAt?: Date
+    signatureName?: string
+    mdAckName?: string
+    mdAckAt?: Date
   }
   screening?: {
     provider?: string
@@ -82,12 +85,15 @@ const ApplicationSchema = new Schema<IApplication>({
   },
   employeeNumber: { type: String },
   onboarding: {
-    docs: [{ filename: String, label: String, uploadedAt: Date, _id: false }],
+    docs: [{ filename: String, label: String, uploadedAt: Date, acknowledgedAt: Date, _id: false }],
     sentAt: Date,
     acknowledgedAt: Date,
     acknowledgedName: String,
     ip: String,
     bciConsentAt: Date,
+    signatureName: String,
+    mdAckName: String,
+    mdAckAt: Date,
   },
   screening: {
     provider: String,
