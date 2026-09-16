@@ -83,7 +83,15 @@ function signatureBlock(
   let size = 26
   while (size > 11 && script.widthOfTextAtSize(name, size) > width - 6) size -= 0.5
   page.drawText(caption.toUpperCase(), { x, y: y + 46, size: 7.5, font: label, color: MUTED })
-  page.drawText(name, { x, y: y + 14, size, font: script, color: INK })
+  // Drawn one character at a time. Laying out a whole string lets the fonts
+  // ligature table substitute pairs such as "em" and "en" for decorative
+  // glyphs outside the basic range, which corrupts both the rendered
+  // signature and the extractable text.
+  let cx = x
+  for (const ch of name) {
+    page.drawText(ch, { x: cx, y: y + 14, size, font: script, color: INK })
+    cx += script.widthOfTextAtSize(ch, size)
+  }
   page.drawLine({ start: { x, y: y + 8 }, end: { x: x + width, y: y + 8 }, thickness: 0.75, color: RULE })
   page.drawText(sub, { x, y: y - 4, size: 8, font: body, color: MUTED })
 }
