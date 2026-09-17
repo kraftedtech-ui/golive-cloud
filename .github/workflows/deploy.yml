@@ -251,6 +251,20 @@ jobs:
           git show "origin/main:app/api/employees/[id]/docs/route.ts" > "app/api/employees/[id]/docs/route.ts"
           git show origin/main:scripts/backfill-employees.js > scripts/backfill-employees.js
 
+          # Employee document issuance — per-document e-signature for staff
+          # (confirmation letters, targets documents, promotion letters).
+          git show origin/main:models/DocumentIssuance.ts > models/DocumentIssuance.ts
+          git show origin/main:lib/issuanceToken.ts > lib/issuanceToken.ts
+          git show origin/main:lib/issuanceEmail.ts > lib/issuanceEmail.ts
+          mkdir -p "app/api/employees/[id]/issue" app/api/issuance/ack app/api/issuance/file app/api/issuance/md-sign app/api/issuance/executed "app/issue/[token]" components/issuance
+          git show "origin/main:app/api/employees/[id]/issue/route.ts" > "app/api/employees/[id]/issue/route.ts"
+          git show origin/main:app/api/issuance/ack/route.ts > app/api/issuance/ack/route.ts
+          git show origin/main:app/api/issuance/file/route.ts > app/api/issuance/file/route.ts
+          git show origin/main:app/api/issuance/md-sign/route.ts > app/api/issuance/md-sign/route.ts
+          git show origin/main:app/api/issuance/executed/route.ts > app/api/issuance/executed/route.ts
+          git show "origin/main:app/issue/[token]/page.tsx" > "app/issue/[token]/page.tsx"
+          git show origin/main:components/issuance/IssueAckForm.tsx > components/issuance/IssueAckForm.tsx
+
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts
 

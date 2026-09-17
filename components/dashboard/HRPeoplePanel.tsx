@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import { RefreshCw, ChevronDown, ChevronUp, BadgeCheck, Clock, FileText,
          Download, Upload, User, Mail, Briefcase, Hash, CheckCircle,
-         AlertTriangle, ShieldCheck, GraduationCap } from "lucide-react"
+         AlertTriangle, ShieldCheck, GraduationCap, Send, PenLine, FileCheck2 } from "lucide-react"
 
 type EmpDoc = { filename: string; label?: string; uploadedAt?: string; executedExternally?: boolean }
 type Certification = {
@@ -16,6 +16,13 @@ type Employee = {
   legacyHire?: boolean; applicationRef?: string | null; portalUserId?: string
   startDate?: string; probationEndDate?: string; confirmedAt?: string; exitedAt?: string
   certification?: Certification; docs?: EmpDoc[]; notes?: string
+}
+type Issuance = {
+  _id: string; ref: string; kind: string; title: string; status: string
+  docs?: { filename: string; label?: string; acknowledgedAt?: string }[]
+  sentAt?: string; deadline?: string
+  signedAt?: string; signatureName?: string
+  mdSignedAt?: string; mdSignedName?: string
 }
 type Detail = {
   employee: Employee
@@ -73,6 +80,13 @@ export default function HRPeoplePanel() {
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
+  const [issuances, setIssuances] = useState<Issuance[]>([])
+  const [issueOpen, setIssueOpen] = useState(false)
+  const [issueTitle, setIssueTitle] = useState('')
+  const [issueKind, setIssueKind] = useState('confirmation')
+  const [issueMessage, setIssueMessage] = useState('')
+  const [issueFiles, setIssueFiles] = useState<File[]>([])
+  const [issueBusy, setIssueBusy] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -91,6 +105,9 @@ export default function HRPeoplePanel() {
     setDetail(null)
     setDetailLoading(true)
     setMsg(null)
+    setIssuances([])
+    setIssueOpen(false)
+    loadIssuances(id)
     try {
       const res = await fetch(`/api/employees/${id}`)
       const data = await res.json()
@@ -116,6 +133,58 @@ export default function HRPeoplePanel() {
         })
       }
     } finally { setDetailLoading(false) }
+  }
+
+  async function loadIssuances(id: string) {
+    try {
+      const res = await fetch(`/api/employees/${id}/issue`)
+      const data = await res.json()
+      setIssuances(data.issuances || [])
+    } catch { setIssuances([]) }
+  }
+
+  async function sendIssuance(id: string) {
+    if (!issueTitle.trim()) { setMsg('Give the issuance a title.'); return }
+    if (!issueFiles.length) { setMsg('Attach at least one document.'); return }
+    setIssueBusy(true)
+    setMsg(null)
+    try {
+      const fd = new FormData()
+      fd.append('title', issueTitle.trim())
+      fd.append('kind', issueKind)
+      if (issueMessage.trim()) fd.append('message', issueMessage.trim())
+      fd.append('deadlineDays', '14')
+      issueFiles.forEach(f => fd.append('file', f))
+      const res = await fetch(`/api/employees/${id}/issue`, { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok || !data.ok) {
+        setMsg(data.error
+          ? `Not sent: ${data.error}${data.ref ? ` (documents saved to the file as ${data.ref})` : ''}`
+          : 'Could not send the documents.')
+        return
+      }
+      setMsg(`Sent for signature (${data.ref}). The employee has a personal link valid for 14 days.`)
+      setIssueOpen(false)
+      setIssueTitle(''); setIssueMessage(''); setIssueFiles([])
+      await loadIssuances(id)
+      await openDetailRefresh(id)
+    } finally { setIssueBusy(false) }
+  }
+
+  async function countersign(id: string, ref: string, title: string) {
+    if (!window.confirm(`Countersign "${title}" for the Company?\n\nThis completes execution and makes the executed copy available to download.`)) return
+    setMsg(null)
+    try {
+      const res = await fetch('/api/issuance/md-sign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setMsg(data.error || 'Countersignature failed.'); return }
+      setMsg('Countersigned. Execution complete.')
+      await loadIssuances(id)
+    } catch { setMsg('Network error.') }
   }
 
   async function save(id: string, extra?: Record<string, unknown>) {
@@ -409,6 +478,105 @@ export default function HRPeoplePanel() {
                             {!(d.application?.onboarding?.docs?.length) && !(d.employee.docs?.length) && (
                               <p className="text-xs text-gray-400">No documents on file yet.</p>
                             )}
+                          </div>
+                        </div>
+
+                        {/* Documents for signature */}
+                        <div className="rounded-xl border border-border bg-gray-50/60 p-4">
+                          <div className="mb-3 flex items-center justify-between">
+                            <p className="flex items-center gap-1.5 text-xs font-semibold text-gray-700"><PenLine className="size-3.5" /> Documents for signature</p>
+                            <button onClick={() => setIssueOpen(v => !v)}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-white px-2.5 py-1.5 text-[11px] font-semibold text-gray-700 ring-1 ring-border hover:bg-gray-50">
+                              <Send className="size-3.5" /> {issueOpen ? 'Cancel' : 'Issue for signature'}
+                            </button>
+                          </div>
+
+                          {issueOpen && (
+                            <div className="mb-4 space-y-2.5 rounded-lg border border-border bg-white p-3">
+                              <div className="grid gap-2 sm:grid-cols-3">
+                                <div className="sm:col-span-2">
+                                  <p className={label}>Title (shown to the employee)</p>
+                                  <input className={field} value={issueTitle} placeholder="Confirmation of Employment"
+                                    onChange={ev => setIssueTitle(ev.target.value)} />
+                                </div>
+                                <div>
+                                  <p className={label}>Type</p>
+                                  <select className={field} value={issueKind} onChange={ev => setIssueKind(ev.target.value)}>
+                                    <option value="confirmation">Confirmation</option>
+                                    <option value="targets">Targets / playbook</option>
+                                    <option value="promotion">Promotion</option>
+                                    <option value="policy">Policy</option>
+                                    <option value="other">Other</option>
+                                  </select>
+                                </div>
+                              </div>
+                              <div>
+                                <p className={label}>Covering note (optional)</p>
+                                <textarea rows={2} className={field} value={issueMessage}
+                                  onChange={ev => setIssueMessage(ev.target.value)} />
+                              </div>
+                              <div>
+                                <p className={label}>Documents (PDF preferred; up to 6)</p>
+                                <input type="file" multiple accept=".pdf,.doc,.docx"
+                                  className="w-full text-xs"
+                                  onChange={ev => setIssueFiles(Array.from(ev.target.files || []))} />
+                                {issueFiles.length > 0 && (
+                                  <p className="mt-1 text-[11px] text-gray-500">
+                                    {issueFiles.length} selected: {issueFiles.map(f => f.name).join(', ')}
+                                  </p>
+                                )}
+                                <p className="mt-1 text-[11px] text-gray-500">
+                                  The employee confirms each document separately, then signs once. PDFs also merge into the executed copy; Word files are recorded but held separately.
+                                </p>
+                              </div>
+                              <button onClick={() => sendIssuance(e._id)} disabled={issueBusy}
+                                className="w-full rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50">
+                                {issueBusy ? 'Sending\u2026' : 'Send for signature'}
+                              </button>
+                            </div>
+                          )}
+
+                          <div className="space-y-1.5">
+                            {issuances.length === 0 ? (
+                              <p className="text-xs text-gray-400">Nothing issued for signature yet.</p>
+                            ) : issuances.map(iss => (
+                              <div key={iss._id} className="rounded-lg bg-white px-3 py-2 ring-1 ring-border">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <p className="truncate text-xs font-medium text-gray-800">{iss.title}</p>
+                                    <p className="text-[10px] text-gray-400">
+                                      {iss.ref} · {(iss.docs || []).length} document{(iss.docs || []).length === 1 ? '' : 's'} · sent {fmt(iss.sentAt)}
+                                    </p>
+                                  </div>
+                                  <div className="flex shrink-0 items-center gap-1.5">
+                                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${
+                                      iss.status === 'executed' ? 'bg-green-50 text-green-700 ring-green-200'
+                                      : iss.status === 'signed' ? 'bg-amber-50 text-amber-700 ring-amber-200'
+                                      : 'bg-blue-50 text-blue-700 ring-blue-200'}`}>
+                                      {iss.status === 'executed' ? 'Executed' : iss.status === 'signed' ? 'Awaiting countersignature' : 'Awaiting employee'}
+                                    </span>
+                                    {iss.signedAt && !iss.mdSignedAt && (
+                                      <button onClick={() => countersign(e._id, iss.ref, iss.title)}
+                                        className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-2 py-1 text-[10px] font-semibold text-white hover:bg-green-700">
+                                        <PenLine className="size-3" /> Countersign
+                                      </button>
+                                    )}
+                                    {iss.mdSignedAt && (
+                                      <a href={`/api/issuance/executed?ref=${encodeURIComponent(iss.ref)}`}
+                                        className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-200">
+                                        <FileCheck2 className="size-3" /> Executed copy
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                                {(iss.signedAt || iss.mdSignedAt) && (
+                                  <p className="mt-1 text-[10px] text-gray-500">
+                                    {iss.signedAt ? `Signed by ${iss.signatureName} on ${fmt(iss.signedAt)}` : ''}
+                                    {iss.mdSignedAt ? ` \u00B7 countersigned by ${iss.mdSignedName} on ${fmt(iss.mdSignedAt)}` : ''}
+                                  </p>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         </div>
 
