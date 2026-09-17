@@ -7,7 +7,7 @@ import {
   Users, ShieldCheck, LayoutDashboard, LogOut, BadgeCheck,
   BookOpen, Award, GraduationCap, ExternalLink, ChevronDown,
   DollarSign, Bell, Settings, Tags, AlertTriangle, ClipboardList,
-  type LucideIcon, Cloud, ClipboardCheck,
+  type LucideIcon, Cloud, ClipboardCheck, Contact,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -49,6 +49,7 @@ const sections: NavSection[] = [
       { label: "Setup Fee Catalog", icon: Tags, key: "setup-fees", adminOnly: true },
       { label: "Team & Access", icon: ShieldCheck, key: "team", adminOnly: true },
       { label: "Candidate Assessments", icon: ClipboardCheck, key: "hr-assessments", adminOnly: true },
+      { label: "People (HR)", icon: Contact, key: "hr-people", adminOnly: true },
       { label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
     ],
   },

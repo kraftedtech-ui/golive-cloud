@@ -238,6 +238,17 @@ jobs:
           mkdir -p app/careers
           git show origin/main:app/careers/page.tsx > app/careers/page.tsx
 
+          # HR People layer — employee records, the terminal state of the
+          # candidate pipeline (models/Employee, conversion at countersignature,
+          # People panel, backfill script for legacy hires).
+          git show origin/main:models/Employee.ts > models/Employee.ts
+          git show origin/main:lib/employees.ts > lib/employees.ts
+          mkdir -p app/api/employees "app/api/employees/[id]" "app/api/employees/[id]/docs"
+          git show origin/main:app/api/employees/route.ts > app/api/employees/route.ts
+          git show "origin/main:app/api/employees/[id]/route.ts" > "app/api/employees/[id]/route.ts"
+          git show "origin/main:app/api/employees/[id]/docs/route.ts" > "app/api/employees/[id]/docs/route.ts"
+          git show origin/main:scripts/backfill-employees.js > scripts/backfill-employees.js
+
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts
 
@@ -316,6 +327,7 @@ jobs:
           git show origin/main:components/dashboard/CurrencyOverviewWidget.tsx > components/dashboard/CurrencyOverviewWidget.tsx
           git show origin/main:components/dashboard/SessionExpiryWarning.tsx > components/dashboard/SessionExpiryWarning.tsx
           git show origin/main:components/dashboard/HRAssessmentsPanel.tsx > components/dashboard/HRAssessmentsPanel.tsx
+          git show origin/main:components/dashboard/HRPeoplePanel.tsx > components/dashboard/HRPeoplePanel.tsx
           mkdir -p components/ui
           git show origin/main:components/ui/card.tsx > components/ui/card.tsx
           git show origin/main:components/ui/button.tsx > components/ui/button.tsx

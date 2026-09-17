@@ -25,6 +25,7 @@ import SetupFeeCatalogAdmin from '@/components/dashboard/SetupFeeCatalogAdmin'
 import CurrencyOverviewWidget from '@/components/dashboard/CurrencyOverviewWidget'
 import SessionExpiryWarning from '@/components/dashboard/SessionExpiryWarning'
 import HRAssessmentsPanel from '@/components/dashboard/HRAssessmentsPanel'
+import HRPeoplePanel from '@/components/dashboard/HRPeoplePanel'
 import CatalogLinePicker, { type CatalogLine, lineAnnualUSD, unitUSD, costUSD, periodsPerYearFor } from '@/components/dashboard/CatalogLinePicker'
 import { deriveCommissionPeriod } from '@/lib/commissionPeriod'
 
@@ -442,6 +443,10 @@ export default function PortalPage() {
 
           {page === 'hr-assessments' && isAdmin && (
             <HRAssessmentsPanel />
+          )}
+
+          {page === 'hr-people' && isAdmin && (
+            <HRPeoplePanel />
           )}
 
           {page === 'pricing' && isAdmin && (

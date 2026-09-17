@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/apiAuth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import { User } from '@/models/User'
+import Employee from '@/models/Employee'
 import { accessForRole } from '@/lib/hireProvisioning'
 import { Resend } from 'resend'
 import crypto from 'crypto'
@@ -74,6 +75,25 @@ export async function POST(req: NextRequest) {
   app.actualStartDate = startDate
   app.status = 'onboarded'
   await app.save()
+
+  // Keep the People (HR) layer in step: link the portal account and set the
+  // real start date + 90-day probation window on the employee record.
+  try {
+    const start = new Date(startDate)
+    await Employee.updateOne(
+      { applicationRef: ref },
+      {
+        $set: {
+          portalUserId: String(user._id),
+          workEmail,
+          startDate: start,
+          probationEndDate: new Date(start.getTime() + 90 * 864e5),
+        },
+      }
+    )
+  } catch (e) {
+    console.error('[employee] provisioning link failed:', e)
+  }
 
   let emailSent = true
   let emailError: string | undefined
