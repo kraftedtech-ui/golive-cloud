@@ -37,8 +37,11 @@ const STATUS_COLORS: Record<string, string> = {
   exited:    'bg-gray-100 text-gray-600 border-gray-300',
 }
 
+// Dates are stored as UTC midnight, so they MUST be formatted in UTC.
+// Rendering them in a timezone behind UTC rolls every date back a day, which
+// on a probation-confirmation or voucher-expiry date is a real error.
 const fmt = (d?: string) =>
-  d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '\u2014'
+  d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) : '\u2014'
 const isoDay = (d?: string) => (d ? new Date(d).toISOString().slice(0, 10) : '')
 const daysUntil = (d?: string) =>
   d ? Math.ceil((new Date(d).getTime() - Date.now()) / 864e5) : null
