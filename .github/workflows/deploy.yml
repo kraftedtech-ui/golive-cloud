@@ -51,6 +51,8 @@ jobs:
           git show origin/main:app/discovery/page.tsx > app/discovery/page.tsx
           git show origin/main:app/portal/login/page.tsx > app/portal/login/page.tsx
           git show origin/main:app/portal/page.tsx > app/portal/page.tsx
+          mkdir -p app/portal/people
+          git show origin/main:app/portal/people/page.tsx > app/portal/people/page.tsx
           mkdir -p app/migrate
           git show origin/main:app/migrate/page.tsx > app/migrate/page.tsx
           git show origin/main:app/migrate/MigrateClient.tsx > app/migrate/MigrateClient.tsx

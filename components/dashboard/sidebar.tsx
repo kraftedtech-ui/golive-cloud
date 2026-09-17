@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-type NavItem = { label: string; icon: LucideIcon; key: string; adminOnly?: boolean }
+type NavItem = { label: string; icon: LucideIcon; key: string; adminOnly?: boolean; href?: string }
 type NavSection = { heading: string; items: NavItem[] }
 
 const sections: NavSection[] = [
@@ -49,7 +49,7 @@ const sections: NavSection[] = [
       { label: "Setup Fee Catalog", icon: Tags, key: "setup-fees", adminOnly: true },
       { label: "Team & Access", icon: ShieldCheck, key: "team", adminOnly: true },
       { label: "Candidate Assessments", icon: ClipboardCheck, key: "hr-assessments", adminOnly: true },
-      { label: "People (HR)", icon: Users, key: "hr-people", adminOnly: true },
+      { label: "People (HR)", icon: Users, key: "hr-people", adminOnly: true, href: "/portal/people" },
       { label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
     ],
   },
@@ -120,6 +120,19 @@ export function Sidebar({ active, onNavigate }: { active: string; onNavigate: (k
             <ul className="space-y-1">
               {section.items.filter((item) => !item.adminOnly || role === "admin").map((item) => {
                 const isActive = active === item.key
+                if (item.href) {
+                  return (
+                    <li key={item.key}>
+                      <a
+                        href={item.href}
+                        className="relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/90 transition-all hover:bg-sidebar-accent/50 hover:text-white"
+                      >
+                        <item.icon className="size-4 shrink-0 text-sidebar-foreground/70" />
+                        <span className="truncate">{item.label}</span>
+                      </a>
+                    </li>
+                  )
+                }
                 return (
                   <li key={item.key}>
                     <button
