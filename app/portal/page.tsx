@@ -25,7 +25,6 @@ import SetupFeeCatalogAdmin from '@/components/dashboard/SetupFeeCatalogAdmin'
 import CurrencyOverviewWidget from '@/components/dashboard/CurrencyOverviewWidget'
 import SessionExpiryWarning from '@/components/dashboard/SessionExpiryWarning'
 import HRAssessmentsPanel from '@/components/dashboard/HRAssessmentsPanel'
-import HRPeoplePanel from '@/components/dashboard/HRPeoplePanel'
 import CatalogLinePicker, { type CatalogLine, lineAnnualUSD, unitUSD, costUSD, periodsPerYearFor } from '@/components/dashboard/CatalogLinePicker'
 import { deriveCommissionPeriod } from '@/lib/commissionPeriod'
 
@@ -66,6 +65,26 @@ export default function PortalPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [page, setPage] = useState('dashboard')
+
+  // Hash routing: every panel gets a direct URL (/portal#hr-people), so a
+  // panel is reachable without the sidebar and links are shareable.
+  useEffect(() => {
+    const applyHash = () => {
+      const h = window.location.hash.replace(/^#/, '')
+      if (h) setPage(h)
+    }
+    applyHash()
+    window.addEventListener('hashchange', applyHash)
+    return () => window.removeEventListener('hashchange', applyHash)
+  }, [])
+
+  const navigate = useCallback((key: string) => {
+    setPage(key)
+    if (typeof window !== 'undefined' && window.location.hash !== '#' + key) {
+      window.history.replaceState(null, '', '#' + key)
+    }
+  }, [])
+
   const [leads, setLeads] = useState<Lead[]>([])
   const [customers, setCustomers] = useState<Customer[]>([])
   const [transfers, setTransfers] = useState<Transfer[]>([])
@@ -186,9 +205,9 @@ export default function PortalPage() {
   return (
     <div data-theme="portal" className="min-h-screen bg-background">
       <SessionExpiryWarning />
-      <Sidebar active={page} onNavigate={setPage} />
+      <Sidebar active={page} onNavigate={navigate} />
       <div className="lg:pl-64">
-        <Topbar page={page} onNavigate={setPage} onNewLead={() => setShowNewLead(true)}
+        <Topbar page={page} onNavigate={navigate} onNewLead={() => setShowNewLead(true)}
           leads={leads} customers={customers} transfers={transfers} onSelectResult={handleSearchSelect} />
         <main className="mx-auto max-w-[1600px] space-y-6 px-5 py-6 md:px-8">
 
@@ -443,10 +462,6 @@ export default function PortalPage() {
 
           {page === 'hr-assessments' && isAdmin && (
             <HRAssessmentsPanel />
-          )}
-
-          {page === 'hr-people' && isAdmin && (
-            <HRPeoplePanel />
           )}
 
           {page === 'pricing' && isAdmin && (
