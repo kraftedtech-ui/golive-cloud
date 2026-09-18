@@ -265,8 +265,22 @@ export default function HRAssessmentsPanel() {
   // Re-sending is always deliberate: it never happens as a side effect of a
   // status change.
   async function resendScreeningLink(ref: string, name: string, link?: string) {
-    if (!link) return
-    if (!window.confirm(`Re-send the BCI screening link to ${name}?\n\n${link}`)) return
+    // Also the capture path: a candidate can already be at in_progress with no
+    // link stored (status set before the link existed, or set by hand), so ask
+    // for one rather than doing nothing.
+    let useLink = link || ''
+    if (!useLink) {
+      const entered = window.prompt(
+        `Background Check International link for ${name}\n\nPaste the candidate-facing BCI URL.`,
+        'https://'
+      )
+      if (entered === null) return
+      useLink = entered.trim()
+      if (!useLink || useLink === 'https://') return
+      if (!/^https:\/\//i.test(useLink)) { alert('The link must start with https://'); return }
+    }
+    if (!window.confirm(`Email the BCI screening link to ${name}?\n\n${useLink}`)) return
+    link = useLink
     setUpdatingStatus(ref)
     try {
       const res = await fetch('/api/onboarding/screening', {
@@ -533,14 +547,16 @@ export default function HRAssessmentsPanel() {
                           <option value="failed">BCI: failed</option>
                         </select>
                       )}
-                      {app.screening?.status === 'in_progress' && app.screening?.link && (
+                      {app.screening?.status === 'in_progress' && (
                         <button onClick={() => resendScreeningLink(app.ref, app.name, app.screening?.link)}
                           disabled={updatingStatus === app.ref}
                           title={app.screening?.linkSentAt
                             ? 'Link sent ' + new Date(app.screening.linkSentAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                            : 'Link saved but not yet emailed'}
+                            : app.screening?.link
+                              ? 'Link saved but not yet emailed'
+                              : 'No link captured yet'}
                           className="flex items-center gap-1 rounded-lg border border-border bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50">
-                          {app.screening?.linkSentAt ? 'Re-send BCI link' : 'Send BCI link'}
+                          {app.screening?.linkSentAt ? 'Re-send BCI link' : app.screening?.link ? 'Send BCI link' : 'Add BCI link'}
                         </button>
                       )}
                       {app.screening?.status === 'cleared' && !app.provisionedUserId && (
