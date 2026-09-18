@@ -2,7 +2,8 @@
 import { useEffect, useState } from "react"
 import { RefreshCw, ChevronDown, ChevronUp, BadgeCheck, Clock, FileText,
          Download, Upload, User, Mail, Briefcase, Hash, CheckCircle,
-         AlertTriangle, ShieldCheck, GraduationCap, Send, PenLine, FileCheck2 } from "lucide-react"
+         AlertTriangle, ShieldCheck, GraduationCap, Send, PenLine, FileCheck2,
+         BellRing } from "lucide-react"
 
 type EmpDoc = { filename: string; label?: string; uploadedAt?: string; executedExternally?: boolean }
 type Certification = {
@@ -16,6 +17,11 @@ type Employee = {
   legacyHire?: boolean; applicationRef?: string | null; portalUserId?: string
   startDate?: string; probationEndDate?: string; confirmedAt?: string; exitedAt?: string
   certification?: Certification; docs?: EmpDoc[]; notes?: string
+}
+type Reminder = {
+  key: string; severity: 'overdue' | 'urgent' | 'soon'
+  employeeName: string; employeeNumber?: string
+  title: string; detail: string; days?: number
 }
 type Issuance = {
   _id: string; ref: string; kind: string; title: string; status: string
@@ -87,6 +93,7 @@ export default function HRPeoplePanel() {
   const [issueMessage, setIssueMessage] = useState('')
   const [issueFiles, setIssueFiles] = useState<File[]>([])
   const [issueBusy, setIssueBusy] = useState(false)
+  const [reminders, setReminders] = useState<Reminder[]>([])
 
   async function load() {
     setLoading(true)
@@ -96,6 +103,11 @@ export default function HRPeoplePanel() {
       setEmployees(data.employees || [])
     } catch { setEmployees([]) }
     finally { setLoading(false) }
+    try {
+      const r = await fetch('/api/hr/reminders')
+      const d = await r.json()
+      setReminders(d.reminders || [])
+    } catch { setReminders([]) }
   }
   useEffect(() => { load() }, [])
 
@@ -267,6 +279,34 @@ export default function HRPeoplePanel() {
           <RefreshCw className={`size-4 ${loading ? 'animate-spin' : ''}`} /> Refresh
         </button>
       </div>
+
+      {reminders.length > 0 && (
+        <div className="rounded-2xl border border-border bg-white p-4 shadow-sm">
+          <p className="mb-2.5 flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+            <BellRing className="size-3.5" /> Needs attention
+          </p>
+          <div className="space-y-1.5">
+            {reminders.map(r => {
+              const tone = r.severity === 'overdue'
+                ? 'bg-red-50 text-red-700 ring-red-200'
+                : r.severity === 'urgent'
+                ? 'bg-amber-50 text-amber-700 ring-amber-200'
+                : 'bg-blue-50 text-blue-700 ring-blue-200'
+              return (
+                <div key={r.key} className="flex items-start gap-2.5 rounded-lg bg-gray-50/70 px-3 py-2">
+                  <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ring-1 ${tone}`}>
+                    {r.severity === 'overdue' ? 'Overdue' : r.severity === 'urgent' ? 'Urgent' : 'Soon'}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-gray-800">{r.title}</p>
+                    <p className="text-[11px] leading-relaxed text-gray-500">{r.detail}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="rounded-2xl border border-border bg-white p-8 text-center text-sm text-gray-500 shadow-sm">Loading…</div>

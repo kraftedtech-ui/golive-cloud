@@ -265,6 +265,14 @@ jobs:
           git show "origin/main:app/issue/[token]/page.tsx" > "app/issue/[token]/page.tsx"
           git show origin/main:components/issuance/IssueAckForm.tsx > components/issuance/IssueAckForm.tsx
 
+          # HR lifecycle reminders — probation, certification, quarter review,
+          # unsigned documents. Panel banner + cron-authenticated sweep.
+          git show origin/main:lib/hrReminders.ts > lib/hrReminders.ts
+          git show origin/main:lib/hrReminderEmail.ts > lib/hrReminderEmail.ts
+          mkdir -p app/api/hr/reminders
+          git show origin/main:app/api/hr/reminders/route.ts > app/api/hr/reminders/route.ts
+          git show origin/main:scripts/hr-reminders.sh > scripts/hr-reminders.sh
+
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts
 
