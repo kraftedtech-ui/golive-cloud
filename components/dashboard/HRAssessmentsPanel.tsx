@@ -18,7 +18,7 @@ type Application = {
   offer?: { sentAt?: string; salary?: number; startDate?: string; candidateSignedAt?: string; candidateSignedName?: string; mdSignedAt?: string };
   employeeNumber?: string;
   onboarding?: { docs?: { filename: string; label?: string }[]; sentAt?: string; acknowledgedAt?: string; mdAckAt?: string };
-  screening?: { status?: string; clearedAt?: string };
+  screening?: { status?: string; clearedAt?: string; link?: string; linkSentAt?: string };
   provisionedUserId?: string; actualStartDate?: string; createdAt: string
 }
 
@@ -68,7 +68,7 @@ export default function HRAssessmentsPanel() {
     if (status === 'shortlisted' && app) {
       if (!app.shortlistEmailSentAt) {
         if (!window.confirm(
-          `Move ${app.name} to Shortlisted?\n\nThis will automatically email the interview invitation for "${app.role}" — salary range and booking link included — to ${app.email}.`
+          `Move ${app.name} to Shortlisted?\n\nThis will automatically email the interview invitation for "${app.role}", including the salary range and booking link, to ${app.email}.`
         )) { load(); return }
       } else {
         if (!window.confirm(
@@ -94,7 +94,7 @@ export default function HRAssessmentsPanel() {
       const daysStr = window.prompt('Acceptance deadline in days (1-21):', '5')
       if (daysStr === null) { load(); return }
       if (!salary || salary < 10000 || !/^\d{4}-\d{2}-\d{2}$/.test(startDate.trim())) {
-        alert('Invalid salary or start date — nothing was sent. Try again.')
+        alert('Invalid salary or start date. Nothing was sent, please try again.')
         load(); return
       }
       offerTerms = { salary, startDate: startDate.trim(), deadlineDays: parseInt(daysStr, 10) || 5 }
@@ -154,7 +154,7 @@ export default function HRAssessmentsPanel() {
       })
       const data = await res.json().catch(() => ({} as Record<string, unknown>))
       if (!res.ok) { alert('Countersign failed: ' + (data.error || res.status)); return }
-      alert('Offer fully executed. ' + (data.emailSent ? 'The candidate has been emailed their signed copy.' : 'NOTE: the notification email failed — ' + (data.emailError || 'unknown error')))
+      alert('Offer fully executed. ' + (data.emailSent ? 'The candidate has been emailed their signed copy.' : 'NOTE: the notification email failed: ' + (data.emailError || 'unknown error')))
       load()
     } finally { setUpdatingStatus(null) }
   }
@@ -211,19 +211,72 @@ export default function HRAssessmentsPanel() {
     } finally { setUpdatingStatus(null) }
   }
 
-  async function setScreening(ref: string, name: string, status: string) {
+  async function setScreening(ref: string, name: string, status: string, existingLink?: string) {
     if (status === 'cleared' && !window.confirm(
       `Mark ${name}'s Background Check International screening as CLEARED?\n\nThis unlocks portal account creation for them.`
     )) { load(); return }
+
+    // Moving to "in progress" is the moment the candidate needs their BCI
+    // link, so ask for it here rather than leaving it as a separate step
+    // someone has to remember.
+    let link = ''
+    let note = ''
+    let sendLink = false
+    if (status === 'in_progress') {
+      const entered = window.prompt(
+        `Background Check International link for ${name}\n\nPaste the candidate-facing BCI URL. Leave blank to set the status without emailing them.`,
+        existingLink || 'https://'
+      )
+      if (entered === null) { load(); return }
+      link = entered.trim()
+      if (link && link !== 'https://') {
+        if (!/^https:\/\//i.test(link)) { alert('The link must start with https://'); load(); return }
+        const extra = window.prompt(
+          `Optional line to add to the email (leave blank for none):`, ''
+        )
+        if (extra === null) { load(); return }
+        note = extra.trim()
+        sendLink = window.confirm(
+          `Email this link to ${name} now?\n\n${link}\n\nThe message explains that BCI may also contact them directly and that engagement remains conditional on satisfactory checks.`
+        )
+      } else {
+        link = ''
+      }
+    }
+
     setUpdatingStatus(ref)
     try {
       const res = await fetch('/api/onboarding/screening', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ref, status })
+        body: JSON.stringify({ ref, status, link: link || undefined, note: note || undefined, sendLink })
       })
       const data = await res.json().catch(() => ({} as Record<string, unknown>))
       if (!res.ok) { alert('Screening update failed: ' + (data.error || res.status)); return }
+      if (sendLink) {
+        alert(data.emailSent
+          ? `Screening link emailed to ${name}.`
+          : `Status saved, but the email did NOT send: ${data.emailError || 'unknown error'}`)
+      }
+      load()
+    } finally { setUpdatingStatus(null) }
+  }
+
+  // Re-sending is always deliberate: it never happens as a side effect of a
+  // status change.
+  async function resendScreeningLink(ref: string, name: string, link?: string) {
+    if (!link) return
+    if (!window.confirm(`Re-send the BCI screening link to ${name}?\n\n${link}`)) return
+    setUpdatingStatus(ref)
+    try {
+      const res = await fetch('/api/onboarding/screening', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref, status: 'in_progress', link, sendLink: true })
+      })
+      const data = await res.json().catch(() => ({} as Record<string, unknown>))
+      if (!res.ok) { alert('Re-send failed: ' + (data.error || res.status)); return }
+      alert(data.emailSent ? `Link re-sent to ${name}.` : `Did NOT send: ${data.emailError || 'unknown error'}`)
       load()
     } finally { setUpdatingStatus(null) }
   }
@@ -249,7 +302,7 @@ export default function HRAssessmentsPanel() {
       alert(
         'Portal account created.\n\nAccess: ' + (u?.role || '?') +
         '\nCommission: ' + (u?.commissionEligible ? 'eligible' : 'not applicable') +
-        (data.emailSent ? '\n\nSign-in details emailed to them.' : '\n\nEMAIL FAILED — temporary password: ' + (data.tempPassword || 'unknown'))
+        (data.emailSent ? '\n\nSign-in details emailed to them.' : '\n\nEMAIL FAILED. Temporary password: ' + (data.tempPassword || 'unknown'))
       )
       load()
     } finally { setUpdatingStatus(null) }
@@ -362,7 +415,7 @@ export default function HRAssessmentsPanel() {
               <div className="px-5 py-4 hover:bg-secondary/10 transition-colors">
                 <div className="flex items-start gap-4">
 
-                  {/* Left — candidate info */}
+                  {/* Left: candidate info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-mono text-xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded">
@@ -395,7 +448,7 @@ export default function HRAssessmentsPanel() {
                     )}
                   </div>
 
-                  {/* Right — actions */}
+                  {/* Right: actions */}
                   <div className="flex flex-col gap-2 items-end shrink-0">
                     {/* Status update */}
                     <select
@@ -468,7 +521,7 @@ export default function HRAssessmentsPanel() {
                         <select
                           value={app.screening?.status || 'pending'}
                           disabled={updatingStatus === app.ref}
-                          onChange={e => setScreening(app.ref, app.name, e.target.value)}
+                          onChange={e => setScreening(app.ref, app.name, e.target.value, app.screening?.link)}
                           className={app.screening?.status === 'cleared'
                             ? 'rounded-lg border border-green-300 bg-green-50 px-2 py-1 text-xs font-semibold text-green-800'
                             : app.screening?.status === 'failed'
@@ -479,6 +532,16 @@ export default function HRAssessmentsPanel() {
                           <option value="cleared">BCI: cleared</option>
                           <option value="failed">BCI: failed</option>
                         </select>
+                      )}
+                      {app.screening?.status === 'in_progress' && app.screening?.link && (
+                        <button onClick={() => resendScreeningLink(app.ref, app.name, app.screening?.link)}
+                          disabled={updatingStatus === app.ref}
+                          title={app.screening?.linkSentAt
+                            ? 'Link sent ' + new Date(app.screening.linkSentAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                            : 'Link saved but not yet emailed'}
+                          className="flex items-center gap-1 rounded-lg border border-border bg-white px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50">
+                          {app.screening?.linkSentAt ? 'Re-send BCI link' : 'Send BCI link'}
+                        </button>
                       )}
                       {app.screening?.status === 'cleared' && !app.provisionedUserId && (
                         <button onClick={() => provisionAccount(app.ref, app.name)}
@@ -532,7 +595,7 @@ export default function HRAssessmentsPanel() {
                         value={notes[app.ref] || ''}
                         onChange={e => setNotes(prev => ({...prev, [app.ref]: e.target.value}))}
                         onBlur={() => saveNotes(app.ref)}
-                        placeholder="Add notes about this candidate — interview observations, decisions, follow-ups..."
+                        placeholder="Add notes about this candidate: interview observations, decisions, follow-ups..."
                         className="flex-1 rounded-lg border border-border px-3 py-2 text-xs text-foreground bg-white resize-none min-h-[60px]"
                       />
                     </div>
@@ -587,7 +650,7 @@ export default function HRAssessmentsPanel() {
                       </div>
                     </div>
                   ) : app.status !== 'applied' ? (
-                    <p className="text-xs text-muted-foreground italic">No transcript — submitted before transcript recording was enabled.</p>
+                    <p className="text-xs text-muted-foreground italic">No transcript. Submitted before transcript recording was enabled.</p>
                   ) : null}
                 </div>
               )}

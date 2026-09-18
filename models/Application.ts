@@ -47,6 +47,9 @@ export interface IApplication extends Document {
     initiatedAt?: Date
     clearedAt?: Date
     notes?: string
+    /** The candidate-facing BCI portal link, and when it was emailed to them. */
+    link?: string
+    linkSentAt?: Date
   }
   provisionedUserId?: string
   actualStartDate?: string
@@ -101,6 +104,8 @@ const ApplicationSchema = new Schema<IApplication>({
     initiatedAt: Date,
     clearedAt: Date,
     notes: String,
+    link: String,
+    linkSentAt: Date,
   },
   provisionedUserId: { type: String },
   actualStartDate: { type: String },

@@ -87,6 +87,7 @@ jobs:
           git show origin/main:lib/onboardingEmail.ts > lib/onboardingEmail.ts
           git show origin/main:lib/executedPack.ts > lib/executedPack.ts
           git show origin/main:lib/hireProvisioning.ts > lib/hireProvisioning.ts
+          git show origin/main:lib/screeningEmail.ts > lib/screeningEmail.ts
           git show origin/main:lib/careersConfig.ts > lib/careersConfig.ts
           git show origin/main:lib/proposalTemplate.ts > lib/proposalTemplate.ts
           git show origin/main:lib/renderPdf.ts > lib/renderPdf.ts
