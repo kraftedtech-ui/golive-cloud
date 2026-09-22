@@ -39,7 +39,7 @@ function renderPhase(){
 function renderCodeGate(){return `
 <div style="text-align:center;padding:1rem 0 1.5rem">
   <h2 class="page-title">GoLive Careers</h2>
-  <p class="page-sub" style="max-width:400px;margin:0 auto 1.5rem">This assessment is by invitation only. Enter the access code sent to you by the GoLive LinkedIn page to continue.</p>
+  <p class="page-sub" style="max-width:400px;margin:0 auto 1.5rem">Enter the access code from your application email to continue.</p>
 </div>
 <div class="card">
   <div style="margin-bottom:1rem">
@@ -52,7 +52,7 @@ function renderCodeGate(){return `
     <label style="display:block;font-size:13px;font-weight:500;color:var(--slate);margin-bottom:5px">Access code <span style="color:var(--danger)">*</span></label>
     <input type="text" id="cg-code" placeholder="Enter your access code" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:'Inter',sans-serif;color:var(--slate);background:#fff;letter-spacing:0.1em;text-transform:uppercase" oninput="this.value=this.value.toUpperCase();document.getElementById('cg-err').textContent=''">
   </div>
-  <p style="font-size:11px;color:var(--muted);margin-top:6px">Don't have a code? Message the <a href="https://www.linkedin.com/company/51717921" target="_blank" style="color:var(--teal);text-decoration:none;font-weight:500">GoLive LinkedIn page</a> expressing your interest.</p>
+  <p style="font-size:11px;color:var(--muted);margin-top:6px">No code yet? Apply at <a href="/careers" style="color:var(--teal);text-decoration:none;font-weight:500">cloud.golivecompany.com/careers</a> and your code will be emailed to you.</p>
 </div>
 <div class="err" id="cg-err" style="margin-bottom:10px"></div>
 <button class="primary" id="cg-btn" onclick="verifyCode()"><i class="ti ti-arrow-right"></i> Verify access code</button>`}
@@ -76,6 +76,12 @@ async function verifyCode(){
       st.codeVerified=true
       st.token=data.token||''
       st.candidateRole=role
+      if(data.registered){
+        st.registered=true
+        st.appRef=data.ref||''
+        st.candidateName=data.name||''
+        st.candidateEmail=data.email||''
+      }
       st.phase='consent'
       render()
     }else{
@@ -146,7 +152,9 @@ function renderConsent(){return `
 
 function acceptConsent(){
   st.consentGiven=true
-  st.phase='intake'
+  // Applicants with a personal code are already registered: go straight to
+  // the camera check rather than asking for their name again.
+  st.phase=st.registered?'gate':'intake'
   render()
 }
 

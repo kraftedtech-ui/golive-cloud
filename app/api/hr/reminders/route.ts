@@ -7,6 +7,7 @@ import { User } from '@/models/User'
 import { Notification } from '@/models/Notification'
 import { computeReminders, Reminder } from '@/lib/hrReminders'
 import { sendReminderDigest } from '@/lib/hrReminderEmail'
+import { runRecruitmentSweep } from '@/lib/recruitmentSweep'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -24,7 +25,7 @@ async function gather(): Promise<Reminder[]> {
   return computeReminders(employees as never[], issuances as never[], new Date())
 }
 
-// Admin: what needs attention right now. Read-only — computed on request,
+// Admin: what needs attention right now. Read-only: computed on request,
 // never stored, so it cannot go stale against the records it describes.
 export async function GET() {
   const auth = await requireAdmin()
@@ -52,9 +53,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  // Recruitment automation runs first and never blocks the HR reminders:
+  // a failed email is reported in the result, not thrown.
+  let recruitment = { reminders: 0, lapsed: 0, declined: 0, errors: [] as string[] }
+  try {
+    recruitment = await runRecruitmentSweep()
+  } catch (e) {
+    recruitment.errors.push((e as Error)?.message || 'sweep failed')
+    console.error('[recruitment-sweep]', e)
+  }
+
   const reminders = await gather()
   if (!reminders.length) {
-    return NextResponse.json({ ok: true, found: 0, notified: 0 })
+    return NextResponse.json({ ok: true, found: 0, notified: 0, recruitment })
   }
 
   // distinct() returns plain values, which avoids asserting a shape onto
@@ -62,7 +73,7 @@ export async function POST(req: NextRequest) {
   const emails = ((await User.distinct('email', { role: 'admin', active: true })) as string[])
     .filter(Boolean)
   if (!emails.length) {
-    return NextResponse.json({ ok: true, found: reminders.length, notified: 0, note: 'No active admin users to notify' })
+    return NextResponse.json({ ok: true, found: reminders.length, notified: 0, note: 'No active admin users to notify', recruitment })
   }
 
   let notified = 0
@@ -90,5 +101,5 @@ export async function POST(req: NextRequest) {
     await sendReminderDigest(fresh).catch((e) => console.error('[hr-reminders] digest failed:', e))
   }
 
-  return NextResponse.json({ ok: true, found: reminders.length, notified, recipients: emails.length })
+  return NextResponse.json({ ok: true, found: reminders.length, notified, recipients: emails.length, recruitment })
 }

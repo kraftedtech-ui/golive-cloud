@@ -297,6 +297,12 @@ jobs:
           mkdir -p app/api/assessments/paper
           git show origin/main:app/api/assessments/paper/route.ts > app/api/assessments/paper/route.ts
 
+          # Recruitment: apply form, personal codes, pass mark, nightly sweep.
+          git show origin/main:lib/recruitment.ts > lib/recruitment.ts
+          git show origin/main:lib/recruitmentSweep.ts > lib/recruitmentSweep.ts
+          mkdir -p app/api/careers/apply
+          git show origin/main:app/api/careers/apply/route.ts > app/api/careers/apply/route.ts
+
           # NOTE: app/api/public/lead-assessment/route.ts was removed here —
           # that path was never actually committed to the repo (confirmed
           # against a fresh clone), so pulling it unconditionally broke every

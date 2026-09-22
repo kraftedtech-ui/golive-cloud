@@ -7,12 +7,12 @@ type Position = {
   _id: string; slug: string; title: string; department: string; type: string; location: string
   salaryLower: number; salaryUpper: number; commission: boolean; summary: string
   responsibilities: string[]; requirements: string[]
-  status: 'draft' | 'open' | 'closed'; openings: number; hires: Hire[]; filledOn?: string | null
+  status: 'draft' | 'open' | 'closed'; openings: number; passMark?: number; hires: Hire[]; filledOn?: string | null
 }
 
 const blank = {
   title: '', department: '', type: 'Full-time', location: 'Lagos, hybrid',
-  salaryLower: '', salaryUpper: '', commission: false, openings: '1',
+  salaryLower: '', salaryUpper: '', commission: false, openings: '1', passMark: '70',
   summary: '', responsibilities: '', requirements: '',
 }
 type Form = typeof blank
@@ -55,7 +55,7 @@ export default function PositionsEditor() {
     setForm({
       title: p.title, department: p.department, type: p.type, location: p.location,
       salaryLower: String(p.salaryLower), salaryUpper: String(p.salaryUpper), commission: p.commission,
-      openings: String(p.openings), summary: p.summary,
+      openings: String(p.openings), passMark: String(p.passMark ?? 70), summary: p.summary,
       responsibilities: p.responsibilities.join('\n'), requirements: p.requirements.join('\n'),
     })
     setEditing(p._id); setMsg(null)
@@ -139,8 +139,10 @@ export default function PositionsEditor() {
           </select></div>
         <div className="md:col-span-2"><label className={label}>Location</label>
           <input className={field} value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} /></div>
-        <div className="md:col-span-2"><label className={label}>Openings</label>
+        <div className="md:col-span-1"><label className={label}>Openings</label>
           <input type="number" min={1} className={field} value={form.openings} onChange={e => setForm({ ...form, openings: e.target.value })} /></div>
+        <div className="md:col-span-1"><label className={label}>Pass mark (%)</label>
+          <input type="number" min={0} max={100} className={field} value={form.passMark} onChange={e => setForm({ ...form, passMark: e.target.value })} /></div>
         <div className="md:col-span-2"><label className={label}>Monthly gross from (₦)</label>
           <input inputMode="numeric" className={field} value={form.salaryLower} onChange={e => setForm({ ...form, salaryLower: e.target.value.replace(/[^0-9]/g, '') })} /></div>
         <div className="md:col-span-2"><label className={label}>Monthly gross to (₦)</label>
@@ -211,7 +213,7 @@ export default function PositionsEditor() {
                           {p.department}, {p.type.toLowerCase()}, {naira(p.salaryLower)} to {naira(p.salaryUpper)} a month{p.commission ? ' plus commission' : ''}
                         </p>
                         <p className="mt-1 text-sm text-gray-700">
-                          <strong>{p.hires.length} of {p.openings}</strong> {p.openings === 1 ? 'opening' : 'openings'} filled
+                          <strong>{p.hires.length} of {p.openings}</strong> {p.openings === 1 ? 'opening' : 'openings'} filled, pass mark {p.passMark ?? 70}%
                           {p.status === 'open' && left > 0 ? `, ${left} still open` : ''}
                           {p.filledOn ? `, filled ${fmtDate(p.filledOn)}` : ''}
                         </p>

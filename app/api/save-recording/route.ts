@@ -7,6 +7,8 @@ import Application from '@/models/Application'
 import { claimsFromRequest } from '@/lib/assessmentToken'
 import { getBank } from '@/lib/assessmentBank'
 import { markPaper, isLate, type Paper } from '@/lib/assessmentPaper'
+import Position from '@/models/Position'
+import { DECLINE_HOLD_HOURS } from '@/lib/recruitment'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -65,6 +67,14 @@ export async function POST(req: NextRequest) {
     const marked = markPaper(bank, application.paper, answersIn, textIn)
     const score = `${marked.got}-${marked.max}`
     const late = isLate(application.paper)
+
+    // Eligibility: the position's pass mark decides who reaches review. Below
+    // it, the candidate is declined automatically after a hold, by the nightly
+    // sweep. The default of 70 applies when no position is on record.
+    const position = await Position.findOne({ title: claims.role }).select('passMark').lean() as { passMark?: number } | null
+    const passMark = typeof position?.passMark === 'number' ? position.passMark : 70
+    const eligible = marked.pct >= passMark
+    const declineDueAt = eligible ? undefined : new Date(Date.now() + DECLINE_HOLD_HOURS * 3600_000)
     const violationsRaw = (formData.get('violations') as string) || '[]'
     const tabSwitches = parseInt(formData.get('tabSwitches') as string || '0')
     const pasteTries = parseInt(formData.get('pasteTries') as string || '0')
@@ -119,6 +129,7 @@ export async function POST(req: NextRequest) {
               <tr><td style="padding:8px 0;color:#5c7184;width:140px">Candidate</td><td style="padding:8px 0;font-weight:600;color:#0d2233">${candidate}</td></tr>
               <tr><td style="padding:8px 0;color:#5c7184">Score</td><td style="padding:8px 0;font-weight:600;color:${pct>=75?'#3B6D11':pct>=50?'#854F0B':'#A32D2D'}">${got}/${max} &nbsp;·&nbsp; ${pct}% &nbsp;·&nbsp; ${verdict}</td></tr>
               <tr><td style="padding:8px 0;color:#5c7184">Role</td><td style="padding:8px 0;color:#0d2233">${role}</td></tr>
+              <tr><td style="padding:8px 0;color:#5c7184">Outcome</td><td style="padding:8px 0;font-weight:600;color:${eligible ? '#3B6D11' : '#5c7184'}">${eligible ? `Eligible for review (pass mark ${passMark}%)` : `Below the pass mark of ${passMark}%. Declined automatically after ${DECLINE_HOLD_HOURS} hours unless you intervene.`}</td></tr>
               ${late ? `<tr><td style="padding:8px 0;color:#5c7184">Timing</td><td style="padding:8px 0;font-weight:600;color:#A32D2D">Submitted after the time limit</td></tr>` : ''}
               <tr><td style="padding:8px 0;color:#5c7184">Email</td><td style="padding:8px 0"><a href="mailto:${email}" style="color:#0096c7">${email || 'Not provided'}</a></td></tr>
               <tr><td style="padding:8px 0;color:#5c7184">Submitted</td><td style="padding:8px 0;color:#0d2233">${new Date().toLocaleString('en-GB',{dateStyle:'full',timeStyle:'short'})}</td></tr>
@@ -145,7 +156,7 @@ export async function POST(req: NextRequest) {
       transcript, violations,
     }
     await writeFile(filepath.replace('.webm', '.json'), JSON.stringify(meta, null, 2))
-    console.log('[save-recording] Saved:', filename, '— size:', buffer.length)
+    console.log('[save-recording] Saved:', filename, 'size:', buffer.length)
 
     // Update Application record with assessment results
     if (appRef) {
@@ -159,6 +170,9 @@ export async function POST(req: NextRequest) {
             assessmentPct: pct,
             assessmentVersion: bank.version,
             assessmentLate: late,
+            eligible,
+            passMark,
+            ...(declineDueAt ? { declineDueAt } : {}),
             assessmentDate: new Date(),
             assessmentFilename: filename,
             tabSwitches, pasteTries,

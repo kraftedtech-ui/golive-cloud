@@ -12,6 +12,8 @@ type QResult = {
 type Application = {
   _id: string; ref: string; name: string; email: string; role: string
   status: string; assessmentScore?: string; assessmentPct?: number
+  eligible?: boolean; passMark?: number; declineDueAt?: string; declinedAt?: string
+  accessCode?: string; codeSentAt?: string; codeExpiresAt?: string; reminderSentAt?: string; paper?: unknown; source?: string
   assessmentDate?: string; assessmentFilename?: string
   tabSwitches?: number; pasteTries?: number; violations?: string[]
   transcript?: QResult[]; notes?: string; shortlistEmailSentAt?: string; rejectionEmailSentAt?: string;
@@ -22,7 +24,9 @@ type Application = {
   provisionedUserId?: string; actualStartDate?: string; createdAt: string
 }
 
-const STATUS_FLOW = ['applied','assessed','shortlisted','interviewed','offered','onboarded','rejected']
+const STATUS_FLOW = ['applied','assessed','shortlisted','interviewed','offered','onboarded','rejected','not_progressed','lapsed']
+const STATUS_LABEL: Record<string, string> = { not_progressed: 'Not progressed', lapsed: 'Lapsed' }
+const labelOf = (s: string) => STATUS_LABEL[s] || s.charAt(0).toUpperCase() + s.slice(1)
 const STATUS_COLORS: Record<string,string> = {
   applied:     'bg-blue-50 text-blue-700 border-blue-200',
   assessed:    'bg-purple-50 text-purple-700 border-purple-200',
@@ -42,6 +46,7 @@ export default function HRAssessmentsPanel() {
   const [notes, setNotes] = useState<Record<string,string>>({})
   const [filterRole, setFilterRole] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [reviewOnly, setReviewOnly] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -393,10 +398,14 @@ export default function HRAssessmentsPanel() {
             <option value="">All roles</option>
             {roles.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
+          <button onClick={() => setReviewOnly(v => !v)}
+            className={`rounded-lg border px-3 py-2 text-sm font-medium ${reviewOnly ? 'border-green-300 bg-green-50 text-green-800' : 'border-border bg-white text-foreground hover:bg-secondary/40'}`}>
+            Review queue{reviewOnly ? ': on' : ''}
+          </button>
           <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}
             className="rounded-lg border border-border px-2.5 py-1.5 text-xs text-foreground bg-white">
             <option value="">All statuses</option>
-            {STATUS_FLOW.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>)}
+            {STATUS_FLOW.map(s => <option key={s} value={s}>{labelOf(s)}</option>)}
           </select>
           <button onClick={load}
             className="flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary transition-colors">
@@ -406,14 +415,14 @@ export default function HRAssessmentsPanel() {
       </div>
 
       {/* Pipeline summary */}
-      <div className="grid grid-cols-7 divide-x divide-border border-b border-border">
+      <div className="grid grid-cols-9 divide-x divide-border border-b border-border">
         {STATUS_FLOW.map(s => {
           const count = apps.filter(a=>a.status===s).length
           return (
             <button key={s} onClick={()=>setFilterStatus(filterStatus===s?'':s)}
               className={`px-3 py-2 text-center transition-colors hover:bg-secondary/30 ${filterStatus===s?'bg-secondary/50':''}`}>
               <p className={`text-base font-semibold ${count>0?'text-foreground':'text-muted-foreground/40'}`}>{count}</p>
-              <p className="text-[10px] text-muted-foreground capitalize">{s}</p>
+              <p className="text-[10px] text-muted-foreground">{labelOf(s)}</p>
             </button>
           )
         })}
@@ -429,7 +438,7 @@ export default function HRAssessmentsPanel() {
         </div>
       ) : (
         <div className="divide-y divide-border">
-          {apps.map(app => (
+          {apps.filter(a => !reviewOnly || (a.status === 'assessed' && a.eligible === true)).map(app => (
             <div key={app._id}>
               {/* Application row */}
               <div className="px-5 py-4 hover:bg-secondary/10 transition-colors">
@@ -456,11 +465,30 @@ export default function HRAssessmentsPanel() {
                       <span className="flex items-center gap-1 text-xs text-muted-foreground"><Briefcase className="size-3" />{app.role}</span>
                       <span className="flex items-center gap-1 text-xs text-muted-foreground"><Clock className="size-3" />{new Date(app.createdAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}</span>
                     </div>
+                    {!app.assessmentScore && app.accessCode && app.status === 'applied' && (
+                      <div className="mt-1 flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700 ring-1 ring-sky-200">
+                          Code sent{app.codeSentAt ? ' ' + new Date(app.codeSentAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : ''}{app.reminderSentAt ? ', reminded' : ''}
+                        </span>
+                        {app.codeExpiresAt && <span className="text-xs text-muted-foreground">Window closes {new Date(app.codeExpiresAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>}
+                      </div>
+                    )}
                     {app.assessmentScore && (
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`text-xs font-semibold ${(app.assessmentPct||0)>=75?'text-green-700':(app.assessmentPct||0)>=50?'text-amber-700':'text-red-600'}`}>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        <span className={`text-xs font-semibold ${app.eligible === true ? 'text-green-700' : app.eligible === false ? 'text-red-600' : (app.assessmentPct||0)>=75?'text-green-700':(app.assessmentPct||0)>=50?'text-amber-700':'text-red-600'}`}>
                           Score: {app.assessmentScore} ({app.assessmentPct}%)
                         </span>
+                        {app.eligible === true && app.status === 'assessed' && (
+                          <span className="rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-800 ring-1 ring-green-200">Eligible for review</span>
+                        )}
+                        {app.eligible === false && app.status === 'assessed' && (
+                          <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">
+                            Below pass mark ({app.passMark ?? 70}%){app.declineDueAt ? ', declines ' + new Date(app.declineDueAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : ''}
+                          </span>
+                        )}
+                        {app.eligible === undefined && (
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-semibold text-gray-600 ring-1 ring-gray-200">Earlier assessment</span>
+                        )}
                         {app.assessmentDate && (
                           <span className="text-xs text-muted-foreground">· Assessed {new Date(app.assessmentDate).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>
                         )}
@@ -478,7 +506,7 @@ export default function HRAssessmentsPanel() {
                       className="rounded-lg border border-border px-2 py-1 text-xs text-foreground bg-white"
                     >
                       {STATUS_FLOW.map(s => (
-                        <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>
+                        <option key={s} value={s}>{labelOf(s)}</option>
                       ))}
                     </select>
 

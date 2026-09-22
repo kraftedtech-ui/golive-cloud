@@ -23,11 +23,11 @@ export const metadata = {
 }
 
 const STEPS: [string, string][] = [
-  ['Application review', 'We read every CV against the published requirements.'],
-  ['Online assessment', 'Shortlisted applicants complete a structured, proctored assessment.'],
+  ['Apply online', 'Two minutes on this page. Your assessment code is emailed to you straight away.'],
+  ['Online assessment', 'Proctored, about 30 minutes, taken within 14 days at a time that suits you.'],
+  ['Review', 'Candidates who meet the pass mark are reviewed by the Managing Director.'],
   ['Interview', 'A structured conversation with the Managing Director.'],
-  ['Offer', 'Issued digitally and signed electronically on this portal.'],
-  ['Screening', 'Pre-employment checks by Background Check International.'],
+  ['Offer and screening', 'A digital offer signed on this portal, then checks by Background Check International.'],
 ]
 
 export default async function CareersPage() {
@@ -204,6 +204,21 @@ button.cb-row:hover .cb-title { color: var(--brand-pressed); }
 .cb-db li { margin-bottom: 7px; line-height: 20px; }
 .cb-df { border-top: 1px solid var(--stroke2); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .cb-df p { margin: 0; color: var(--fg3); font-size: 12.5px; max-width: 36ch; }
+.cb-form { flex-direction: column; align-items: stretch; }
+.cb-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.cb-fields label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; font-weight: 600; color: var(--fg2); }
+.cb-fields .cb-wide { grid-column: 1 / -1; }
+.cb-fields input, .cb-fields textarea { font: inherit; font-weight: 400; color: var(--fg1); border: 1px solid var(--stroke1); border-radius: var(--r-m); padding: 7px 10px; background: var(--bg1); }
+.cb-fields input:focus, .cb-fields textarea:focus { outline: 2px solid var(--brand-pressed); outline-offset: -1px; border-color: var(--brand-pressed); }
+.cb-fields input[type=file] { padding: 6px; font-size: 12.5px; }
+.cb-err { color: #c50f1f; font-size: 13px; font-weight: 600; max-width: none; }
+.cb-consent { max-width: none; line-height: 18px; }
+.cb-form .cb-actions { justify-content: flex-end; }
+.cb-btn:disabled { opacity: .55; cursor: default; }
+.cb-done { flex-direction: column; align-items: stretch; }
+.cb-done-title { font-size: 15px; font-weight: 600; color: var(--fg1); max-width: none; }
+.cb-done-text { max-width: none; line-height: 19px; color: var(--fg2); font-size: 13.5px; }
+.cb-done .cb-actions { justify-content: flex-end; }
 .cb-actions { display: flex; gap: 8px; }
 .cb-btn { height: 32px; padding: 0 14px; border-radius: var(--r-m); border: 1px solid var(--stroke1); background: var(--bg1); color: var(--fg1) !important;
   font: 600 14px/30px var(--font-jakarta), sans-serif; text-decoration: none; cursor: pointer; display: inline-block; }
@@ -227,6 +242,7 @@ button.cb-row:hover .cb-title { color: var(--brand-pressed); }
   .gl-titlebar { flex-direction: column; align-items: flex-start; }
   .gl-titlebar h1 { font-size: 32px; line-height: 36px; }
   .cb-facts { grid-template-columns: 1fr; }
+  .cb-fields { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
   .cb-scrim, .cb-drawer { transition: none; }

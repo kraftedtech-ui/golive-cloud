@@ -35,6 +35,8 @@ export interface IPosition extends Document {
   status: 'draft' | 'open' | 'closed'
   /** How many people this position is hiring. */
   openings: number
+  /** Assessment percentage at or above which a candidate reaches review. */
+  passMark: number
   hires: IPositionHire[]
   /** Set when the last opening is filled; cleared if a hire is undone. */
   filledOn?: Date | null
@@ -58,6 +60,7 @@ const PositionSchema = new Schema<IPosition>(
     requirements:     { type: [String], default: [] },
     status:   { type: String, enum: ['draft', 'open', 'closed'], default: 'draft' },
     openings: { type: Number, default: 1, min: 0 },
+    passMark: { type: Number, default: 70, min: 0, max: 100 },
     hires: [{
       employeeNumber: String,
       applicationRef: String,

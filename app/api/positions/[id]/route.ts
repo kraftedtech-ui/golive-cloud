@@ -46,6 +46,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if ('status' in b && ['draft', 'open', 'closed'].includes(String(b.status))) {
     pos.status = String(b.status) as 'draft' | 'open' | 'closed'
   }
+  if ('passMark' in b) {
+    const pm = parseInt(String(b.passMark), 10)
+    if (!(pm >= 0 && pm <= 100)) return NextResponse.json({ error: 'The pass mark must be between 0 and 100.' }, { status: 400 })
+    pos.passMark = pm
+  }
   if ('openings' in b) {
     const n = parseInt(String(b.openings), 10)
     if (!(n >= 1)) return NextResponse.json({ error: 'Openings must be at least 1.' }, { status: 400 })

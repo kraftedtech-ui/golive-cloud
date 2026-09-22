@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
     requirements: lines(b.requirements),
     status: 'draft',
     openings: Math.max(1, parseInt(String(b.openings || '1'), 10) || 1),
+    passMark: Math.min(100, Math.max(0, parseInt(String(b.passMark ?? '70'), 10) || 0)),
     hires: [],
     sortOrder: (last?.sortOrder || 0) + 10,
   })

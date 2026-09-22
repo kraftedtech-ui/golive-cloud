@@ -5,7 +5,24 @@ export interface IApplication extends Document {
   name: string
   email: string
   role: string
-  status: 'applied' | 'assessed' | 'shortlisted' | 'interviewed' | 'offered' | 'onboarded' | 'rejected'
+  status: 'applied' | 'assessed' | 'shortlisted' | 'interviewed' | 'offered' | 'onboarded' | 'rejected' | 'not_progressed' | 'lapsed'
+  /** Careers-page applications (September 2026 onwards). */
+  phone?: string
+  note?: string
+  cvFilename?: string
+  positionSlug?: string
+  source?: 'careers' | 'assessment'
+  /** Personal, single-use assessment access code and its window. */
+  accessCode?: string
+  codeSentAt?: Date
+  codeExpiresAt?: Date
+  reminderSentAt?: Date
+  /** Set by server-side marking: at or above the position's pass mark. */
+  eligible?: boolean
+  passMark?: number
+  /** Below the pass mark: the automatic decline is sent after this time. */
+  declineDueAt?: Date
+  declinedAt?: Date
   assessmentScore?: string
   assessmentPct?: number
   assessmentDate?: Date
@@ -75,7 +92,20 @@ const ApplicationSchema = new Schema<IApplication>({
   name:             { type: String, required: true },
   email:            { type: String, required: true },
   role:             { type: String, required: true },
-  status:           { type: String, enum: ['applied','assessed','shortlisted','interviewed','offered','onboarded','rejected'], default: 'applied' },
+  status:           { type: String, enum: ['applied','assessed','shortlisted','interviewed','offered','onboarded','rejected','not_progressed','lapsed'], default: 'applied' },
+  phone:            { type: String },
+  note:             { type: String },
+  cvFilename:       { type: String },
+  positionSlug:     { type: String },
+  source:           { type: String, enum: ['careers', 'assessment'] },
+  accessCode:       { type: String, index: true, sparse: true },
+  codeSentAt:       { type: Date },
+  codeExpiresAt:    { type: Date },
+  reminderSentAt:   { type: Date },
+  eligible:         { type: Boolean },
+  passMark:         { type: Number },
+  declineDueAt:     { type: Date },
+  declinedAt:       { type: Date },
   assessmentScore:  { type: String },
   assessmentPct:    { type: Number },
   assessmentDate:   { type: Date },
