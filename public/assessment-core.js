@@ -1,23 +1,24 @@
 /**
- * assessment-core.js — shared candidate assessment logic.
+ * assessment-core.js: shared candidate assessment logic.
  *
  * Extracted from the four per-role assessment HTML files, which each carried
  * their own copy. Logic is unchanged; only the five places that hardcoded a
  * role name now read from ROLE.
  *
- * Depends on two top-level declarations supplied by the HTML file:
- *   QUESTIONS — the role's question array
- *   ROLE      — { name, heading, intro }
+ * Depends on one declaration supplied by the HTML file:
+ *   ROLE: { name, heading, intro, count, minutes }
+ *
+ * The questions are NOT in the page. Since September 2026 the server issues
+ * each candidate's paper when they click Begin, without answers, and marks
+ * the submission itself. The browser sends only the choices made.
  */
 
-const TOTAL=30*60
+const TOTAL=(ROLE.minutes||30)*60
+let QUESTIONS=[]
 let st={phase:'code-gate',codeVerified:false,consentGiven:false,candidateName:'',candidateEmail:'',candidateRole:'',appRef:'',camGranted:false,stream:null,recorder:null,chunks:[],recBlob:null,violations:[],tabSwitches:0,pasteTries:0,current:0,answers:{},textAnswers:{},secs:TOTAL,timerInterval:null}
 
 function logV(msg){const t=new Date().toLocaleTimeString();st.violations.push(`[${t}] ${msg}`)}
 function fmt(s){const m=Math.floor(s/60),ss=s%60;return `${m}:${ss.toString().padStart(2,'0')}`}
-function scoreFor(q,ans){if(q.type==='mcq')return ans===q.correct?1:0;if(q.type==='tf')return ans===q.correct?1:0;return null}
-function calcScores(){let got=0,max=0;QUESTIONS.forEach(q=>{if(q.type!=='text'){max++;if(st.answers[q.id]!==undefined)got+=scoreFor(q,st.answers[q.id])}});return{got,max}}
-function sectionScores(){const s={};QUESTIONS.forEach(q=>{if(q.type==='text')return;const k=q.sec.match(/Section ([A-Z])/)[1];if(!s[k])s[k]={g:0,m:0};s[k].m++;if(st.answers[q.id]!==undefined&&scoreFor(q,st.answers[q.id])===1)s[k].g++});return s}
 
 function render(){document.getElementById('app').innerHTML=renderPhase();attach()}
 
@@ -100,11 +101,11 @@ function renderConsent(){return `
 </div>
 
 <div class="card" style="margin-top:0.75rem;border-left:4px solid var(--amber)">
-  <p style="font-size:13px;font-weight:600;color:var(--warning);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-shield-exclamation"></i> Integrity monitoring — the following will be detected and logged</p>
+  <p style="font-size:13px;font-weight:600;color:var(--warning);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-shield-exclamation"></i> Integrity monitoring: the following are detected and logged</p>
   <div style="display:flex;flex-direction:column;gap:8px">
     ${[
       ['Tab switching','Navigating away from this page or switching to another browser tab will be detected and timestamped. Each instance is logged as a violation.'],
-      ['Window focus loss','Clicking outside the assessment window — including switching to another application — is logged.'],
+      ['Window focus loss','Clicking outside the assessment window, including switching to another application, is logged.'],
       ['Copy & paste','All paste attempts are blocked. Keyboard shortcuts including Ctrl+C, Ctrl+V, Ctrl+U, Ctrl+F and right-click are disabled.'],
       ['External assistance','The use of AI tools, search engines, reference materials, or assistance from another person is strictly prohibited. This constitutes academic dishonesty and will result in immediate disqualification.'],
       ['One attempt only','You are permitted one attempt at this assessment per role. A second attempt using the same email address will be automatically blocked.'],
@@ -120,11 +121,11 @@ function renderConsent(){return `
   <p style="font-size:13px;font-weight:600;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:6px"><i class="ti ti-info-circle"></i> Assessment details</p>
   <div style="display:flex;flex-direction:column;gap:6px">
     ${[
-      ['Duration','30 minutes — the timer begins immediately when you click Begin assessment.'],
-      ['Format',QUESTIONS.length+' questions — multiple choice, true/false, and two short written answers.'],
+      ['Duration',(ROLE.minutes||30)+' minutes. The timer starts when you click Begin assessment.'],
+      ['Format',(ROLE.count||'')+' questions: multiple choice, true or false, and two short written answers.'],
       ['Device','Laptop or desktop required. Camera must be working before you proceed.'],
       ['Environment','Complete the assessment in a quiet location. Ensure stable internet connection.'],
-      ['Results','Your score and session recording are securely uploaded to GoLive after submission.'],
+      ['Results','Your answers and session recording are uploaded securely to GoLive when you submit. The hiring team will contact you with the outcome.'],
     ].map(([t,d])=>`
       <div style="display:flex;gap:10px;align-items:flex-start">
         <i class="ti ti-check" style="color:var(--teal);flex-shrink:0;margin-top:1px"></i>
@@ -166,7 +167,7 @@ function renderSaveLater(){return `
     <i class="ti ti-bookmark" style="font-size:24px;color:var(--accent)"></i>
   </div>
   <h2 class="page-title">Saved for later</h2>
-  <p class="page-sub" style="max-width:420px;margin:0 auto 1.5rem">No problem — you can return to complete the assessment when you are ready. Bookmark this page or note down the details below.</p>
+  <p class="page-sub" style="max-width:420px;margin:0 auto 1.5rem">You can return to complete the assessment when you are ready. Bookmark this page or note down the details below.</p>
   <div class="card" style="text-align:left;max-width:400px;margin:0 auto 1.5rem">
     <p style="font-size:11px;font-weight:600;color:var(--teal);letter-spacing:0.1em;margin-bottom:8px">YOUR ASSESSMENT DETAILS</p>
     <div style="font-size:13px;color:var(--slate);line-height:2">
@@ -249,7 +250,7 @@ function renderRefConfirm(){return `
     <i class="ti ti-check" style="font-size:24px;color:#0F6E56"></i>
   </div>
   <h2 class="page-title">Application registered</h2>
-  <p class="page-sub" style="max-width:420px;margin:0 auto 1.5rem">Your application reference number has been emailed to <strong>${st.candidateEmail}</strong>. Please save it — you will need it for all future correspondence.</p>
+  <p class="page-sub" style="max-width:420px;margin:0 auto 1.5rem">Your application reference number has been emailed to <strong>${st.candidateEmail}</strong>. Please keep it, as you will need it for all future correspondence.</p>
 </div>
 <div class="card" style="text-align:center">
   <p style="font-size:11px;font-weight:600;color:var(--teal);letter-spacing:0.1em;margin-bottom:6px">APPLICATION REFERENCE</p>
@@ -268,16 +269,16 @@ function renderGate(){return `
 <div class="card">
   <p style="font-size:13px;font-weight:600;color:var(--slate);margin-bottom:10px">Assessment rules</p>
   <ul class="chklist">
-    <li><i class="ti ti-camera-check"></i>Camera must stay active for the full 30 minutes</li>
+    <li><i class="ti ti-camera-check"></i>Camera must stay active for the full ${ROLE.minutes||30} minutes</li>
     <li><i class="ti ti-browser-x"></i>Switching tabs or windows is detected and logged</li>
     <li><i class="ti ti-copy-x"></i>Copy and paste is blocked and flagged</li>
     <li><i class="ti ti-device-mobile-off"></i>No AI tools, search engines, or external help permitted</li>
-    <li><i class="ti ti-clock"></i>30 minutes — auto-submits when time runs out</li>
+    <li><i class="ti ti-clock"></i>${ROLE.minutes||30} minutes, submitted automatically when time runs out</li>
     <li><i class="ti ti-download"></i>Session recording available to download at the end</li>
   </ul>
   <div class="info-row">
-    <span class="info-pill"><i class="ti ti-list-check"></i>${QUESTIONS.length} questions</span>
-    <span class="info-pill"><i class="ti ti-clock"></i>30 minutes</span>
+    <span class="info-pill"><i class="ti ti-list-check"></i>${ROLE.count||''} questions</span>
+    <span class="info-pill"><i class="ti ti-clock"></i>${ROLE.minutes||30} minutes</span>
     <span class="info-pill"><i class="ti ti-user"></i>${ROLE.name}</span>
   </div>
 </div>
@@ -289,8 +290,9 @@ function renderConfirm(){return `
   <video class="preview-vid" id="preview-vid" autoplay muted playsinline></video>
   <div style="margin-bottom:1rem"><span class="badge bs"><i class="ti ti-check"></i> Camera active</span></div>
   <h2 class="page-title">Camera confirmed</h2>
-  <p class="page-sub" style="max-width:360px;margin:0 auto 1.5rem;line-height:1.6">Make sure your face is clearly visible. Recording begins when you start. Answer all questions as best you can — you have 30 minutes.</p>
-  <button class="primary" onclick="startTest()"><i class="ti ti-player-play"></i> Begin assessment</button>
+  <p class="page-sub" style="max-width:360px;margin:0 auto 1.5rem;line-height:1.6">Make sure your face is clearly visible. Recording begins when you start. Answer every question as best you can. You have ${ROLE.minutes||30} minutes.</p>
+  <div class="err" id="start-err" style="margin-bottom:10px"></div>
+  <button class="primary" id="start-btn" onclick="startTest()"><i class="ti ti-player-play"></i> Begin assessment</button>
 </div>`}
 
 function renderQuiz(){
@@ -333,40 +335,17 @@ ${qHtml}
 </div>`}
 
 function renderResult(){
-  const{got,max}=calcScores()
-  const pct=Math.round(got/max*100)
-  const vd=pct>=75?'bs':pct>=50?'bw':'bd'
-  const vl=pct>=75?'Strong result':pct>=50?'Borderline — review carefully':'Needs improvement'
-  const secs=sectionScores()
-  const sNames={A:'Administrative skills',B:'Digital tools',C:'Professional judgement',E:'Situation handling',F:'Reasoning'}
-  const vCount=st.violations.length
-  const integrity=st.tabSwitches>2||st.pasteTries>2
+  // Shown to the candidate. No score and no answers: the result is reviewed
+  // by the hiring team, and answers shown here would circulate to later
+  // candidates.
   return `
-<div style="text-align:center;margin-bottom:1.5rem">
-  <p style="font-size:13px;font-weight:500;color:var(--mid);margin-bottom:4px">${st.candidateName} &nbsp;·&nbsp; ${st.candidateRole}</p><div class="result-score">${got}/${max}</div>
-  <div class="result-sub">auto-scored questions · ${pct}%</div>
-  <span class="badge ${vd}">${vl}</span>
+<div style="text-align:center;padding:1rem 0 0.5rem">
+  <div class="gate-icon"><i class="ti ti-circle-check"></i></div>
+  <h2 class="page-title">Assessment submitted</h2>
+  <p class="page-sub" style="max-width:440px;margin:0 auto 1.25rem;line-height:1.6">Thank you, ${st.candidateName}. Your answers for the ${st.candidateRole} assessment have been received. The hiring team will review your result and contact you by email with the next step.</p>
 </div>
-${integrity?`<div class="integrity-box"><p><strong><i class="ti ti-shield-exclamation"></i> Integrity concern:</strong> Multiple violations detected (${vCount} total — ${st.tabSwitches} tab switch${st.tabSwitches!==1?'es':''}, ${st.pasteTries} paste attempt${st.pasteTries!==1?'s':''}). Review the session recording before making any hiring decision.</p></div>`:''}
-${vCount>0&&!integrity?`<div class="warn-banner show"><i class="ti ti-alert-triangle"></i> ${vCount} integrity flag${vCount!==1?'s':''} recorded. Review log and recording below.</div>`:''}
-<div class="card">
-  <p class="sec-head">Score by section</p>
-  ${Object.entries(secs).map(([k,d])=>{const p=Math.round(d.g/d.m*100);const cls=p>=75?'good':p>=50?'ok':'low';return `<div class="brow"><span class="brow-l">${sNames[k]||k}</span><span class="brow-r ${cls}">${d.g}/${d.m} &nbsp;·&nbsp; ${p}%</span></div>`}).join('')}
-</div>
-<div class="card">
-  <p class="sec-head">Integrity log</p>
-  <div class="vlog">${st.violations.length>0?st.violations.map(v=>`<div>${v}</div>`).join(''):'<span style="color:var(--muted)">No violations recorded.</span>'}</div>
-</div>
-${st.recBlob&&!st.uploadDone?`<div class="card"><p class="sec-head">Session recording</p><p style="font-size:13px;color:var(--mid);margin-bottom:12px">Your recording is being uploaded to the GoLive server automatically. If upload fails, download and email it to talent.acquisition@golivecompany.com.</p><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="primary" id="upload-btn" onclick="uploadRec()"><i class="ti ti-cloud-upload"></i> Upload to server</button><button onclick="downloadRec()"><i class="ti ti-download"></i> Download instead</button></div><p id="upload-status" style="font-size:12px;margin-top:8px"></p></div>`:''}
-<div class="card">
-  <p class="sec-head">Written responses — interviewer review</p>
-  ${QUESTIONS.filter(q=>q.type==='text').map(q=>`<div class="q-rev"><p class="q-rev-q">${q.text.substring(0,110)}…</p><p class="q-rev-a">${st.textAnswers[q.id]||'<em style="color:var(--muted)">No response entered</em>'}</p></div>`).join('')}
-</div>
-<div class="card">
-  <p class="sec-head">Question review</p>
-  ${QUESTIONS.filter(q=>q.type!=='text').map(q=>{const a=st.answers[q.id];const c=a!==undefined&&scoreFor(q,a)===1;return `<div class="q-rev"><p class="q-rev-q">Q${QUESTIONS.indexOf(q)+1}. ${q.text.substring(0,100)}…</p><p class="q-rev-a ${c?'c':'w'}">${c?'✓ Correct':'✗ Incorrect — correct: '+(q.type==='mcq'?q.opts[q.correct]:q.correct)}</p>${!c?`<p style="font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5">${q.explain}</p>`:''}</div>`}).join('')}
-</div>
-<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:1.5rem">GoLive Digital Solutions Company Ltd · RC1644767 · talent.acquisition@golivecompany.com</p>`}
+${st.recBlob&&!st.uploadDone?`<div class="card"><p class="sec-head">Session recording</p><p style="font-size:13px;color:var(--mid);margin-bottom:12px">Your recording is being uploaded automatically. If the upload fails, download it and email it to talent.acquisition@golivecompany.com.</p><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="primary" id="upload-btn" onclick="uploadRec()"><i class="ti ti-cloud-upload"></i> Upload to server</button><button onclick="downloadRec()"><i class="ti ti-download"></i> Download instead</button></div><p id="upload-status" style="font-size:12px;margin-top:8px"></p></div>`:''}
+<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:1.5rem">The GoLive Digital Solutions Company Ltd, RC1644767, talent.acquisition@golivecompany.com</p>`}
 
 function attach(){
   if(st.phase==='confirm'){const v=document.getElementById('preview-vid');if(v&&st.stream)v.srcObject=st.stream}
@@ -391,7 +370,23 @@ async function requestCam(){
   }catch(e){if(err)err.textContent='Camera access denied. You must grant camera permission to proceed with this assessment.'}
 }
 
-function startTest(){
+async function startTest(){
+  // The server issues the paper and starts the clock. A reload returns the
+  // same paper with the time remaining, never a fresh set of questions.
+  const btn=document.getElementById('start-btn'),err=document.getElementById('start-err')
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="ti ti-loader"></i> Preparing your assessment...'}
+  try{
+    const res=await fetch('/api/assessments/paper',{method:'POST',headers:{'x-assessment-token':st.token||''}})
+    const data=await res.json()
+    if(!res.ok||!Array.isArray(data.questions)||!data.questions.length)throw new Error(data.error||'Your assessment could not be prepared. Please try again.')
+    QUESTIONS=data.questions
+    st.secs=Math.max(1,data.secondsLeft|0)
+    st.current=0
+  }catch(e){
+    if(err)err.textContent=e.message
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-player-play"></i> Begin assessment'}
+    return
+  }
   st.phase='quiz';startRec();setupAntiCheat();window.onbeforeunload=()=>'Your assessment is in progress.';render()
 }
 
@@ -448,28 +443,15 @@ function finish(){
 }
 
 function buildFD(){
+  // Only the choices made. The server marks them against the paper it issued;
+  // it ignores any score sent from here, so there is none to send.
   const fd=new FormData()
   fd.append('recording',new File([st.recBlob],'recording.webm',{type:'video/webm'}))
-  fd.append('candidate',st.candidateName)
-  fd.append('ref',st.appRef||'')
-  fd.append('email',st.candidateEmail)
-  fd.append('role',st.candidateRole)
-  const transcript=QUESTIONS.map((q,i)=>{
-    const ans=st.answers[q.id]
-    const textAns=st.textAnswers[q.id]||''
-    const correct=q.type==='text'?null:scoreFor(q,ans)===1
-    return {number:i+1,section:q.sec,type:q.type,question:q.text,
-      answer:q.type==='mcq'?(ans!==undefined?q.opts[ans]:'No answer'):q.type==='tf'?(ans||'No answer'):textAns,
-      correct,
-      correctAnswer:q.type==='mcq'?q.opts[q.correct]:q.type==='tf'?q.correct:null,
-      explanation:q.explain||null}
-  })
-  fd.append('transcript',JSON.stringify(transcript))
+  fd.append('answers',JSON.stringify(st.answers))
+  fd.append('textAnswers',JSON.stringify(st.textAnswers))
   fd.append('violations',JSON.stringify(st.violations))
   fd.append('tabSwitches',String(st.tabSwitches))
   fd.append('pasteTries',String(st.pasteTries))
-  const{got,max}=calcScores()
-  fd.append('score',got+'-'+max)
   return fd
 }
 
@@ -500,7 +482,7 @@ function uploadGated(){
   const xhr=new XMLHttpRequest()
   xhr.open('POST','/api/save-recording')
   xhr.setRequestHeader('x-assessment-token',st.token||'')
-  xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);const b=document.getElementById('up-bar');const t=document.getElementById('up-pct');if(b)b.style.width=p+'%';if(t)t.textContent='Uploading — '+p+'%'}}
+  xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);const b=document.getElementById('up-bar');const t=document.getElementById('up-pct');if(b)b.style.width=p+'%';if(t)t.textContent='Uploading, '+p+'%'}}
   xhr.onload=()=>{let ok=false;try{ok=!!JSON.parse(xhr.responseText).success}catch(e){}
     if(xhr.status===200&&ok){st.uploadDone=true;window.onbeforeunload=null;st.phase='result';render()}
     else uploadFail('Server rejected the upload ('+xhr.status+').')}
@@ -510,7 +492,7 @@ function uploadGated(){
 
 function uploadFail(msg){
   st.upTries=(st.upTries||0)+1
-  const e=document.getElementById('up-err');if(e){e.style.display='block';e.textContent=msg+' Your recording is safe in this window — retry when your connection is stable.'}
+  const e=document.getElementById('up-err');if(e){e.style.display='block';e.textContent=msg+' Your recording is safe in this window. Retry when your connection is stable.'}
   const r=document.getElementById('up-retry');if(r)r.style.display='inline-flex'
   if(st.upTries>=2){const d=document.getElementById('up-download');if(d)d.style.display='inline-flex'}
 }
@@ -529,7 +511,7 @@ async function uploadRec(){
       if(btn){btn.innerHTML='<i class="ti ti-check"></i> Saved to server';btn.style.background='var(--success-bg)';btn.style.color='var(--success)';btn.style.borderColor='#c0dd97'}
     }else{throw new Error(data.error)}
   }catch(e){
-    if(status){status.textContent='Upload failed — you can retry or download the file.';status.style.color='var(--danger)'}
+    if(status){status.textContent='Upload failed. You can retry, or download the file.';status.style.color='var(--danger)'}
     if(btn){btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Retry upload'}
   }
 }

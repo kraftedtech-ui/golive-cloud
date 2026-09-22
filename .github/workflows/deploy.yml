@@ -290,6 +290,13 @@ jobs:
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts
 
+          # Server-side assessment: question banks and marking live on the
+          # server; the public pages carry no answers.
+          git show origin/main:lib/assessmentBank.ts > lib/assessmentBank.ts
+          git show origin/main:lib/assessmentPaper.ts > lib/assessmentPaper.ts
+          mkdir -p app/api/assessments/paper
+          git show origin/main:app/api/assessments/paper/route.ts > app/api/assessments/paper/route.ts
+
           # NOTE: app/api/public/lead-assessment/route.ts was removed here —
           # that path was never actually committed to the repo (confirmed
           # against a fresh clone), so pulling it unconditionally broke every

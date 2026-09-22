@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GoLive — Social Media &amp; Community Manager Assessment</title>
+<title>GoLive | Social Media &amp; Community Manager Assessment</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
@@ -104,107 +104,11 @@ h2.page-title{font-size:20px;font-weight:600;color:var(--slate);margin-bottom:6p
 </div>
 
 <script>
-const QUESTIONS=[
-  {id:'q1',sec:'Section A — Platform knowledge',type:'mcq',
-   text:'Which Microsoft 365 application would you use to schedule and post approved social media content directly to LinkedIn from within the Microsoft ecosystem?',
-   opts:['Microsoft Teams','Microsoft Viva Engage','SharePoint','Microsoft Whiteboard'],
-   correct:1,explain:'Viva Engage (formerly Yammer) is Microsoft\'s community and social platform within M365. For external scheduling, tools like Buffer or Hootsuite are used — but within M365, Viva Engage handles internal social and community features.'},
-  {id:'q2',sec:'Section A — Platform knowledge',type:'mcq',
-   text:'GoLive wants to reach corporate decision-makers about Microsoft 365 services. Which platform should be the primary channel for this B2B audience?',
-   opts:['Instagram Reels','TikTok','LinkedIn','Snapchat'],
-   correct:2,explain:'LinkedIn is the correct channel for B2B technology services targeting corporate decision-makers in Nigeria and internationally.'},
-  {id:'q3',sec:'Section A — Platform knowledge',type:'tf',
-   text:'Posting at the same time every day, regardless of when your audience is most active, is the best approach for maximising engagement.',
-   correct:'False',explain:'Post timing should be based on platform analytics showing when your specific audience is most active. This varies by platform, audience location, and day of week.'},
-  {id:'q4',sec:'Section A — Platform knowledge',type:'mcq',
-   text:'A post on GoLive\'s LinkedIn page gets a comment from a prospect asking for pricing. What is the best response?',
-   opts:['Ignore it — pricing should not be discussed publicly','Reply with the full price list in the comments','Thank them publicly and direct them to DM or a contact form for a proper conversation','Delete the comment to keep the page clean'],
-   correct:2,explain:'Acknowledge publicly to show responsiveness, but move the sales conversation to a private channel. Public pricing discussions can create complications and are better handled personally.'},
-  {id:'q5',sec:'Section A — Platform knowledge',type:'mcq',
-   text:'What does "reach" mean in social media analytics?',
-   opts:['The number of times your post was clicked','The number of unique accounts that saw your post','The total number of likes and comments','The number of times your post was saved'],
-   correct:1,explain:'Reach is the number of unique accounts that saw a piece of content. Impressions (total views, including multiple views by the same account) is different from reach.'},
-  {id:'q6',sec:'Section B — Content creation',type:'mcq',
-   text:'GoLive is launching a new Microsoft 365 package. You need to create a LinkedIn post that explains the value without using technical jargon. The post should be:',
-   opts:['Long, detailed, and technical — LinkedIn professionals appreciate depth','Short, benefit-focused, and end with a clear call to action','Written entirely in hashtags so it trends','Copied from Microsoft\'s own website to ensure accuracy'],
-   correct:1,explain:'LinkedIn posts that perform best are concise, benefit-led, and tell the reader what to do next. Technical depth belongs in articles or documents, not feed posts.'},
-  {id:'q7',sec:'Section B — Content creation',type:'tf',
-   text:'Using 30 hashtags on every LinkedIn post significantly increases reach and is best practice.',
-   correct:'False',explain:'LinkedIn recommends 3–5 relevant hashtags per post. Overloading hashtags looks spammy and can reduce reach. Quality and relevance matter more than quantity.'},
-  {id:'q8',sec:'Section B — Content creation',type:'mcq',
-   text:'Your manager asks for a content calendar for the next month. What should it include?',
-   opts:['Just the post text for each day','Post date, platform, content type, topic, copy draft, visual description, and status','Only the images — copy can be written on the day','A list of hashtags to use across all posts'],
-   correct:1,explain:'A proper content calendar is a planning and coordination tool. It needs enough detail for anyone to pick it up and execute — date, platform, content type, topic, copy, visual direction, and approval status.'},
-  {id:'q9',sec:'Section B — Content creation',type:'mcq',
-   text:'A follower posts a negative comment on GoLive\'s Instagram saying the hosting service went down and they lost a client. What do you do first?',
-   opts:['Delete the comment before anyone else sees it','Reply publicly apologising and acknowledging the issue, then escalate internally to the technical team','Ignore it — one comment will not affect the brand','Argue with the commenter and explain it was not GoLive\'s fault'],
-   correct:1,explain:'Respond publicly and promptly to show the brand takes feedback seriously, then escalate to the right team internally. Deleting complaints and arguing both damage trust significantly.'},
-  {id:'q10',sec:'Section C — Brand & strategy',type:'text',
-   text:'Write a short LinkedIn post (50–80 words) announcing that GoLive Digital Solutions is now an authorised Microsoft Cloud Solution Provider (CSP) in Nigeria. The audience is Nigerian business owners and IT decision-makers.',
-   sub:'Write professionally and in a tone that is confident but not boastful. Include one call to action.',
-   placeholder:'We are excited to announce...'},
-  {id:'q11',sec:'Section C — Brand & strategy',type:'text',
-   text:'A client tags GoLive in an Instagram story praising the team for a smooth Microsoft 365 migration. Write a short reply (2–3 sentences) to their story.',
-   sub:'Keep it warm, professional, and on-brand.',
-   placeholder:'Thank you so much...'},
-  {id:'q12',sec:'Section D — Judgement',type:'mcq',
-   text:'Your manager asks you to post something immediately about a news story that appears to show a competitor in a bad light. What do you do?',
-   opts:['Post it immediately — speed is everything in social media','Check the story source, verify accuracy, assess reputational risk, then consult the MD before posting anything','Share it to your personal account instead','Repost it without comment so GoLive cannot be blamed'],
-   correct:1,explain:'Reactive posts about competitors carry significant reputational risk. Verify facts, assess tone, and get senior approval before publishing anything that could be seen as attacking a competitor.'},
-  {id:'q13',sec:'Section D — Judgement',type:'mcq',
-   text:'You notice GoLive\'s Instagram engagement has dropped 40% over the last two weeks with no change to posting frequency. What is your first step?',
-   opts:['Post more frequently to compensate','Check Instagram Insights to identify whether reach, impressions, or saves also dropped — then form a hypothesis before changing strategy','Switch entirely to TikTok','Ask followers in the comments what happened'],
-   correct:1,explain:'Data analysis before action is the correct approach. A drop in engagement could be caused by algorithm changes, audience fatigue, poor content-timing, or platform-wide issues. Diagnose first.'},
-  {id:'q14',sec:'Section D — Judgement',type:'tf',
-   text:'It is acceptable to repost competitor content on GoLive\'s official pages without permission as long as you credit the original creator.',
-   correct:'False',explain:'Reposting competitor content on brand pages is poor practice regardless of credit — it amplifies their message, not yours. Content should always serve GoLive\'s brand objectives.'},
-  {id:'q15',sec:'Section E — Reasoning',type:'mcq',
-   text:'GoLive has three arms: GoLive Naija, GoLive Forge, and B2B Services. As Social Media Manager, how would you approach content across these arms?',
-   opts:['Create one generic GoLive feed and post the same content for all arms','Create distinct content pillars for each arm within a unified GoLive brand voice — so each audience gets relevant content while the brand feels cohesive','Run three completely separate social media accounts with no connection','Only post about B2B Services since it generates the most revenue'],
-   correct:1,explain:'Content pillars per business arm within a single brand identity is the correct strategy. It keeps the brand cohesive while ensuring each audience segment sees content relevant to their needs.'},
+// Questions are issued by the server when the candidate clicks Begin.
+// They are not in this page, and neither are the answers.
 
-  {id:'q16',sec:'Section F — Analytics & performance',type:'mcq',
-   text:'GoLive\'s LinkedIn engagement rate drops from 4.2% to 1.8% over 6 weeks despite no change in posting frequency or content type. What is your first investigative step?',
-   opts:['Immediately double posting frequency','Check LinkedIn Analytics for changes in reach, follower demographics, and post-type performance — then cross-reference with any LinkedIn algorithm update announcements during that period','Switch the entire content strategy to video immediately','Ask the MD to approve a paid promotion budget'],
-   correct:1,explain:'Data-led diagnosis before action is essential. A drop this significant could be algorithm-driven, audience saturation, or content fatigue. You need to understand the cause before prescribing a solution — otherwise you risk compounding the problem.'},
-  {id:'q17',sec:'Section F — Analytics & performance',type:'mcq',
-   text:'A LinkedIn post about GoLive\'s Microsoft 365 services gets 850 impressions but only 4 likes and 0 comments. What does this tell you and what do you do next?',
-   opts:['The content is performing well — 850 people saw it','The content reached people but failed to drive engagement — analyse the hook, CTA, and format. Test a rewrite with a stronger opening line and a direct question to provoke responses','Delete the post and try again','Pay to boost the post immediately'],
-   correct:1,explain:'High impressions with low engagement signals a reach problem solved but a resonance problem remaining. The content is being shown but not connecting. The fix is creative — stronger hook, more relatable framing, or a question that invites response.'},
-  {id:'q18',sec:'Section F — Analytics & performance',type:'tf',
-   text:'A 5% engagement rate on an Instagram business page with 2,000 followers is considered below average for that audience size.',
-   correct:'False',explain:'5% is actually a strong engagement rate for Instagram. Average engagement rates for business accounts typically sit between 1–3%. Anything above 3–5% is considered above average. Understanding benchmarks by platform and audience size is essential for accurate performance reporting.'},
-  {id:'q19',sec:'Section G — Crisis & reputation',type:'mcq',
-   text:'A disgruntled former employee posts publicly on Twitter/X accusing GoLive of unfair treatment and names the MD directly. The post is gaining traction. What is your recommended response strategy?',
-   opts:['Respond publicly defending the company immediately','Do not respond publicly — escalate to the MD immediately, document the post, monitor for spread, and advise the MD that a measured private response or legal review may be appropriate depending on the severity of the claims','Report the post to Twitter and block the account','Repost the claims on GoLive\'s account with a rebuttal'],
-   correct:1,explain:'Responding publicly to a disgruntled employee escalates and amplifies the situation. The correct approach is to escalate, document, monitor, and advise — not to engage publicly. Legal and HR implications must be assessed before any external response.'},
-  {id:'q20',sec:'Section G — Crisis & reputation',type:'mcq',
-   text:'GoLive is about to launch a major Microsoft 365 campaign when a major data breach at Microsoft makes international news. How do you adjust the campaign?',
-   opts:['Launch as planned — the breach has nothing to do with GoLive','Pause the campaign immediately, assess whether the breach affects the specific products being promoted, and propose a revised message that addresses security proactively rather than ignoring the context','Cancel the campaign entirely','Post about the breach to show GoLive is aware of current events'],
-   correct:1,explain:'Launching a cloud security-adjacent campaign during a high-profile breach without acknowledging the context looks tone-deaf. Pausing, assessing relevance, and pivoting the messaging to address security head-on turns the moment into a trust-building opportunity.'},
-  {id:'q21',sec:'Section H — Content strategy & planning',type:'mcq',
-   text:'The MD asks you to build a 3-month content plan for GoLive across LinkedIn and Instagram. What framework do you use to structure it?',
-   opts:['Post whatever feels relevant each week','Build content pillars mapped to GoLive\'s three business arms (Naija, Forge, B2B), assign a posting cadence per platform, plan content types (educational, promotional, behind-the-scenes, client stories), and schedule around key dates and product launches','Use the same content on both platforms since it saves time','Focus only on promotional content since the goal is sales'],
-   correct:1,explain:'Content pillars aligned to business objectives, platform-specific cadence, and content type variety is the correct strategic framework. Identical cross-posting ignores platform-specific audience behaviour. Random posting lacks strategic intent.'},
-  {id:'q22',sec:'Section H — Content strategy & planning',type:'mcq',
-   text:'You are tasked with growing GoLive\'s LinkedIn follower count from 500 to 2,000 in 6 months organically. Which combination of tactics is most likely to achieve this?',
-   opts:['Post daily and hope the algorithm rewards consistency','Publish high-value thought leadership content consistently, engage actively in comments on relevant industry posts, encourage team members to share and engage with company posts, optimise the company page for SEO, and use relevant hashtags strategically','Buy followers from a third-party provider','Run giveaways offering cash prizes to new followers'],
-   correct:1,explain:'Organic LinkedIn growth requires a multi-pronged approach — great content, active engagement, employee amplification, and page optimisation. Bought followers are a violation of LinkedIn\'s terms and damage credibility. Giveaways attract low-quality followers with no business intent.'},
-  {id:'q23',sec:'Section H — Content strategy & planning',type:'tf',
-   text:'Repurposing a long-form blog post into multiple shorter social media posts, an infographic, and a short video is a poor use of content because it dilutes the original message.',
-   correct:'False',explain:'Content repurposing is best practice — it maximises the value of high-quality content by adapting it to different formats and platform behaviours. A single blog post can generate weeks of social content without diluting the message. Each format reaches a different consumption preference.'},
-  {id:'q24',sec:'Section I — Brand voice & judgement',type:'mcq',
-   text:'GoLive\'s MD asks you to post a strong opinion piece on LinkedIn about a controversial government technology policy. You personally disagree with the MD\'s position. What do you do?',
-   opts:['Refuse to post it','Post it as written since it is the MD\'s content and not your personal view — you are publishing on behalf of the company, not yourself','Post your own counter-opinion on the GoLive page instead','Ask the MD to post it from their personal profile instead of the company page'],
-   correct:1,explain:'As Social Media Manager you publish on behalf of the brand, not yourself. The MD\'s position is the company\'s position. If you have concerns, raise them privately before publishing — but the final call belongs to leadership, not you. Publishing a counter-opinion on the company page would be a serious professional breach.'},
-  {id:'q25',sec:'Section I — Brand voice & judgement',type:'mcq',
-   text:'You are given a monthly content budget of ₦150,000 for paid promotion. LinkedIn CPM in Nigeria averages ₦8,000. Instagram averages ₦3,500. You want to reach corporate decision-makers for the B2B Services arm and young creatives for GoLive Forge. How do you split the budget?',
-   opts:['Split 50/50 between both platforms for fairness','Allocate the majority to LinkedIn for the B2B decision-maker audience and a smaller portion to Instagram for GoLive Forge\'s creative audience — based on where each target segment is most active and most reachable cost-effectively','Spend it all on Instagram since it is cheaper per impression','Ask the MD to increase the budget before making any allocation decisions'],
-   correct:1,explain:'Budget allocation should follow audience behaviour. Corporate decision-makers are on LinkedIn — higher CPM but better targeting. Young creatives are on Instagram — lower CPM, broader reach. Allocating by target segment rather than splitting equally or choosing the cheapest platform is the correct strategic approach.'},
-]
-
-const ROLE={name:"Social Media & Community Manager",heading:"Social Media &amp; Community Manager",intro:"Social Media &amp; Community Manager assessment."}
+const ROLE={name:"Social Media & Community Manager",heading:"Social Media &amp; Community Manager",intro:"Social Media &amp; Community Manager assessment.",count:25,minutes:30}
 </script>
-<script src="/assessment-core.js?v=3"></script>
+<script src="/assessment-core.js?v=4"></script>
 </body>
 </html>

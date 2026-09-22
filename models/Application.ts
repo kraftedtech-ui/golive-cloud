@@ -9,6 +9,19 @@ export interface IApplication extends Document {
   assessmentScore?: string
   assessmentPct?: number
   assessmentDate?: Date
+  /** The exact paper this candidate was issued (server-side marking). Absent
+   *  on applications assessed before September 2026, whose scores came from
+   *  the old browser-marked assessment and are kept as they were. */
+  paper?: {
+    version: string
+    items: { id: string; order?: number[] }[]
+    issuedAt: string
+    deadline: string
+  }
+  /** Bank version the score was marked against, e.g. 'ops-v1'. */
+  assessmentVersion?: string
+  /** Submitted after the deadline plus upload grace. */
+  assessmentLate?: boolean
   assessmentFilename?: string
   tabSwitches?: number
   pasteTries?: number
@@ -66,6 +79,9 @@ const ApplicationSchema = new Schema<IApplication>({
   assessmentScore:  { type: String },
   assessmentPct:    { type: Number },
   assessmentDate:   { type: Date },
+  paper:            { type: Schema.Types.Mixed },
+  assessmentVersion:{ type: String },
+  assessmentLate:   { type: Boolean },
   assessmentFilename: { type: String },
   tabSwitches:      { type: Number, default: 0 },
   pasteTries:       { type: Number, default: 0 },

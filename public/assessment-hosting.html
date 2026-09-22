@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GoLive — Hosting Support Technician Assessment</title>
+<title>GoLive | Hosting Support Technician Assessment</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
@@ -104,108 +104,11 @@ h2.page-title{font-size:20px;font-weight:600;color:var(--slate);margin-bottom:6p
 </div>
 
 <script>
-const QUESTIONS=[
-  {id:'q1',sec:'Section A — DNS & domains',type:'mcq',
-   text:'A client\'s website is showing a "domain not found" error after they transferred their domain to GoLive Naija. The domain was transferred yesterday. What is the most likely cause?',
-   opts:['GoLive\'s server is down','DNS propagation has not completed yet — this can take up to 48 hours','The client needs to buy the domain again','The website files need to be re-uploaded'],
-   correct:1,explain:'DNS propagation after a domain transfer can take 24–48 hours globally. This is normal and the client should be reassured, not panicked.'},
-  {id:'q2',sec:'Section A — DNS & domains',type:'mcq',
-   text:'A client wants their email to route to Google Workspace. Which DNS record type do you need to update?',
-   opts:['A record','CNAME record','MX record','TXT record'],
-   correct:2,explain:'MX (Mail Exchange) records control where email for a domain is delivered. Changing MX records to point to Google\'s mail servers routes email to Google Workspace.'},
-  {id:'q3',sec:'Section A — DNS & domains',type:'tf',
-   text:'An A record maps a domain name to an IPv4 address.',
-   correct:'True',explain:'An A record (Address record) maps a hostname to its IPv4 address. This is how domain names resolve to the server\'s IP address.'},
-  {id:'q4',sec:'Section A — DNS & domains',type:'mcq',
-   text:'A client asks why their website is showing as "Not Secure" in the browser. What is the most likely cause?',
-   opts:['Their internet connection is slow','Their SSL certificate has expired or is not installed','Their website has too many images','Their hosting plan has expired'],
-   correct:1,explain:'A "Not Secure" warning in browsers means the site is either not using HTTPS or the SSL certificate is missing, expired, or incorrectly configured.'},
-  {id:'q5',sec:'Section A — DNS & domains',type:'mcq',
-   text:'What does TTL stand for in DNS, and what does it control?',
-   opts:['Total Transfer Limit — controls file upload sizes','Time To Live — controls how long DNS records are cached before being refreshed','Transfer Time Limit — controls how long domain transfers take','Traffic Threshold Level — controls server load'],
-   correct:1,explain:'TTL (Time To Live) is the duration in seconds that a DNS record is cached by resolvers. Lower TTL means changes propagate faster but increase DNS query load.'},
-  {id:'q6',sec:'Section B — Hosting & cPanel',type:'mcq',
-   text:'A client calls saying their website loads very slowly. After checking, you see the server CPU is at 95%. What is your immediate first step?',
-   opts:['Tell the client to restart their computer','Identify which processes or scripts are consuming the most CPU using the server\'s resource monitor, then escalate to senior technical staff','Immediately migrate the client to a new server without investigation','Increase the client\'s hosting plan without investigating the cause'],
-   correct:1,explain:'Diagnose before acting. Identify the specific process causing the spike — it could be a rogue plugin, a traffic surge, or a malware script. Document findings before escalating.'},
-  {id:'q7',sec:'Section B — Hosting & cPanel',type:'mcq',
-   text:'A client wants to create a new email address using their domain (e.g. info@theircompany.com). Where in cPanel do you set this up?',
-   opts:['File Manager','Email Accounts','MySQL Databases','Softaculous Apps Installer'],
-   correct:1,explain:'Email Accounts in cPanel is where you create, manage, and configure email addresses for a domain hosted on the server.'},
-  {id:'q8',sec:'Section B — Hosting & cPanel',type:'tf',
-   text:'If a client\'s hosting account is suspended for non-payment, their website and email stop working immediately.',
-   correct:'True',explain:'A suspended hosting account takes all associated services offline — website, email, databases, and subdomains — until the account is reactivated after payment.'},
-  {id:'q9',sec:'Section B — Hosting & cPanel',type:'mcq',
-   text:'A client reports that their website was working yesterday but now shows a blank white page. What are the first two things you check?',
-   opts:['Check if the domain has expired, then check error logs for PHP or application errors','Reinstall the website from scratch','Call the client back and tell them to wait 24 hours','Increase the server RAM immediately'],
-   correct:0,explain:'A blank white page (White Screen of Death) in web hosting is typically caused by a PHP error or a failed plugin/theme update. Error logs reveal the exact cause quickly.'},
-  {id:'q10',sec:'Section C — Customer support',type:'text',
-   text:'A client submits a ticket at 2am saying their business email is not working and they are losing customers. Write a professional support response acknowledging the issue and setting expectations.',
-   sub:'Be empathetic, clear about next steps, and professional. Do not over-promise resolution time.',
-   placeholder:'Dear [Client name]...'},
-  {id:'q11',sec:'Section C — Customer support',type:'text',
-   text:'You are ending your day shift and handing over to the night shift technician. Write a brief handover note covering: 2 open tickets, a scheduled maintenance window at 11pm, and a client who called twice about a slow website.',
-   sub:'Be concise and structured so the night shift technician has everything they need.',
-   placeholder:'Handover note — [Date]...'},
-  {id:'q12',sec:'Section D — Judgement',type:'mcq',
-   text:'During your shift a server monitoring alert fires showing disk usage at 98% on a shared hosting server. You are not authorised to delete files without approval. What do you do?',
-   opts:['Ignore it — 98% is not 100%','Immediately escalate to your senior technician and document the alert with timestamp, server name, and disk usage figure','Delete the largest files you can find to free up space','Restart the server to clear cache'],
-   correct:1,explain:'Disk usage at 98% is a critical alert — at 100% the server stops functioning. Escalate immediately with full documentation. Do not take unauthorised action on shared hosting servers.'},
-  {id:'q13',sec:'Section D — Judgement',type:'mcq',
-   text:'A client calls and claims their account was hacked and demands you reset their password immediately over the phone. What do you do?',
-   opts:['Reset the password immediately to help the client','Verify the caller\'s identity against account records first, then follow the official password reset procedure — never reset based on an unverified phone call','Tell them to submit a ticket and hang up','Give them the current password so they can log in'],
-   correct:1,explain:'Social engineering attacks often come as urgent password reset requests. Always verify identity against account records before any security action. An unverified phone request should never trigger a password reset.'},
-  {id:'q14',sec:'Section D — Judgement',type:'tf',
-   text:'If a client\'s website is hacked and contains malware, your first action should be to take the site offline immediately to prevent the malware from spreading to other hosted sites.',
-   correct:'True',explain:'Malware on shared hosting can spread to other accounts on the same server. Isolating the compromised site immediately is the correct first step, followed by investigation, cleaning, and notification.'},
-  {id:'q15',sec:'Section E — Reasoning',type:'mcq',
-   text:'GoLive Naija runs 24-hour hosting support across a day shift (8am–8pm) and night shift (8pm–6am). A client submits a critical ticket at 7:45pm. You are the day shift technician with 15 minutes left. What do you do?',
-   opts:['Log off at 8pm — it is not your problem after your shift ends','Immediately start working the ticket, brief the incoming night shift technician on its status before you leave, and ensure it is marked as in-progress','Tell the client to wait until tomorrow morning','Only look at the ticket if it takes less than 15 minutes to fix'],
-   correct:1,explain:'A critical ticket 15 minutes before shift end must be triaged and handed over — not ignored. Start it, document what you have done, and give the night shift technician a clear brief. Client continuity is the priority.'},
+// Questions are issued by the server when the candidate clicks Begin.
+// They are not in this page, and neither are the answers.
 
-  {id:'q16',sec:'Section F — Email authentication & security',type:'mcq',
-   text:'A client reports their emails are landing in recipients\' spam folders despite having a valid MX record. Which DNS record is most likely missing or misconfigured?',
-   opts:['A record','CNAME record','SPF, DKIM, or DMARC record','NS record'],
-   correct:2,explain:'SPF, DKIM, and DMARC are email authentication records that verify a sending domain is legitimate. Without them, emails from the domain are treated as suspicious by receiving mail servers. This is one of the most common causes of legitimate email landing in spam.'},
-  {id:'q17',sec:'Section F — Email authentication & security',type:'mcq',
-   text:'What does DMARC stand for and what does it do?',
-   opts:['Domain Mail Authentication Record Certification — certifies your domain with email providers','Domain-based Message Authentication, Reporting and Conformance — tells receiving servers how to handle emails that fail SPF or DKIM checks','Dynamic Mail Access and Relay Control — controls email forwarding','Domain Management and Record Configuration — manages all DNS records'],
-   correct:1,explain:'DMARC tells receiving mail servers what to do when an email fails SPF or DKIM authentication — reject it, quarantine it, or deliver it. It also enables reporting so domain owners can see who is sending email on their behalf.'},
-  {id:'q18',sec:'Section F — Email authentication & security',type:'tf',
-   text:'A wildcard SSL certificate (*.golivecompany.com) covers both golivecompany.com and all its subdomains such as mail.golivecompany.com and cloud.golivecompany.com.',
-   correct:'False',explain:'A wildcard certificate covers subdomains (*.golivecompany.com = mail.golivecompany.com, cloud.golivecompany.com) but does NOT cover the apex/root domain (golivecompany.com) by default. A separate SAN entry or additional certificate is required for the root domain.'},
-  {id:'q19',sec:'Section G — Server & performance',type:'mcq',
-   text:'A shared hosting server has 200 active websites. One website is suddenly experiencing a traffic spike from a viral social media post. How could this affect other websites on the same server?',
-   opts:['It has no effect — each website is isolated','The traffic spike consumes server CPU and RAM resources shared across all 200 sites, potentially causing slowdowns or timeouts on unrelated websites — this is the risk of shared hosting over VPS or dedicated hosting','Only websites in the same cPanel account are affected','The viral website will automatically be migrated to a separate server'],
-   correct:1,explain:'Shared hosting means shared resources. A traffic spike on one account can degrade performance for all other accounts on the same server. This is why high-traffic or business-critical websites should be on VPS or dedicated hosting with guaranteed resource allocation.'},
-  {id:'q20',sec:'Section G — Server & performance',type:'mcq',
-   text:'A client\'s website loads in 12 seconds. After investigation you find their homepage has 45 uncompressed images totalling 18MB. What is your recommended fix?',
-   opts:['Tell the client to use a faster internet connection','Compress and resize the images using tools like TinyPNG or ShortPixel, implement lazy loading so images below the fold only load when scrolled to, and recommend converting images to WebP format','Upgrade the client\'s hosting plan to a higher tier','Delete half the images from the page'],
-   correct:1,explain:'Image optimisation is the single most impactful performance fix for image-heavy pages. Compression, proper sizing, lazy loading, and modern formats (WebP) can reduce page load from 12 seconds to under 3 seconds without removing any content.'},
-  {id:'q21',sec:'Section G — Server & performance',type:'mcq',
-   text:'A client wants to set up a subdomain "shop.theirdomain.com" pointing to a Shopify store. What DNS record do you create?',
-   opts:['An MX record pointing to Shopify\'s servers','A CNAME record pointing shop.theirdomain.com to Shopify\'s provided CNAME value (e.g. shops.myshopify.com)','An A record pointing to the main website\'s IP address','A TXT record with the Shopify verification code'],
-   correct:1,explain:'Subdomains pointing to third-party platforms use CNAME records. Shopify provides a CNAME target value during custom domain setup. An A record would only work if pointing to a static IP, which Shopify does not use for custom storefronts.'},
-  {id:'q22',sec:'Section H — Advanced troubleshooting',type:'mcq',
-   text:'A client reports that their website shows the correct content in Nigeria but shows an old cached version of the page to visitors in the UK. What is the most likely cause?',
-   opts:['The website has two different versions for different countries','A CDN (Content Delivery Network) is serving a cached version from a UK edge server that has not been purged since the last update','The UK visitors\' browsers have old cookies','The domain DNS is not propagating correctly in Europe'],
-   correct:1,explain:'CDN edge servers cache website content geographically. If the cache is not purged after a content update, visitors in different regions see different versions. The fix is to trigger a cache purge from the CDN control panel (Cloudflare, BunnyCDN, etc.) after every significant content update.'},
-  {id:'q23',sec:'Section H — Advanced troubleshooting',type:'mcq',
-   text:'A client\'s WordPress site is infected with malware that is redirecting visitors to a gambling website. The client is panicking. What are your steps in order?',
-   opts:['Restore from the most recent backup immediately without any other steps','1) Take the site offline to prevent further visitor harm, 2) notify the client, 3) identify and remove the malicious code using a malware scanner, 4) harden the installation (update WordPress, plugins, change passwords, remove unknown admin users), 5) restore or clean the site, 6) scan again before bringing it back online','Tell the client to delete their website and start again','Change the WordPress admin password and hope the malware stops'],
-   correct:1,explain:'Malware remediation has a specific sequence — isolate, identify, clean, harden, verify, restore. Taking it offline first prevents ongoing harm to visitors. Simply restoring from backup without removing the vulnerability means the site will be reinfected immediately.'},
-  {id:'q24',sec:'Section I — Shift operations',type:'mcq',
-   text:'During your shift you receive 8 support tickets simultaneously: 3 are "website down" reports, 2 are email configuration requests, 2 are billing queries, and 1 is a general enquiry. How do you triage?',
-   opts:['Work through them in the order they were received','Prioritise the 3 "website down" tickets first (highest business impact), then email configuration (blocks business communication), then billing queries (financial impact), then general enquiry — escalate if the website down tickets require senior intervention','Handle the easiest ones first to clear the queue quickly','Assign all tickets to the next shift'],
-   correct:1,explain:'Triage by business impact, not arrival order. A website down is the highest severity — it means a business is losing revenue and credibility every minute. Email configuration is second because it blocks communication. Billing queries are third. General enquiries have the least urgency.'},
-  {id:'q25',sec:'Section I — Shift operations',type:'mcq',
-   text:'It is 3am on your night shift. The server monitoring system alerts you that a shared hosting server\'s RAM is at 92% and rising. You do not have permission to restart services unilaterally. There is no response from your senior on WhatsApp. What do you do?',
-   opts:['Restart the server immediately to prevent it crashing','Document the alert with full details and timestamp, attempt to reach the senior via phone call (not just WhatsApp), escalate to the next available contact in the escalation chain, and monitor the situation closely every 5 minutes — do not take unauthorised action on a live production server','Go to sleep and document it in the morning handover','Wait and see if it resolves itself'],
-   correct:1,explain:'A live shared hosting server at 92% RAM is critical but does not yet require unauthorised action. Escalate aggressively through all available channels — phone call, not just WhatsApp. Document everything. If RAM hits 100% and the senior is still unreachable, most escalation policies allow for defined emergency actions — but only if documented in the escalation procedure.'},
-]
-
-const ROLE={name:"Hosting Support Technician",heading:"Hosting Support Technician",intro:"Hosting Support Technician assessment."}
+const ROLE={name:"Hosting Support Technician",heading:"Hosting Support Technician",intro:"Hosting Support Technician assessment.",count:25,minutes:30}
 </script>
-<script src="/assessment-core.js?v=3"></script>
+<script src="/assessment-core.js?v=4"></script>
 </body>
 </html>

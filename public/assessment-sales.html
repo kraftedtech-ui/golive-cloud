@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GoLive — Sales &amp; Support Associate Assessment</title>
+<title>GoLive | Sales &amp; Support Associate Assessment</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
@@ -104,68 +104,11 @@ h2.page-title{font-size:20px;font-weight:600;color:var(--slate);margin-bottom:6p
 </div>
 
 <script>
-const QUESTIONS=[
-  {id:'q1',sec:'Section A — Microsoft 365 product knowledge',type:'mcq',
-   text:'A client currently uses Gmail and Google Drive for their 5-person team. They want to switch to Microsoft 365. Which plan would you recommend as the starting point and why?',
-   opts:['Microsoft 365 Business Premium — it is the most comprehensive plan','Microsoft 365 Business Basic — it provides Exchange Online email, Teams, SharePoint, and OneDrive at the lowest cost, suitable for a small team starting out','Microsoft 365 F1 — it is the cheapest plan available','Microsoft 365 Apps for Business — it includes the desktop Office apps without email'],
-   correct:1,explain:'Business Basic is the correct entry point for a small team migrating from Google — it covers email, Teams, SharePoint, and OneDrive at the lowest cost. Premium adds security features that are justified at higher risk profiles or larger organisations.'},
-  {id:'q2',sec:'Section A — Microsoft 365 product knowledge',type:'mcq',
-   text:'A client asks: "What is Microsoft Teams and do I need it if I already use WhatsApp for team communication?" How do you respond?',
-   opts:['Tell them Teams and WhatsApp are the same thing','Explain that Teams is a professional collaboration platform that integrates with their Microsoft 365 files, meetings, and email — giving them searchable history, file sharing, and video calls in one secure place that WhatsApp cannot offer for business','Tell them Teams is only for video calls','Tell them WhatsApp is better and they should keep using it'],
-   correct:1,explain:'The correct response positions Teams\'s business value — integration, searchability, security, and compliance — versus WhatsApp\'s limitations for professional use.'},
-  {id:'q3',sec:'Section A — Microsoft 365 product knowledge',type:'tf',
-   text:'A Microsoft 365 Business Basic licence includes the full desktop versions of Word, Excel, and PowerPoint installed on the user\'s computer.',
-   correct:'False',explain:'Business Basic is web and mobile only — it does not include the installed desktop Office applications. Business Standard and above include the full desktop apps.'},
-  {id:'q4',sec:'Section A — Microsoft 365 product knowledge',type:'mcq',
-   text:'A client has 12 staff members. They want Microsoft 365 Business Standard. As a CSP, GoLive purchases at the distributor price and sells to the client. What is your role in provisioning their licences?',
-   opts:['The client must buy directly from Microsoft','GoLive orders the licences through the distributor (4Sight/Pax8), provisions them in the client\'s tenant, and invoices the client at the agreed reseller price','GoLive has no role — the distributor deals with the client directly','The client buys the licences and GoLive installs them for free'],
-   correct:1,explain:'As a CSP Indirect Reseller, GoLive orders from the distributor, provisions the licences in the client tenant, and manages the ongoing relationship. This is the core of the CSP business model.'},
-  {id:'q5',sec:'Section A — Microsoft 365 product knowledge',type:'mcq',
-   text:'A client asks what happens to their data if they stop paying for Microsoft 365. What do you tell them?',
-   opts:['Their data is deleted immediately when payment stops','Microsoft keeps their data for 90 days after subscription expiry in a disabled state before permanent deletion — they can export or reactivate within that window','Their data is transferred to a free OneDrive account automatically','Nothing happens — they can access everything indefinitely'],
-   correct:1,explain:'Microsoft retains data for 90 days in a disabled state after subscription lapse. This grace period allows recovery but clients should be advised to export data if they plan to leave.'},
-  {id:'q6',sec:'Section B — Sales process',type:'mcq',
-   text:'A prospect says: "Microsoft 365 is too expensive for our small business." How do you respond?',
-   opts:['Agree with them and suggest they try a free alternative','Immediately offer a discount','Break down the per-user monthly cost (as low as $6/user/month for Business Basic) against what they currently spend on separate email, storage, and communication tools — showing the consolidated value','Tell them to come back when they have more budget'],
-   correct:2,explain:'The correct response reframes cost as value and uses the price breakdown to show M365\'s total cost is often lower than the sum of separate tools the client is already paying for.'},
-  {id:'q7',sec:'Section B — Sales process',type:'mcq',
-   text:'You sent a proposal to a prospect 5 days ago and have not heard back. What do you do?',
-   opts:['Wait another 2 weeks before following up','Send one polite follow-up email referencing the proposal, asking if they have questions and offering a brief call to walk through it','Call them every day until they respond','Mark the lead as lost and move on'],
-   correct:1,explain:'One timely, value-added follow-up is the correct approach. Reference the proposal specifically, offer to help with questions, and keep it brief. Multiple daily calls are intrusive and damage the relationship.'},
-  {id:'q8',sec:'Section B — Sales process',type:'tf',
-   text:'Once a client has signed up for Microsoft 365 through GoLive, your involvement with that client ends — the distributor handles everything from that point.',
-   correct:'False',explain:'As the CSP reseller, GoLive owns the ongoing client relationship — renewals, support escalations, licence changes, and upsell conversations. The distributor handles backend provisioning, not the client relationship.'},
-  {id:'q9',sec:'Section B — Sales process',type:'mcq',
-   text:'A current GoLive Microsoft 365 client emails saying they want to reduce their licences from 20 to 8 because they made redundancies. What is your first step?',
-   opts:['Reduce the licences immediately without asking any questions','Acknowledge the request, check whether they are on an annual or monthly commitment (annual commitments cannot reduce mid-term — seats can only be added, not removed), then advise accordingly','Tell them they cannot reduce licences under any circumstances','Immediately cancel their entire subscription'],
-   correct:1,explain:'Annual NCE commitments allow adding licences but not reducing them mid-term. You must check the commitment type first before advising the client — giving wrong information could cause a billing dispute.'},
-  {id:'q10',sec:'Section C — Communication',type:'text',
-   text:'A prospect contacted GoLive via the website enquiry form asking about Microsoft 365 for their 15-person logistics company. Write a professional first-response email introducing GoLive and asking 2–3 qualifying questions.',
-   sub:'Be warm, professional, and concise. Position GoLive credibly without overwhelming them with information.',
-   placeholder:'Dear [Name]...'},
-  {id:'q11',sec:'Section C — Communication',type:'text',
-   text:'A client is unhappy because their Microsoft 365 email setup took 3 days longer than the 2-day turnaround you quoted them. They are threatening to cancel. Write a short email response.',
-   sub:'Acknowledge the issue, take responsibility where appropriate, and focus on resolution rather than excuses.',
-   placeholder:'Dear [Client name]...'},
-  {id:'q12',sec:'Section D — Judgement',type:'mcq',
-   text:'During a discovery call a prospect mentions they handle sensitive medical records for a hospital. Which Microsoft 365 plan feature becomes particularly important to highlight?',
-   opts:['The lower price of Business Basic','The compliance and data protection features in Business Premium — specifically Microsoft Purview for data governance and Defender for Business for security','The number of free Teams backgrounds','The storage size of OneDrive'],
-   correct:1,explain:'Healthcare clients handling sensitive data need to hear about compliance, security, and data governance — not price. Business Premium\'s advanced compliance features (Purview, Defender) are directly relevant to their regulatory obligations.'},
-  {id:'q13',sec:'Section D — Judgement',type:'mcq',
-   text:'A prospect tells you a competitor is offering Microsoft 365 at a significantly lower price than GoLive. How do you respond?',
-   opts:['Immediately match the price without asking any questions','Ask what is included in the competitor\'s price, then clearly differentiate GoLive\'s value — local support, onboarding assistance, ongoing account management, and GoLive\'s CSP credentials','Tell them the competitor\'s offering is probably fake','Give up and mark the lead as lost'],
-   correct:1,explain:'Understand the competitor\'s offer first, then differentiate on value rather than competing on price alone. GoLive\'s local presence, proper onboarding, and ongoing support are genuine differentiators in the Nigerian market.'},
-  {id:'q14',sec:'Section D — Judgement',type:'tf',
-   text:'It is acceptable to verbally commit to a price or service level with a client before checking with the MD, as long as you follow up in writing afterwards.',
-   correct:'False',explain:'Verbal commitments are legally binding. Never promise a price or service level without confirming it is approved. If uncertain, tell the client you will confirm within a short timeframe — then get approval before committing.'},
-  {id:'q15',sec:'Section E — Reasoning',type:'mcq',
-   text:'You have three active leads in your pipeline: Lead A needs a callback today, Lead B submitted a proposal request an hour ago, Lead C has not responded to two follow-up emails in two weeks. How do you prioritise your next 2 hours?',
-   opts:['Work on Lead C first since they have been waiting the longest','Call Lead A immediately (committed deadline), then respond to Lead B\'s proposal request (fresh interest, highest conversion probability), then make a final follow-up decision on Lead C','Work on Lead B first since they just came in','Archive Lead C and focus only on A and B'],
-   correct:1,explain:'Lead A has a committed deadline — that is non-negotiable. Lead B has fresh intent and high conversion probability. Lead C has shown low engagement and should be assessed for a final follow-up or archiving, but only after the higher-priority tasks.'},
-]
+// Questions are issued by the server when the candidate clicks Begin.
+// They are not in this page, and neither are the answers.
 
-const ROLE={name:"Sales & Support Associate",heading:"Sales &amp; Support Associate",intro:"Sales &amp; Support Associate assessment."}
+const ROLE={name:"Sales & Support Associate",heading:"Sales &amp; Support Associate",intro:"Sales &amp; Support Associate assessment.",count:15,minutes:30}
 </script>
-<script src="/assessment-core.js?v=3"></script>
+<script src="/assessment-core.js?v=4"></script>
 </body>
 </html>
