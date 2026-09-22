@@ -1,219 +1,184 @@
 "use client"
 
-import { useState } from "react"
-import { useSession, signOut } from "next-auth/react"
+import { useEffect, useRef, useState } from "react"
+import { useSession } from "next-auth/react"
 import {
-  ArrowLeftRight, KanbanSquare, FileText, ListChecks,
-  Users, ShieldCheck, LayoutDashboard, LogOut, BadgeCheck,
-  BookOpen, Award, GraduationCap, ExternalLink, ChevronDown,
-  DollarSign, Bell, Settings, Tags, AlertTriangle, ClipboardList,
-  type LucideIcon, Cloud, ClipboardCheck,
+  Home, Cloud, ArrowLeftRight, KanbanSquare, DollarSign, ClipboardList, FileText, Tags,
+  ListChecks, Bell, BookOpen, ClipboardCheck, UserRound, BriefcaseBusiness, Users,
+  AlertTriangle, ShieldCheck, GraduationCap, Award, ExternalLink,
+  ChevronDown, type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+/**
+ * Portal navigation, Fluent 2.
+ *
+ * Grouping (approved Sept 2026): Home first; Sales, Tools, Team as before; a
+ * People group for hiring and staff; Administration last. Items marked
+ * adminOnly are filtered per user, and a heading is hidden when none of its
+ * items are visible, so a sales rep never sees an empty People group.
+ *
+ * Works in two places:
+ * - inside the single-page portal (/portal), where onNavigate switches panels;
+ * - on standalone routes (/portal/people...), where there is no onNavigate,
+ *   so panel items link back to /portal#key, which the portal opens directly.
+ */
+
 type NavItem = { label: string; icon: LucideIcon; key: string; adminOnly?: boolean; href?: string }
-type NavSection = { heading: string; items: NavItem[] }
+type NavSection = { heading: string | null; items: NavItem[] }
 
 const sections: NavSection[] = [
+  { heading: null, items: [{ label: "Home", icon: Home, key: "dashboard" }] },
   {
     heading: "Sales",
     items: [
-      { label: "Cloud Assessments", icon: Cloud, key: "assessments" },
-      { label: "Transfer Requests", icon: ArrowLeftRight, key: "transfers" },
-      { label: "CRM Pipeline", icon: KanbanSquare, key: "pipeline" },
+      { label: "Cloud assessments", icon: Cloud, key: "assessments" },
+      { label: "Transfer requests", icon: ArrowLeftRight, key: "transfers" },
+      { label: "CRM pipeline", icon: KanbanSquare, key: "pipeline" },
       { label: "Commissions", icon: DollarSign, key: "commissions" },
     ],
   },
   {
     heading: "Tools",
     items: [
-      { label: "Discovery Questionnaire", icon: ClipboardList, key: "discovery" },
-      { label: "Proposal Generator", icon: FileText, key: "proposals" },
-      { label: "Product Mapping", icon: Tags, key: "product-mapping" },
-      { label: "Deployment Workflow", icon: ListChecks, key: "onboarding" },
+      { label: "Discovery questionnaire", icon: ClipboardList, key: "discovery" },
+      { label: "Proposal generator", icon: FileText, key: "proposals" },
+      { label: "Product mapping", icon: Tags, key: "product-mapping" },
+      { label: "Deployment workflow", icon: ListChecks, key: "onboarding" },
     ],
   },
   {
     heading: "Team",
     items: [
       { label: "Announcements", icon: Bell, key: "announcements" },
-      { label: "Knowledge Base", icon: BookOpen, key: "knowledge" },
+      { label: "Knowledge base", icon: BookOpen, key: "knowledge" },
     ],
   },
   {
-    heading: "Admin",
+    heading: "People",
     items: [
-      { label: "Customer Accounts", icon: Users, key: "customers" },
-      { label: "Payment Risk", icon: AlertTriangle, key: "payment-risk" },
-      { label: "Pricing Catalog", icon: Tags, key: "pricing", adminOnly: true },
-      { label: "Setup Fee Catalog", icon: Tags, key: "setup-fees", adminOnly: true },
-      { label: "Team & Access", icon: ShieldCheck, key: "team", adminOnly: true },
-      { label: "Candidate Assessments", icon: ClipboardCheck, key: "hr-assessments", adminOnly: true },
-      { label: "People (HR)", icon: Users, key: "hr-people", adminOnly: true, href: "/portal/people" },
-      { label: "Dashboard", icon: LayoutDashboard, key: "dashboard" },
+      { label: "Candidate assessments", icon: ClipboardCheck, key: "hr-assessments", adminOnly: true },
+      { label: "Employees", icon: UserRound, key: "hr-people", adminOnly: true, href: "/portal/people" },
+      { label: "Positions", icon: BriefcaseBusiness, key: "positions", adminOnly: true, href: "/portal/people/positions" },
+    ],
+  },
+  {
+    heading: "Administration",
+    items: [
+      { label: "Customer accounts", icon: Users, key: "customers" },
+      { label: "Payment risk", icon: AlertTriangle, key: "payment-risk" },
+      { label: "Pricing catalogue", icon: Tags, key: "pricing", adminOnly: true },
+      { label: "Setup fee catalogue", icon: Tags, key: "setup-fees", adminOnly: true },
+      { label: "Team and access", icon: ShieldCheck, key: "team", adminOnly: true },
     ],
   },
 ]
 
 const resources = [
-  {
-    label: "Certification Guide",
-    desc: "MS Solutions Partner path",
-    icon: GraduationCap,
-    key: "resources_cert",
-    badge: "NEW",
-  },
-  {
-    label: "Partner Resources",
-    desc: "Microsoft Partner Center",
-    icon: Award,
-    key: "resources_partner",
-    href: "https://partner.microsoft.com",
-  },
-  {
-    label: "Learn Platform",
-    desc: "Free exam study paths",
-    icon: BookOpen,
-    key: "resources_learn",
-    href: "https://learn.microsoft.com",
-  },
+  { label: "Certification guide", desc: "Microsoft Solutions Partner path", icon: GraduationCap, key: "resources_cert" },
+  { label: "Partner resources", desc: "Microsoft Partner Center", icon: Award, key: "resources_partner", href: "https://partner.microsoft.com" },
+  { label: "Learn platform", desc: "Free exam study paths", icon: BookOpen, key: "resources_learn", href: "https://learn.microsoft.com" },
 ]
 
-export function Sidebar({ active, onNavigate }: { active: string; onNavigate: (key: string) => void }) {
+const itemBase =
+  "relative flex h-8 w-full items-center gap-3 rounded-[4px] px-3 text-left text-sm transition-colors " +
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#242424]"
+const itemIdle = "text-[#424242] hover:bg-[#f0f0f0] hover:text-[#242424]"
+const itemOn = "bg-[#f0f0f0] font-semibold text-[#242424]"
+
+export function Sidebar({ active, onNavigate }: { active: string; onNavigate?: (key: string) => void }) {
   const { data: session } = useSession()
+  const role = (session?.user as { role?: string } | undefined)?.role || "viewer"
   const [resourcesOpen, setResourcesOpen] = useState(false)
-  const name = session?.user?.name || "Admin"
-  const role = (session?.user as any)?.role || "admin"
-  const initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+  // Show a fade at the bottom edge while navigation items are hidden below,
+  // so it is obvious the list continues on shorter screens.
+  const navRef = useRef<HTMLElement>(null)
+  const [moreBelow, setMoreBelow] = useState(false)
+  useEffect(() => {
+    const el = navRef.current
+    if (!el) return
+    const check = () => setMoreBelow(el.scrollHeight - el.scrollTop - el.clientHeight > 4)
+    check()
+    el.addEventListener('scroll', check, { passive: true })
+    window.addEventListener('resize', check)
+    return () => { el.removeEventListener('scroll', check); window.removeEventListener('resize', check) }
+  }, [resourcesOpen, role])
+
+  const go = (key: string) => {
+    if (onNavigate) onNavigate(key)
+    else window.location.href = `/portal#${key}`
+  }
+
+  const visible = sections
+    .map((s) => ({ ...s, items: s.items.filter((i) => !i.adminOnly || role === "admin") }))
+    .filter((s) => s.items.length > 0)
+
+  const Item = ({ item }: { item: NavItem }) => {
+    const on = active === item.key
+    const inner = (
+      <>
+        {on && <span className="absolute bottom-1.5 left-0 top-1.5 w-[3px] rounded-full bg-[#12a2c6]" aria-hidden="true" />}
+        <item.icon className={cn("size-[18px] shrink-0", on ? "text-[#0b7e9b]" : "text-[#616161]")} strokeWidth={1.75} />
+        <span className="truncate">{item.label}</span>
+      </>
+    )
+    return (
+      <li>
+        {item.href ? (
+          <a href={item.href} aria-current={on ? "page" : undefined} className={cn(itemBase, on ? itemOn : itemIdle)}>{inner}</a>
+        ) : (
+          <button type="button" onClick={() => go(item.key)} aria-current={on ? "page" : undefined} className={cn(itemBase, on ? itemOn : itemIdle)}>{inner}</button>
+        )}
+      </li>
+    )
+  }
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-sidebar-border bg-gradient-to-b from-[#10293c] via-sidebar to-[#0a1c2b] text-sidebar-foreground lg:flex">
-      {/* Brand */}
-      <div className="flex items-center gap-3 border-b border-sidebar-border/60 px-5 py-[18px]">
-        <span aria-hidden="true" style={{ display: 'block', width: 10, height: 10, borderRadius: 2, background: '#00c8c8' }} />
-        <span className="leading-tight">
-          <span className="block text-[15px] font-semibold tracking-tight text-white">GoLive</span>
-          <span className="block text-[10px] tracking-wide text-sidebar-foreground/70">Cloud portal</span>
-        </span>
-      </div>
-
-      {/* User */}
-      <div className="mx-4 mt-4 flex items-center gap-3 rounded-xl border border-sidebar-border/70 bg-sidebar-accent/60 px-3 py-3">
-        <div className="flex size-9 items-center justify-center rounded-full bg-gradient-to-br from-[var(--color-chart-2)] to-primary text-sm font-semibold text-white ring-2 ring-white/10">
-          {initials}
-        </div>
-        <div className="min-w-0 leading-tight">
-          <p className="truncate text-sm font-medium text-white">{name}</p>
-          <span className="mt-1 inline-flex items-center rounded-full bg-primary/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-chart-5)] ring-1 ring-inset ring-primary/30">
-            {role}
-          </span>
-        </div>
-      </div>
-
-      {/* Nav */}
-      <nav className="mt-2 flex-1 overflow-y-auto px-3 pb-4">
-        {sections.map((section) => (
-          <div key={section.heading} className="mb-5">
-            <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground/50">
-              {section.heading}
-            </p>
-            <ul className="space-y-1">
-              {section.items.filter((item) => !item.adminOnly || role === "admin").map((item) => {
-                const isActive = active === item.key
-                if (item.href) {
-                  return (
-                    <li key={item.key}>
-                      <a
-                        href={item.href}
-                        className="relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/90 transition-all hover:bg-sidebar-accent/50 hover:text-white"
-                      >
-                        <item.icon className="size-4 shrink-0 text-sidebar-foreground/70" />
-                        <span className="truncate">{item.label}</span>
-                      </a>
-                    </li>
-                  )
-                }
-                return (
-                  <li key={item.key}>
-                    <button
-                      type="button"
-                      onClick={() => onNavigate(item.key)}
-                      aria-current={isActive ? "page" : undefined}
-                      className={cn(
-                        "relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-                        isActive
-                          ? "bg-sidebar-accent text-white shadow-sm ring-1 ring-inset ring-white/10"
-                          : "text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-white",
-                      )}
-                    >
-                      {isActive && <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-[var(--color-chart-2)]" />}
-                      <item.icon className={cn("size-4 shrink-0", isActive ? "text-[var(--color-chart-2)]" : "text-sidebar-foreground/70")} />
-                      <span className="truncate">{item.label}</span>
-                    </button>
-                  </li>
-                )
-              })}
+    <aside
+      className="fixed bottom-0 left-0 top-14 z-20 hidden w-[268px] flex-col border-r border-[#e0e0e0] bg-[#fafafa] lg:flex"
+      aria-label="Portal navigation"
+    >
+      <div className="relative flex min-h-0 flex-1 flex-col">
+      <nav ref={navRef} className="flex-1 overflow-y-auto px-2 py-3">
+        {visible.map((section, i) => (
+          <div key={section.heading || i} className={section.heading ? "mt-3" : ""}>
+            {section.heading && <p className="px-3 pb-0.5 text-xs font-semibold text-[#616161]">{section.heading}</p>}
+            <ul className="space-y-0.5">
+              {section.items.map((item) => <Item key={item.key} item={item} />)}
             </ul>
           </div>
         ))}
 
-        {/* Resources Section */}
-        <div className="mb-5">
+        <div className="mt-3">
           <button
             type="button"
-            onClick={() => setResourcesOpen(v => !v)}
-            className="flex w-full items-center justify-between px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground/50 hover:text-sidebar-foreground/80 transition-colors"
+            onClick={() => setResourcesOpen((v) => !v)}
+            aria-expanded={resourcesOpen}
+            className="flex w-full items-center justify-between rounded-[4px] px-3 py-1 text-xs font-semibold text-[#616161] hover:text-[#242424]"
           >
             <span>Resources</span>
-            <ChevronDown className={cn("size-3 transition-transform", resourcesOpen && "rotate-180")} />
+            <ChevronDown className={cn("size-3.5 transition-transform", resourcesOpen && "rotate-180")} />
           </button>
-
           {resourcesOpen && (
-            <ul className="space-y-1">
-              {resources.map((item) => {
-                const isActive = active === item.key
-                const Icon = item.icon
-                const isExternal = !!item.href
-
+            <ul className="mt-1 space-y-0.5">
+              {resources.map((r) => {
+                const Icon = r.icon
+                const inner = (
+                  <>
+                    <Icon className="size-[18px] shrink-0 text-[#616161]" strokeWidth={1.75} />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate">{r.label}</span>
+                      <span className="block truncate text-[11px] text-[#8a8a8a]">{r.desc}</span>
+                    </span>
+                    {r.href && <ExternalLink className="size-3.5 shrink-0 text-[#8a8a8a]" />}
+                  </>
+                )
                 return (
-                  <li key={item.key}>
-                    {isExternal ? (
-                      <a
-                        href={item.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-white"
-                      >
-                        <Icon className="size-4 shrink-0 text-sidebar-foreground/70" />
-                        <div className="min-w-0 flex-1">
-                          <span className="truncate block text-sm">{item.label}</span>
-                          <span className="text-[10px] text-sidebar-foreground/50 truncate block">{item.desc}</span>
-                        </div>
-                        <ExternalLink className="size-3 shrink-0 text-sidebar-foreground/40" />
-                      </a>
+                  <li key={r.key}>
+                    {r.href ? (
+                      <a href={r.href} target="_blank" rel="noopener noreferrer" className={cn(itemBase, itemIdle, "h-auto py-1.5")}>{inner}</a>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => onNavigate(item.key)}
-                        className={cn(
-                          "relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-                          isActive
-                            ? "bg-sidebar-accent text-white shadow-sm ring-1 ring-inset ring-white/10"
-                            : "text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-white",
-                        )}
-                      >
-                        {isActive && <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-[var(--color-chart-2)]" />}
-                        <Icon className={cn("size-4 shrink-0", isActive ? "text-[var(--color-chart-2)]" : "text-sidebar-foreground/70")} />
-                        <div className="min-w-0 flex-1 text-left">
-                          <span className="truncate block text-sm">{item.label}</span>
-                          <span className="text-[10px] text-sidebar-foreground/50 truncate block">{item.desc}</span>
-                        </div>
-                        {item.badge && (
-                          <span className="shrink-0 rounded-full bg-[var(--color-chart-2)]/20 px-1.5 py-0.5 text-[9px] font-bold text-[var(--color-chart-2)]">
-                            {item.badge}
-                          </span>
-                        )}
-                      </button>
+                      <button type="button" onClick={() => go(r.key)} className={cn(itemBase, active === r.key ? itemOn : itemIdle, "h-auto py-1.5")}>{inner}</button>
                     )}
                   </li>
                 )
@@ -222,38 +187,19 @@ export function Sidebar({ active, onNavigate }: { active: string; onNavigate: (k
           )}
         </div>
       </nav>
+      {moreBelow && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-[#fafafa] to-transparent" aria-hidden="true" />
+      )}
+      </div>
 
-      {/* Footer */}
-      <div className="border-t border-sidebar-border/60 px-4 py-4">
-        <div className="mb-3 flex items-center gap-2.5 rounded-xl border border-[var(--color-chart-2)]/20 bg-[var(--color-chart-2)]/10 px-3 py-2.5">
-          <BadgeCheck className="size-4 shrink-0 text-[var(--color-chart-2)]" />
+      <div className="border-t border-[#e0e0e0] px-2 py-3">
+        <div className="mx-1 flex items-center gap-2.5 rounded-lg border border-[#e0e0e0] bg-white px-3 py-2">
+          <span className="size-2 shrink-0 rounded-full bg-[#107c10]" aria-hidden="true" />
           <div className="leading-tight">
-            <p className="text-[11px] font-semibold text-white">Indirect Provider</p>
-            <p className="text-[10px] text-sidebar-foreground/70">Microsoft CSP · ID 6787357</p>
+            <p className="text-xs font-semibold text-[#242424]">Indirect provider</p>
+            <p className="text-[11px] text-[#616161]">Microsoft CSP, ID 6787357</p>
           </div>
-          <span className="ml-auto size-1.5 animate-pulse rounded-full bg-[var(--color-chart-2)]" />
         </div>
-        <button
-          type="button"
-          onClick={() => onNavigate('account')}
-          className={cn(
-            "mb-1 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            active === 'account'
-              ? "bg-sidebar-accent text-white"
-              : "text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-white"
-          )}
-        >
-          <Settings className="size-4" />
-          Account Settings
-        </button>
-        <button
-          type="button"
-          onClick={() => signOut({ callbackUrl: '/portal/login' })}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-white"
-        >
-          <LogOut className="size-4" />
-          Sign out
-        </button>
       </div>
     </aside>
   )

@@ -206,10 +206,10 @@ export default function PortalPage() {
     <div data-theme="portal" className="min-h-screen bg-background">
       <SessionExpiryWarning />
       <Sidebar active={page} onNavigate={navigate} />
-      <div className="lg:pl-64">
+      <div className="pt-14 lg:pl-[268px]">
         <Topbar page={page} onNavigate={navigate} onNewLead={() => setShowNewLead(true)}
           leads={leads} customers={customers} transfers={transfers} onSelectResult={handleSearchSelect} />
-        <main className="mx-auto max-w-[1600px] space-y-6 px-5 py-6 md:px-8">
+        <main className="mx-auto max-w-[1600px] space-y-6 px-5 pb-10 pt-4 md:px-8">
 
           {/* NEW LEAD MODAL */}
           {showNewLead && (

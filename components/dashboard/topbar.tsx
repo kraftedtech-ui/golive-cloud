@@ -1,26 +1,30 @@
 "use client"
 import { useEffect, useState, useRef } from "react"
-import { useSession } from "next-auth/react"
-import { Search, Bell, Plus } from "lucide-react"
+import { useSession, signOut } from "next-auth/react"
+import { Search, Bell, Plus, Settings, LogOut } from "lucide-react"
 
 const PAGE_LABELS: Record<string, { section: string; title: string }> = {
-  dashboard:    { section: "Admin",   title: "Sales Dashboard" },
-  assessments:  { section: "Sales",  title: "Cloud Assessment Leads" },
-  transfers:    { section: "Sales",  title: "Transfer Requests" },
-  pipeline:     { section: "Sales",  title: "CRM Pipeline" },
-  commissions:  { section: "Sales",  title: "Commissions" },
-  discovery:    { section: "Tools",  title: "Discovery Questionnaire (Internal Assessment)" },
-  proposals:    { section: "Tools",  title: "Proposal Generator" },
-  "product-mapping": { section: "Tools", title: "Product Mapping" },
-  onboarding:   { section: "Tools",  title: "Deployment Workflow" },
-  announcements:{ section: "Team",   title: "Announcements" },
-  knowledge:    { section: "Team",   title: "Knowledge Base" },
-  customers:    { section: "Admin",  title: "Customer Accounts" },
-  "payment-risk": { section: "Admin", title: "Payment & Suspension Risk" },
-  pricing:      { section: "Admin",  title: "Pricing Catalog" },
-  "setup-fees": { section: "Admin",  title: "Setup Fee Catalog" },
-  team:         { section: "Admin",  title: "Team & Access" },
-  resources_cert: { section: "Resources", title: "Certification Guide" },
+  dashboard:         { section: "Home",           title: "Sales dashboard" },
+  assessments:       { section: "Sales",          title: "Cloud assessment leads" },
+  transfers:         { section: "Sales",          title: "Transfer requests" },
+  pipeline:          { section: "Sales",          title: "CRM pipeline" },
+  commissions:       { section: "Sales",          title: "Commissions" },
+  discovery:         { section: "Tools",          title: "Discovery questionnaire" },
+  proposals:         { section: "Tools",          title: "Proposal generator" },
+  "product-mapping": { section: "Tools",          title: "Product mapping" },
+  onboarding:        { section: "Tools",          title: "Deployment workflow" },
+  announcements:     { section: "Team",           title: "Announcements" },
+  knowledge:         { section: "Team",           title: "Knowledge base" },
+  "hr-assessments":  { section: "People",         title: "Candidate assessments" },
+  "hr-people":       { section: "People",         title: "Employees" },
+  positions:         { section: "People",         title: "Positions" },
+  customers:         { section: "Administration", title: "Customer accounts" },
+  "payment-risk":    { section: "Administration", title: "Payment and suspension risk" },
+  pricing:           { section: "Administration", title: "Pricing catalogue" },
+  "setup-fees":      { section: "Administration", title: "Setup fee catalogue" },
+  team:              { section: "Administration", title: "Team and access" },
+  account:           { section: "Account",        title: "Account settings" },
+  resources_cert:    { section: "Resources",      title: "Certification guide" },
 }
 
 interface NotificationItem {
@@ -31,14 +35,6 @@ interface NotificationItem {
   link?: string
   read: boolean
   createdAt: string
-}
-
-const TYPE_ICON: Record<string, string> = {
-  lead_assigned: "📋",
-  lead_status: "🔄",
-  transfer_assigned: "🔁",
-  transfer_status: "🔁",
-  announcement: "📢",
 }
 
 function timeAgo(dateStr: string) {
@@ -64,10 +60,16 @@ export function Topbar({
   const info = PAGE_LABELS[page] || PAGE_LABELS.dashboard
   const { data: session } = useSession()
   const userEmail = session?.user?.email
+  const userName = session?.user?.name || 'Signed in'
+  const userRole = (session?.user as { role?: string } | undefined)?.role || ''
+  const initials = userName.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const [searchQuery, setSearchQuery] = useState("")
   const [searchOpen, setSearchOpen] = useState(false)
@@ -91,6 +93,7 @@ export function Topbar({
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false)
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -115,6 +118,16 @@ export function Topbar({
     setSearchOpen(false)
   }
 
+  // Notification links are either a portal panel key ("pipeline") or a route
+  // ("/portal/people"). A route must be navigated to, not passed to setPage.
+  function openLink(link?: string) {
+    if (!link) return
+    setOpen(false)
+    if (link.startsWith('/')) { window.location.href = link; return }
+    if (onNavigate) onNavigate(link)
+    else window.location.href = `/portal#${link}`
+  }
+
   async function markAsRead(id: string) {
     setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n))
     setUnreadCount(prev => Math.max(0, prev - 1))
@@ -130,65 +143,63 @@ export function Topbar({
   }
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-[#e3e9f0] bg-[#f4f7fb]/80 px-5 backdrop-blur-md md:px-8">
-      <div className="min-w-0">
-        <nav aria-label="Breadcrumb" className="hidden items-center gap-1.5 text-xs text-[#5c7184] sm:flex">
-          <span>{info.section}</span>
-          <span className="text-[#5c7184]">›</span>
-          <span className="font-medium text-[#0d2233]">{info.title}</span>
-        </nav>
-        <h1 className="truncate text-base font-semibold tracking-tight text-[#0d2233] md:text-lg">{info.title}</h1>
-      </div>
-      <div className="ml-auto flex items-center gap-2 md:gap-3">
-        <div className="relative hidden md:block" ref={searchRef}>
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#5c7184]" />
+    <>
+      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center gap-4 border-b border-[#e0e0e0] bg-white pl-3 pr-4 lg:pl-4">
+        <a href="/portal" className="flex shrink-0 items-center gap-3 lg:w-[252px]" aria-label="GoLive Cloud portal, home">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/golive-logo.png" alt="GoLive Digital Solutions Company" className="h-10 w-auto" />
+          <span className="hidden border-l border-[#d1d1d1] pl-3 text-[13px] font-semibold text-[#424242] sm:inline">Cloud portal</span>
+        </a>
+
+        <div className="relative mx-auto hidden w-full max-w-[560px] md:block" ref={searchRef}>
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#616161]" />
           <input
             type="search"
             value={searchQuery}
             onChange={e => { setSearchQuery(e.target.value); setSearchOpen(true) }}
             onFocus={() => setSearchOpen(true)}
-            placeholder="Search customers, refs…"
+            placeholder="Search customers, leads and references"
             aria-label="Search"
-            className="h-9 w-56 rounded-lg border border-[#e3e9f0] bg-white pl-9 pr-3 text-sm text-[#0d2233] shadow-xs outline-none transition-colors placeholder:text-[#5c7184] focus:border-[#0096c7] focus:ring-2 focus:ring-[#0096c7]/30"
+            className="h-8 w-full rounded-[4px] border border-[#d1d1d1] bg-[#fafafa] pl-9 pr-3 text-sm text-[#242424] outline-none placeholder:text-[#616161] focus:border-[#0b7e9b] focus:bg-white focus:ring-1 focus:ring-[#0b7e9b]"
           />
           {searchOpen && q.length >= 2 && (
-            <div className="absolute right-0 z-30 mt-2 w-80 overflow-hidden rounded-lg border border-[#e3e9f0] bg-white shadow-lg">
+            <div className="absolute inset-x-0 z-40 mt-1 overflow-hidden rounded-lg border border-[#e0e0e0] bg-white shadow-[0_0_2px_rgba(0,0,0,.12),0_8px_16px_rgba(0,0,0,.14)]">
               {!hasResults ? (
-                <p className="px-4 py-3 text-xs text-[#5c7184]">No matches for "{searchQuery}"</p>
+                <p className="px-4 py-3 text-sm text-[#616161]">No matches for &ldquo;{searchQuery}&rdquo;</p>
               ) : (
                 <div className="max-h-80 overflow-y-auto py-1">
                   {matchedLeads.length > 0 && (
                     <div>
-                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[#5c7184]">Leads</p>
+                      <p className="px-3 pb-1 pt-2 text-xs font-semibold text-[#616161]">Leads</p>
                       {matchedLeads.map(l => (
                         <button key={l._id} onClick={() => selectResult('lead', l._id)}
-                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-[#f4f7fb]">
-                          <span className="truncate"><span className="font-medium text-[#0d2233]">{l.company}</span> <span className="text-[#5c7184]">— {l.contact}</span></span>
-                          <span className="flex-shrink-0 font-mono text-[10px] text-[#0096c7]">{l.ref}</span>
+                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-[#f5f5f5]">
+                          <span className="truncate"><span className="font-semibold text-[#242424]">{l.company}</span> <span className="text-[#616161]">{l.contact}</span></span>
+                          <span className="shrink-0 text-xs text-[#0b7e9b]">{l.ref}</span>
                         </button>
                       ))}
                     </div>
                   )}
                   {matchedCustomers.length > 0 && (
                     <div>
-                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[#5c7184]">Customers</p>
+                      <p className="px-3 pb-1 pt-2 text-xs font-semibold text-[#616161]">Customers</p>
                       {matchedCustomers.map(c => (
                         <button key={c._id} onClick={() => selectResult('customer', c._id)}
-                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-[#f4f7fb]">
-                          <span className="truncate font-medium text-[#0d2233]">{c.company}</span>
-                          <span className="flex-shrink-0 font-mono text-[10px] text-[#5c7184]">{c.tenantDomain}</span>
+                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-[#f5f5f5]">
+                          <span className="truncate font-semibold text-[#242424]">{c.company}</span>
+                          <span className="shrink-0 text-xs text-[#616161]">{c.tenantDomain}</span>
                         </button>
                       ))}
                     </div>
                   )}
                   {matchedTransfers.length > 0 && (
                     <div>
-                      <p className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide text-[#5c7184]">Transfers</p>
+                      <p className="px-3 pb-1 pt-2 text-xs font-semibold text-[#616161]">Transfers</p>
                       {matchedTransfers.map(t => (
                         <button key={t._id} onClick={() => selectResult('transfer', t._id)}
-                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-[#f4f7fb]">
-                          <span className="truncate"><span className="font-medium text-[#0d2233]">{t.company}</span> <span className="text-[#5c7184]">— {t.domain}</span></span>
-                          <span className="flex-shrink-0 font-mono text-[10px] text-[#0096c7]">{t.ref}</span>
+                          className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-[#f5f5f5]">
+                          <span className="truncate"><span className="font-semibold text-[#242424]">{t.company}</span> <span className="text-[#616161]">{t.domain}</span></span>
+                          <span className="shrink-0 text-xs text-[#0b7e9b]">{t.ref}</span>
                         </button>
                       ))}
                     </div>
@@ -198,56 +209,89 @@ export function Topbar({
             </div>
           )}
         </div>
-        <button className="hidden h-9 items-center gap-1.5 rounded-lg border border-[#e3e9f0] bg-white px-3 text-sm font-normal text-[#5c7184] shadow-xs lg:inline-flex">
-          Last 30 days
-        </button>
 
-        <div className="relative" ref={ref}>
-          <button onClick={() => setOpen(!open)} className="relative flex size-9 items-center justify-center rounded-lg border border-[#e3e9f0] bg-white shadow-xs" aria-label="Notifications">
-            <Bell className="size-4 text-[#5c7184]" />
-            {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white ring-2 ring-white">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
+        <div className="ml-auto flex items-center gap-1 md:ml-0">
+          <div className="relative" ref={ref}>
+            <button onClick={() => setOpen(!open)} aria-label="Notifications" aria-expanded={open}
+              className="relative grid size-9 place-items-center rounded-[4px] text-[#424242] hover:bg-[#f5f5f5]">
+              <Bell className="size-5" strokeWidth={1.75} />
+              {unreadCount > 0 && (
+                <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-[#c50f1f] px-1 text-[9px] font-bold text-white ring-2 ring-white">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+            {open && (
+              <div className="absolute right-0 top-11 z-50 w-96 overflow-hidden rounded-lg border border-[#e0e0e0] bg-white shadow-[0_0_2px_rgba(0,0,0,.12),0_8px_16px_rgba(0,0,0,.14)]">
+                <div className="flex items-center justify-between border-b border-[#e0e0e0] px-4 py-3">
+                  <span className="text-sm font-semibold text-[#242424]">Notifications</span>
+                  {unreadCount > 0 && (
+                    <button onClick={markAllRead} className="text-xs font-semibold text-[#0b7e9b] hover:underline">Mark all as read</button>
+                  )}
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <p className="px-4 py-8 text-center text-sm text-[#616161]">You have no notifications.</p>
+                  ) : (
+                    notifications.map(n => (
+                      <button key={n._id} onClick={() => { markAsRead(n._id); openLink(n.link) }}
+                        className={`flex w-full items-start gap-3 border-b border-[#f0f0f0] px-4 py-3 text-left hover:bg-[#f5f5f5] ${!n.read ? 'bg-[#e8f7fb]' : ''}`}>
+                        <span className={`mt-1.5 size-2 shrink-0 rounded-full ${!n.read ? 'bg-[#0b7e9b]' : 'bg-transparent'}`} aria-hidden="true" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-[#242424]">{n.title}</p>
+                          <p className="mt-0.5 line-clamp-2 text-xs text-[#616161]">{n.message}</p>
+                          <p className="mt-1 text-[11px] text-[#8a8a8a]">{timeAgo(n.createdAt)}</p>
+                        </div>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
             )}
-          </button>
+          </div>
 
-          {open && (
-            <div className="absolute right-0 top-11 z-50 w-80 rounded-xl border border-[#e3e9f0] bg-white shadow-lg">
-              <div className="flex items-center justify-between border-b border-[#e3e9f0] px-4 py-3">
-                <span className="text-sm font-semibold text-[#0d2233]">Notifications</span>
-                {unreadCount > 0 && (
-                  <button onClick={markAllRead} className="text-[11px] font-medium text-[#0096c7] hover:underline">Mark all read</button>
-                )}
-              </div>
-              <div className="max-h-96 overflow-y-auto">
-                {notifications.length === 0 ? (
-                  <p className="px-4 py-8 text-center text-xs text-[#5c7184]">No notifications yet</p>
-                ) : (
-                  notifications.map(n => (
-                    <button key={n._id} onClick={() => { markAsRead(n._id); if (n.link && onNavigate) onNavigate(n.link) }}
-                      className={`flex w-full items-start gap-2.5 border-b border-[#f0f3f7] px-4 py-3 text-left transition-colors hover:bg-[#f4f7fb] ${!n.read ? 'bg-[#eaf6fb]' : ''}`}>
-                      <span className="mt-0.5 text-base">{TYPE_ICON[n.type] || '🔔'}</span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold text-[#0d2233]">{n.title}</p>
-                        <p className="mt-0.5 text-[11px] text-[#5c7184] line-clamp-2">{n.message}</p>
-                        <p className="mt-1 text-[10px] text-[#8a9bb0]">{timeAgo(n.createdAt)}</p>
-                      </div>
-                      {!n.read && <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[#0096c7]" />}
-                    </button>
-                  ))
-                )}
-              </div>
-            </div>
+          {onNewLead && (
+            <button onClick={() => onNewLead()}
+              className="ml-1 hidden h-8 items-center gap-1.5 rounded-[4px] bg-[#0b7e9b] px-3 text-sm font-semibold text-white hover:bg-[#0a7390] sm:inline-flex">
+              <Plus className="size-4" />
+              New lead
+            </button>
           )}
-        </div>
 
-        <button onClick={() => onNewLead?.()}
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-[#0096c7] px-3 text-sm font-semibold text-white shadow-sm hover:bg-[#0096c7]/90">
-          <Plus className="size-4" />
-          <span className="hidden sm:inline">New Lead</span>
-        </button>
+          <div className="relative ml-2" ref={menuRef}>
+            <button onClick={() => setMenuOpen(v => !v)} aria-label="Account menu" aria-expanded={menuOpen}
+              className="grid size-8 place-items-center rounded-full bg-[#12a2c6] text-xs font-bold text-white outline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#242424]">
+              {initials}
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-11 z-50 w-64 overflow-hidden rounded-lg border border-[#e0e0e0] bg-white shadow-[0_0_2px_rgba(0,0,0,.12),0_8px_16px_rgba(0,0,0,.14)]">
+                <div className="border-b border-[#e0e0e0] px-4 py-3">
+                  <p className="truncate text-sm font-semibold text-[#242424]">{userName}</p>
+                  {userEmail && <p className="truncate text-xs text-[#616161]">{userEmail}</p>}
+                  {userRole && <p className="mt-1 text-xs capitalize text-[#616161]">{userRole}</p>}
+                </div>
+                <button onClick={() => { setMenuOpen(false); openLink('account') }}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-[#242424] hover:bg-[#f5f5f5]">
+                  <Settings className="size-4 text-[#616161]" strokeWidth={1.75} /> Account settings
+                </button>
+                <button onClick={() => signOut({ callbackUrl: '/portal/login' })}
+                  className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-[#242424] hover:bg-[#f5f5f5]">
+                  <LogOut className="size-4 text-[#616161]" strokeWidth={1.75} /> Sign out
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-[1600px] px-5 pb-1 pt-6 md:px-8">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-[13px] text-[#616161]">
+          <span>{info.section}</span>
+          <span aria-hidden="true">&rsaquo;</span>
+          <span>{info.title}</span>
+        </nav>
+        <h1 className="mt-1 text-[28px] font-semibold leading-[34px] tracking-[-0.4px] text-[#242424]">{info.title}</h1>
       </div>
-    </header>
+    </>
   )
 }

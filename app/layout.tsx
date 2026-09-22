@@ -1,12 +1,21 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import SessionWrapper from './SessionWrapper'
 
 const inter = Inter({ variable: '--font-inter', subsets: ['latin'] })
+// Portal typeface. Applied only inside [data-theme='portal'] (see globals.css),
+// so the public pages keep their current type until they are redesigned.
+// latin-ext carries the Naira sign.
+const jakarta = Plus_Jakarta_Sans({
+  variable: '--font-jakarta',
+  subsets: ['latin', 'latin-ext'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
-  title: 'GoLive Digital Solutions — Microsoft Cloud for African Businesses',
+  title: 'GoLive Digital Solutions | Microsoft Cloud for African Businesses',
   description: 'Authorized Microsoft CSP partner in Africa. Microsoft 365, Copilot, Azure & Defender licensing, deployment and migration for businesses across Africa. Partner ID 6787357.',
   keywords: ['Microsoft 365 Africa', 'Microsoft CSP Nigeria', 'Microsoft 365 Nigeria', 'Azure Africa', 'Microsoft Copilot Africa', 'GoLive Digital Solutions'],
   openGraph: {
@@ -41,7 +50,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} bg-white`}>
+    <html lang="en" className={`${inter.variable} ${jakarta.variable} bg-white`}>
       <body className="antialiased" style={{ fontFamily: 'var(--font-inter), system-ui, sans-serif' }}>
         <SessionWrapper>{children}</SessionWrapper>
       </body>

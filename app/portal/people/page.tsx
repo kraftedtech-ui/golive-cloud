@@ -1,18 +1,15 @@
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { Sidebar } from '@/components/dashboard/sidebar'
+import { Topbar } from '@/components/dashboard/topbar'
 import HRPeoplePanel from '@/components/dashboard/HRPeoplePanel'
 
 export const dynamic = 'force-dynamic'
 
 /**
- * /portal/people: the HR People layer on its own route.
- *
- * Deliberately independent of the single-page portal shell: the admin check
- * runs on the SERVER (getServerSession), and the page shell is server-rendered,
- * so this screen cannot be hidden by sidebar state, client page state, or a
- * stale client bundle. It is also verifiable with curl from the server.
+ * /portal/people: employee records, inside the same Fluent shell as the portal. The admin check
+ * runs on the server, so the page cannot be reached by a non-admin.
  */
 export default async function PortalPeoplePage() {
   const session = await getServerSession(authOptions)
@@ -21,33 +18,13 @@ export default async function PortalPeoplePage() {
 
   return (
     <div data-theme="portal" className="min-h-screen bg-background">
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3 px-5 py-4 md:px-8">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-              GoLive Cloud portal
-            </p>
-            <h1 className="text-lg font-semibold text-gray-900">People (HR)</h1>
-          </div>
-          <div className="flex gap-2">
-            <Link
-              href="/portal/people/positions"
-              className="rounded-lg bg-sky-700 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-800"
-            >
-              Positions
-            </Link>
-            <Link
-              href="/portal"
-              className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-gray-700 ring-1 ring-border hover:bg-gray-50"
-            >
-              Back to portal
-            </Link>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-[1600px] space-y-6 px-5 py-6 md:px-8">
-        <HRPeoplePanel />
-      </main>
+      <Sidebar active="hr-people" />
+      <div className="pt-14 lg:pl-[268px]">
+        <Topbar page="hr-people" />
+        <main className="mx-auto max-w-[1600px] space-y-6 px-5 pb-10 pt-4 md:px-8">
+          <HRPeoplePanel />
+        </main>
+      </div>
     </div>
   )
 }
