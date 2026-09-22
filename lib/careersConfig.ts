@@ -1,6 +1,7 @@
 /**
  * careersConfig.ts: single source of truth for the public /careers page.
- * Add, close, or edit roles here; the page renders from this list.
+ * Now the FALLBACK only: /careers reads People (HR) > Positions from the
+ * database and uses this list if the database is unavailable.
  * Salary figures are monthly gross NGN.
  */
 
@@ -18,6 +19,8 @@ export interface CareerRole {
   open: boolean
   /** Shown against a filled role, e.g. 'September 2026'. */
   filledOn?: string
+  /** Openings still available, when read from the Positions register. */
+  openingsLeft?: number
   summary: string
   responsibilities: string[]
   requirements: string[]

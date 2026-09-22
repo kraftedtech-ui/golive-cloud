@@ -276,6 +276,17 @@ jobs:
           git show origin/main:app/api/hr/reminders/route.ts > app/api/hr/reminders/route.ts
           git show origin/main:scripts/hr-reminders.sh > scripts/hr-reminders.sh
 
+          # Positions register: the careers page reads from it, and offer
+          # countersignature records hires against it.
+          git show origin/main:models/Position.ts > models/Position.ts
+          git show origin/main:lib/positions.ts > lib/positions.ts
+          mkdir -p app/api/positions "app/api/positions/[id]" "app/api/positions/[id]/hires" app/portal/people/positions
+          git show origin/main:app/api/positions/route.ts > app/api/positions/route.ts
+          git show "origin/main:app/api/positions/[id]/route.ts" > "app/api/positions/[id]/route.ts"
+          git show "origin/main:app/api/positions/[id]/hires/route.ts" > "app/api/positions/[id]/hires/route.ts"
+          git show origin/main:app/portal/people/positions/page.tsx > app/portal/people/positions/page.tsx
+          git show origin/main:components/dashboard/PositionsEditor.tsx > components/dashboard/PositionsEditor.tsx
+
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts
 

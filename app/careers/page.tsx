@@ -1,8 +1,11 @@
 import { Plus_Jakarta_Sans } from 'next/font/google'
-import { CAREERS, CAREERS_CONTACT } from '@/lib/careersConfig'
+import { CAREERS_CONTACT } from '@/lib/careersConfig'
+import { getPublicRoles } from '@/lib/positions'
 import CareersBoard from '@/components/careers/CareersBoard'
 
-export const dynamic = 'force-static'
+// Rendered per request from People (HR) > Positions, so opening or closing a
+// role shows immediately. Never touches the database at build time.
+export const dynamic = 'force-dynamic'
 
 const jakarta = Plus_Jakarta_Sans({
   // latin-ext is required: the Naira sign (U+20A6) is not in the latin subset,
@@ -27,8 +30,9 @@ const STEPS: [string, string][] = [
   ['Screening', 'Pre-employment checks by Background Check International.'],
 ]
 
-export default function CareersPage() {
-  const openCount = CAREERS.filter((r) => r.open).length
+export default async function CareersPage() {
+  const { roles } = await getPublicRoles()
+  const openings = roles.filter((r) => r.open).reduce((n, r) => n + (r.openingsLeft ?? 1), 0)
 
   return (
     <div className={`${jakarta.variable} gl-careers`}>
@@ -55,10 +59,10 @@ export default function CareersPage() {
               licensed Cloud Solution Provider. Salary ranges are published for every role.
             </p>
           </div>
-          <span className="gl-badge">{openCount} open in Lagos</span>
+          <span className="gl-badge">{openings} {openings === 1 ? 'opening' : 'openings'} in Lagos</span>
         </div>
 
-        <CareersBoard roles={CAREERS} contact={CAREERS_CONTACT} />
+        <CareersBoard roles={roles} contact={CAREERS_CONTACT} />
 
         <section className="cb-pane gl-process" aria-labelledby="hire-h">
           <h2 id="hire-h">How we hire</h2>
@@ -149,6 +153,8 @@ button.cb-row:hover { background: var(--bg2); }
 button.cb-row:hover .cb-title { color: var(--brand-pressed); }
 .cb-title { font-weight: 600; font-size: 15px; letter-spacing: -0.2px; color: var(--fg1); }
 .cb-meta { color: var(--fg2); }
+.cb-openings { display: table; margin: 5px 0 0; height: 20px; line-height: 20px; padding: 0 7px; border-radius: 10px;
+  background: var(--brand-tint); color: var(--brand-pressed); font-size: 11.5px; font-weight: 600; letter-spacing: 0; }
 .cb-num { text-align: right; font-variant-numeric: tabular-nums; }
 .cb-group { height: 38px; display: flex; align-items: center; padding: 0 22px; font-size: 12px; font-weight: 600; color: var(--fg3);
   background: var(--bg2); border-bottom: 1px solid var(--stroke3); }

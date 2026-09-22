@@ -72,7 +72,10 @@ export default function CareersBoard({ roles, contact }: { roles: CareerRole[]; 
 
           {shown.map((r) => (
             <button key={r.slug} className="cb-row" onClick={(e) => show(r, e.currentTarget)} aria-haspopup="dialog">
-              <span className="cb-title">{r.title}</span>
+              <span className="cb-title">
+                {r.title}
+                {(r.openingsLeft ?? 1) > 1 && <span className="cb-openings">{r.openingsLeft} openings</span>}
+              </span>
               <span className="cb-meta">{r.department}</span>
               <span className="cb-meta cb-type">{r.type}</span>
               <span className="cb-num">{fmtNairaRange(r.salaryLower, r.salaryUpper)}</span>
@@ -112,7 +115,10 @@ export default function CareersBoard({ roles, contact }: { roles: CareerRole[]; 
               <header className="cb-dh">
                 <div>
                   <h2 id="cb-drawer-title">{active.title}</h2>
-                  <p>{active.department}</p>
+                  <p>
+                    {active.department}
+                    {(active.openingsLeft ?? 1) > 1 ? `, ${active.openingsLeft} openings` : ''}
+                  </p>
                 </div>
                 <button ref={closeRef} className="cb-x" onClick={close} aria-label="Close">
                   <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>

@@ -154,7 +154,13 @@ export default function HRAssessmentsPanel() {
       })
       const data = await res.json().catch(() => ({} as Record<string, unknown>))
       if (!res.ok) { alert('Countersign failed: ' + (data.error || res.status)); return }
-      alert('Offer fully executed. ' + (data.emailSent ? 'The candidate has been emailed their signed copy.' : 'NOTE: the notification email failed: ' + (data.emailError || 'unknown error')))
+      const pos = data.position as { title: string; left: number; filled: boolean } | null | undefined
+      const posLine = pos
+        ? (pos.filled
+            ? `\n\nHire recorded against ${pos.title}. All openings are now filled, so it shows as filled on the careers page.`
+            : `\n\nHire recorded against ${pos.title}. ${pos.left} ${pos.left === 1 ? 'opening remains' : 'openings remain'} on the careers page.`)
+        : `\n\nNo open position matched this role, so no hire was recorded. Record it in People (HR) > Positions if needed.`
+      alert('Offer fully executed. ' + (data.emailSent ? 'The candidate has been emailed their signed copy.' : 'NOTE: the notification email failed: ' + (data.emailError || 'unknown error')) + posLine)
       load()
     } finally { setUpdatingStatus(null) }
   }

@@ -7,6 +7,7 @@ import { signOfferToken } from '@/lib/offerToken'
 import { sendExecutedEmail } from '@/lib/offerEmail'
 import { MD_NAME } from '@/lib/offerConfig'
 import { nextEmployeeNumber, ensureEmployeeFromApplication } from '@/lib/employees'
+import { recordHireForApplication } from '@/lib/positions'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'No offer on record for this application.' }, { status: 404 })
   }
   if (!app.offer.candidateSignedAt) {
-    return NextResponse.json({ error: 'The candidate has not signed yet — countersign after their signature.' }, { status: 409 })
+    return NextResponse.json({ error: 'The candidate has not signed yet. Countersign after their signature.' }, { status: 409 })
   }
   if (app.offer.mdSignedAt) {
     return NextResponse.json({ error: 'This offer is already fully executed.' }, { status: 409 })
@@ -56,6 +57,17 @@ export async function POST(req: NextRequest) {
     console.error('[employee] conversion at countersignature failed:', e)
   }
 
+  // A countersigned offer is an executed hire: record it against the open
+  // position with this title, so the careers page updates itself. Failure is
+  // logged and never rolls back the signature; it can be recorded by hand in
+  // People (HR) > Positions.
+  let position: Awaited<ReturnType<typeof recordHireForApplication>> = null
+  try {
+    position = await recordHireForApplication(app)
+  } catch (e) {
+    console.error('[positions] hire recording at countersignature failed:', e)
+  }
+
   // Fully-executed notice with a 30-day PDF link. Email failure is reported
   // but never rolls back the signature.
   const pdfToken = signOfferToken(app.ref, new Date(Date.now() + 30 * 864e5))
@@ -64,5 +76,5 @@ export async function POST(req: NextRequest) {
   })
   if (!result.ok) console.error('[offer] executed email failed:', result.error)
 
-  return NextResponse.json({ ok: true, emailSent: result.ok, emailError: result.error })
+  return NextResponse.json({ ok: true, emailSent: result.ok, emailError: result.error, position })
 }
