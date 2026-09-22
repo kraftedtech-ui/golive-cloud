@@ -73,6 +73,10 @@ async function verifyCode(){
     })
     const data=await res.json()
     if(data.valid){
+      // The question count and time come from the server's bank, so every
+      // label before Begin matches the paper the candidate will receive.
+      if(data.count)ROLE.count=data.count
+      if(data.minutes)ROLE.minutes=data.minutes
       st.codeVerified=true
       st.token=data.token||''
       st.candidateRole=role

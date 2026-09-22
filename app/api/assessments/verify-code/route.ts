@@ -3,6 +3,21 @@ import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import { signAssessmentToken } from '@/lib/assessmentToken'
 import { normaliseCode } from '@/lib/recruitment'
+import { getBank } from '@/lib/assessmentBank'
+
+/**
+ * The question count and time limit the candidate will actually get, taken
+ * from the bank so the pre-assessment screens can never disagree with the
+ * paper the server issues. (They used to be typed into each page by hand.)
+ */
+function formatFor(role: string): { count?: number; minutes?: number } {
+  const bank = getBank(role)
+  if (!bank) return {}
+  const written = bank.questions.filter((q) => q.type === 'text').length
+  const marked = bank.questions.length - written
+  const drawn = bank.draw && bank.draw < marked ? bank.draw : marked
+  return { count: drawn + written, minutes: bank.minutes }
+}
 
 export const dynamic = 'force-dynamic'
 
@@ -56,6 +71,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
           valid: true, token, registered: true,
           ref: app.ref, name: app.name, email: app.email,
+          ...formatFor(app.role),
           message: 'Access granted.',
         })
       }
@@ -66,7 +82,7 @@ export async function POST(req: NextRequest) {
     if (expected && String(code).trim().toUpperCase() === expected.toUpperCase()) {
       const token = signAssessmentToken({ role })
       if (!token) return unavailable()
-      return NextResponse.json({ valid: true, token, registered: false, message: 'Access granted.' })
+      return NextResponse.json({ valid: true, token, registered: false, ...formatFor(role), message: 'Access granted.' })
     }
 
     return NextResponse.json({
