@@ -28,6 +28,32 @@ export interface CareerRole {
 
 export const CAREERS: CareerRole[] = [
   {
+    slug: 'administrative-assistant',
+    title: 'Administrative Assistant',
+    department: 'Management & Administration',
+    type: 'Full-time',
+    location: 'Lagos, hybrid',
+    salaryLower: 180000,
+    salaryUpper: 250000,
+    open: true,
+    summary: 'Work directly with the Managing Director to keep the diary, correspondence and deadlines in order, prepare briefings, and follow up decisions across the business so that nothing important slips.',
+    responsibilities: [
+      "Manage the MD's diary across time zones, schedule meetings, and prepare agendas and briefing packs in advance",
+      "Screen and prioritise the MD's correspondence, draft replies for approval, and track items awaiting a decision",
+      'Keep the action tracker from management meetings and follow up with owners until each item is closed',
+      'Maintain the compliance calendar: statutory filings, licence and subscription renewals, and regulatory deadlines, flagged well in advance',
+      'Prepare accurate documents, reports and presentations, and keep official records filed and easy to retrieve',
+      "Coordinate travel, visitors and logistics, and keep the MD's expenses ready for reconciliation",
+    ],
+    requirements: [
+      'Excellent written English, discretion, and rigorous attention to detail',
+      'Strong Microsoft 365 skills: Outlook calendar and mail, Word, Excel, PowerPoint, Teams and OneDrive',
+      'Two or more years supporting a senior manager, or in an administrative role with real responsibility',
+      'Sound judgement about what needs the MD, what can be handled, and what should be delegated',
+      'Comfortable working with a manager in another time zone and communicating clearly in writing',
+    ],
+  },
+  {
     slug: 'full-stack-engineer',
     title: 'Full Stack Engineer',
     department: 'Technical & IT Operations',

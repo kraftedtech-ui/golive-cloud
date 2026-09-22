@@ -330,6 +330,8 @@ jobs:
           git show origin/main:public/assessment.html > public/assessment.html
           git show origin/main:public/assessment-core.js > public/assessment-core.js
           git show origin/main:public/assessment-sales.html > public/assessment-sales.html
+          git show origin/main:public/assessment-admin.html > public/assessment-admin.html
+          git show origin/main:public/assessment-engineer.html > public/assessment-engineer.html
           git show origin/main:public/assessment-social.html > public/assessment-social.html
           git show origin/main:public/assessment-hosting.html > public/assessment-hosting.html
           mkdir -p components

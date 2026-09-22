@@ -24,7 +24,7 @@ export const metadata = {
 
 const STEPS: [string, string][] = [
   ['Apply online', 'Two minutes on this page. Your assessment code is emailed to you straight away.'],
-  ['Online assessment', 'Proctored, about 30 minutes, taken within 14 days at a time that suits you.'],
+  ['Online assessment', 'Proctored, 35 to 40 minutes depending on the role, taken within 14 days at a time that suits you.'],
   ['Review', 'Candidates who meet the pass mark are reviewed by the Managing Director.'],
   ['Interview', 'A structured conversation with the Managing Director.'],
   ['Offer and screening', 'A digital offer signed on this portal, then checks by Background Check International.'],

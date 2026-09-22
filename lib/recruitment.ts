@@ -11,6 +11,10 @@
 import crypto from 'crypto'
 import { Resend } from 'resend'
 import { PORTAL_URL, COMPANY, COMPANY_RC } from './offerConfig'
+import { getBank } from './assessmentBank'
+
+/** The time allowed for a role's assessment, from the bank, so emails never drift from the test. */
+const minutesFor = (role: string) => getBank(role)?.minutes ?? 35
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM = 'GoLive Talent Acquisition <talent.acquisition@golivecompany.com>'
@@ -40,6 +44,8 @@ export const ASSESSMENT_PAGE: Record<string, string> = {
   'Social Media & Community Manager': '/assessment-social.html',
   'Hosting Support Technician': '/assessment-hosting.html',
   'Sales & Support Associate': '/assessment-sales.html',
+  'Administrative Assistant': '/assessment-admin.html',
+  'Full Stack Engineer': '/assessment-engineer.html',
 }
 
 const esc = (s: string) =>
@@ -79,7 +85,7 @@ export function sendApplicationReceived(a: {
   return send(a.email, `Your application for ${a.role}: next step`, shell(`
     <p>Dear ${esc(first(a.name))},</p>
     <p>Thank you for applying for the <strong>${esc(a.role)}</strong> position at ${esc(COMPANY)}. Your application reference is <strong>${esc(a.ref)}</strong>. Please keep it for any correspondence about your application.</p>
-    <p>The first stage is an online assessment. It is proctored, so your camera must be on and you will need a laptop or desktop with a working camera in a quiet place. It takes about 30 minutes, and you may take it at any time before <strong>${esc(fmtDate(a.expiresAt))}</strong>.</p>
+    <p>The first stage is an online assessment. It is proctored, so your camera must be on and you will need a laptop or desktop with a working camera in a quiet place. It takes about ${minutesFor(a.role)} minutes, and you may take it at any time before <strong>${esc(fmtDate(a.expiresAt))}</strong>.</p>
     <div style="background:#e8f7fb;border:1px solid #a3dbe9;border-radius:8px;padding:16px;text-align:center;margin:18px 0">
       <p style="margin:0 0 4px;font-size:12px;color:#0b7e9b;font-weight:600">Your access code</p>
       <p style="margin:0;font-size:26px;font-weight:700;letter-spacing:0.12em;color:#0f2a2e">${esc(a.code)}</p>
@@ -98,7 +104,7 @@ export function sendAssessmentReminder(a: {
   return send(a.email, `Reminder: your ${a.role} assessment closes on ${fmtDate(a.expiresAt)}`, shell(`
     <p>Dear ${esc(first(a.name))},</p>
     <p>A week ago you applied for the <strong>${esc(a.role)}</strong> position (reference ${esc(a.ref)}). Our records show the online assessment has not yet been taken.</p>
-    <p>It closes on <strong>${esc(fmtDate(a.expiresAt))}</strong>. After that date your application cannot be taken further, so if you are still interested, please set aside about 30 minutes before then.</p>
+    <p>It closes on <strong>${esc(fmtDate(a.expiresAt))}</strong>. After that date your application cannot be taken further, so if you are still interested, please set aside about ${minutesFor(a.role)} minutes before then.</p>
     <div style="background:#e8f7fb;border:1px solid #a3dbe9;border-radius:8px;padding:14px;text-align:center;margin:18px 0">
       <p style="margin:0 0 4px;font-size:12px;color:#0b7e9b;font-weight:600">Your access code</p>
       <p style="margin:0;font-size:24px;font-weight:700;letter-spacing:0.12em;color:#0f2a2e">${esc(a.code)}</p>

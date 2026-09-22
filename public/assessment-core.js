@@ -15,6 +15,19 @@
 
 const TOTAL=(ROLE.minutes||30)*60
 let QUESTIONS=[]
+
+// Question text is escaped before display, so code such as "if (a < b)" or
+// "<div>" shows as written instead of being read as page markup. Two simple
+// conventions format code: `inline` and ```block``` (as in the bank file).
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function fmtText(s){
+  const blocks=[]
+  let t=String(s==null?'':s).replace(/```\n?([\s\S]*?)```/g,(m,code)=>{blocks.push(code.replace(/\n$/,''));return '\u0000'+(blocks.length-1)+'\u0000'})
+  t=escHtml(t).replace(/`([^`\n]+)`/g,'<code class="qcode">$1</code>').replace(/\n/g,'<br>')
+  return t.replace(/\u0000(\d+)\u0000/g,(m,i)=>'<pre class="qpre">'+escHtml(blocks[+i])+'</pre>')
+}
+(function(){const css='.qcode{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.92em;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 5px}.qpre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12.5px;line-height:1.55;background:#0f172a;color:#e2e8f0;border-radius:8px;padding:12px 14px;margin:10px 0;overflow-x:auto;white-space:pre;text-align:left}';const el=document.createElement('style');el.textContent=css;document.head.appendChild(el)})()
+
 let st={phase:'code-gate',codeVerified:false,consentGiven:false,candidateName:'',candidateEmail:'',candidateRole:'',appRef:'',camGranted:false,stream:null,recorder:null,chunks:[],recBlob:null,violations:[],tabSwitches:0,pasteTries:0,current:0,answers:{},textAnswers:{},secs:TOTAL,timerInterval:null}
 
 function logV(msg){const t=new Date().toLocaleTimeString();st.violations.push(`[${t}] ${msg}`)}
@@ -314,12 +327,12 @@ function renderQuiz(){
   const vCount=st.violations.length
   let qHtml=''
   if(q.type==='mcq'){
-    qHtml=q.opts.map((o,i)=>`<div class="opt ${st.answers[q.id]===i?'sel':''}" onclick="pick('${q.id}',${i})"><input type="radio" name="${q.id}" ${st.answers[q.id]===i?'checked':''}><span class="opt-text">${o}</span></div>`).join('')
+    qHtml=q.opts.map((o,i)=>`<div class="opt ${st.answers[q.id]===i?'sel':''}" onclick="pick('${q.id}',${i})"><input type="radio" name="${q.id}" ${st.answers[q.id]===i?'checked':''}><span class="opt-text">${fmtText(o)}</span></div>`).join('')
   }else if(q.type==='tf'){
     const a=st.answers[q.id]
     qHtml=`<div class="tf-row"><button class="tf-btn ${a==='True'?'sel':''}" onclick="pickTF('${q.id}','True')">True</button><button class="tf-btn ${a==='False'?'sel':''}" onclick="pickTF('${q.id}','False')">False</button></div>`
   }else{
-    qHtml=`<textarea id="ta_${q.id}" placeholder="${q.placeholder||''}" onblur="saveTA('${q.id}')">${st.textAnswers[q.id]||''}</textarea>`
+    qHtml=`<textarea id="ta_${q.id}" placeholder="${escHtml(q.placeholder||'')}" onblur="saveTA('${q.id}')">${escHtml(st.textAnswers[q.id]||'')}</textarea>`
   }
   const warn=st.tabSwitches>0||st.pasteTries>0
   return `
@@ -334,8 +347,8 @@ function renderQuiz(){
   <i class="ti ti-alert-triangle"></i> ${st.tabSwitches>0?`Tab switch detected (${st.tabSwitches}×).`:''} ${st.pasteTries>0?`Paste blocked (${st.pasteTries}×).`:''} All violations are recorded.
 </div>
 <div class="prog"><div class="prog-fill" style="width:${pct}%"></div></div>
-<p class="q-text">${q.text}</p>
-${q.sub?`<p class="q-sub">${q.sub}</p>`:''}
+<div class="q-text">${fmtText(q.text)}</div>
+${q.sub?`<p class="q-sub">${fmtText(q.sub)}</p>`:''}
 ${qHtml}
 <div class="err" id="qerr"></div>
 <div class="nav">

@@ -2944,6 +2944,1446 @@ const QUESTIONS: Record<string, BankQuestion[]> = {
       "placeholder": "Dear Mrs Okafor, I am writing to update you on...",
       "id": "s2q62"
     }
+  ],
+  "Administrative Assistant": [
+    {
+      "sec": "Section A: Diary and time management",
+      "type": "mcq",
+      "text": "The MD works from a time zone five hours behind Lagos. A Lagos client asks for a meeting at 9am Lagos time. What should you do?",
+      "opts": [
+        "Book 9am; the client asked for it",
+        "Book it and tell the MD to join at 4am",
+        "Ask the client to call the MD directly",
+        "Propose a time that falls in both working days, such as 2pm or 3pm Lagos time, and show both local times in the invitation"
+      ],
+      "correct": 3,
+      "explain": "Good diary management protects the MD's working hours and makes the time unambiguous for everyone by stating both zones.",
+      "id": "a2q01"
+    },
+    {
+      "sec": "Section A: Diary and time management",
+      "type": "mcq",
+      "text": "Two meetings are requested for the same slot: the company's bank relationship manager about a facility renewal, and a supplier wanting to introduce a new product. Which do you give the slot to?",
+      "opts": [
+        "Whoever asked first",
+        "The supplier, as it might save money",
+        "Both, as a joint meeting",
+        "The bank facility renewal, since it has a deadline and financial consequence; offer the supplier another time"
+      ],
+      "correct": 3,
+      "explain": "Prioritise by consequence and deadline, not by order of request.",
+      "id": "a2q02"
+    },
+    {
+      "sec": "Section A: Diary and time management",
+      "type": "mcq",
+      "text": "The MD's diary has back-to-back meetings from 9am to 5pm. What should an assistant build in?",
+      "opts": [
+        "More meetings in the gaps",
+        "Nothing; a full diary shows productivity",
+        "Short buffers between meetings and a protected block for preparation and follow-up",
+        "Lunch meetings only"
+      ],
+      "correct": 2,
+      "explain": "Back-to-back diaries leave no time to prepare or act on decisions. Buffers keep meetings useful.",
+      "id": "a2q03"
+    },
+    {
+      "sec": "Section A: Diary and time management",
+      "type": "mcq",
+      "text": "A meeting the MD must attend is moved at short notice. What is the complete response?",
+      "opts": [
+        "Update the calendar only",
+        "Tell the MD only",
+        "Wait for the MD to notice",
+        "Update the calendar, inform all attendees, move any linked preparation, and tell the MD what changed and why"
+      ],
+      "correct": 3,
+      "explain": "A reschedule has knock-on effects. Closing every loop prevents confusion.",
+      "id": "a2q04"
+    },
+    {
+      "sec": "Section A: Diary and time management",
+      "type": "mcq",
+      "text": "The MD asks you to 'keep Friday afternoon clear'. A senior client asks for Friday at 3pm. What do you do?",
+      "opts": [
+        "Book it; the client is senior",
+        "Refuse the client outright",
+        "Book it and tell the MD afterwards",
+        "Offer the client other times first; if only Friday works, ask the MD before booking"
+      ],
+      "correct": 3,
+      "explain": "A standing instruction holds unless the MD changes it. Asking is quicker than repairing a broken commitment.",
+      "id": "a2q05"
+    },
+    {
+      "sec": "Section A: Diary and time management",
+      "type": "mcq",
+      "text": "Which tool in Outlook helps most when booking a meeting for several busy managers?",
+      "opts": [
+        "The Scheduling Assistant, showing everyone's availability side by side",
+        "An out-of-office reply",
+        "A distribution list",
+        "The Rules wizard"
+      ],
+      "correct": 0,
+      "explain": "It avoids long email exchanges by showing free and busy times directly.",
+      "id": "a2q06"
+    },
+    {
+      "sec": "Section A: Diary and time management",
+      "type": "tf",
+      "text": "A calendar invitation should state the purpose of the meeting and what attendees should prepare, not only the time.",
+      "correct": "True",
+      "explain": "Purpose and preparation make meetings shorter and more productive.",
+      "id": "a2q07"
+    },
+    {
+      "sec": "Section A: Diary and time management",
+      "type": "tf",
+      "text": "When the MD travels across time zones, calendar entries should be adjusted so appointments still show at the correct local time.",
+      "correct": "True",
+      "explain": "Outlook converts time zones automatically if entries are created correctly; checking avoids missed meetings.",
+      "id": "a2q08"
+    },
+    {
+      "sec": "Section B: Correspondence and drafting",
+      "type": "mcq",
+      "text": "The MD receives 120 emails a day. What is the most useful way to help?",
+      "opts": [
+        "Forward all 120 with no comment",
+        "Delete anything that looks unimportant",
+        "Reply to everything in the MD's name",
+        "Sort and summarise daily: what needs the MD's decision, what you can handle or delegate, and what is for information only"
+      ],
+      "correct": 3,
+      "explain": "The assistant's value is filtering and framing, so the MD spends time only on what needs the MD.",
+      "id": "a2q09"
+    },
+    {
+      "sec": "Section B: Correspondence and drafting",
+      "type": "mcq",
+      "text": "You draft a reply for the MD to a regulator's letter. What must happen before it is sent?",
+      "opts": [
+        "Send it if it seems accurate",
+        "Send it and copy the MD",
+        "The MD reviews and approves it; anything in the MD's name, especially to a regulator, needs explicit approval",
+        "Ask a colleague to check and send it"
+      ],
+      "correct": 2,
+      "explain": "Official correspondence commits the company. Drafting is your role; approval is the MD's.",
+      "id": "a2q10"
+    },
+    {
+      "sec": "Section B: Correspondence and drafting",
+      "type": "mcq",
+      "text": "Which is the most professional opening for a formal letter to a government agency?",
+      "opts": [
+        "'Hi there,'",
+        "'Dear Sir or Madam,' or the named officer's title, followed by a subject line stating the matter and reference number",
+        "'To whom it may concern' with no subject",
+        "'Good day, hope you are well' as the only opening"
+      ],
+      "correct": 1,
+      "explain": "A formal salutation and a clear subject with the reference number make the letter easy to route and answer.",
+      "id": "a2q11"
+    },
+    {
+      "sec": "Section B: Correspondence and drafting",
+      "type": "mcq",
+      "text": "An email thread about a supplier dispute has 18 replies. The MD asks 'what is the position?'. What do you send?",
+      "opts": [
+        "The full thread",
+        "Your personal opinion of the supplier",
+        "A reply saying 'it is complicated'",
+        "A short summary: the issue, what each side has said, what is agreed, what is outstanding, and the decision needed"
+      ],
+      "correct": 3,
+      "explain": "Summaries save the MD reading 18 emails and lead straight to the decision.",
+      "id": "a2q12"
+    },
+    {
+      "sec": "Section B: Correspondence and drafting",
+      "type": "mcq",
+      "text": "Which sentence is written in a clear, professional register?",
+      "opts": [
+        "'Pls see attached, revert asap!!'",
+        "'Attached herewith please find enclosed the agreement which is attached.'",
+        "'FYI the thing we talked about.'",
+        "'Please find attached the signed agreement. Kindly confirm receipt by Friday.'"
+      ],
+      "correct": 3,
+      "explain": "Clear, courteous and specific. Avoid slang, abbreviations and redundant phrasing.",
+      "id": "a2q13"
+    },
+    {
+      "sec": "Section B: Correspondence and drafting",
+      "type": "mcq",
+      "text": "A caller insists on speaking to the MD immediately but will not say why. What do you do?",
+      "opts": [
+        "Put them through to the MD's personal phone",
+        "Hang up",
+        "Politely explain the MD is unavailable, take their name, number and purpose, and say you will pass the message on",
+        "Give them the MD's personal number"
+      ],
+      "correct": 2,
+      "explain": "Gatekeeping protects the MD's time and privacy. A proper message is passed on promptly.",
+      "id": "a2q14"
+    },
+    {
+      "sec": "Section B: Correspondence and drafting",
+      "type": "tf",
+      "text": "Proofreading names, dates and figures in a letter is more important than its formatting.",
+      "correct": "True",
+      "explain": "A wrong name, date or amount can cause real harm; formatting problems are cosmetic.",
+      "id": "a2q15"
+    },
+    {
+      "sec": "Section B: Correspondence and drafting",
+      "type": "tf",
+      "text": "It is acceptable to sign the MD's name on routine letters without asking, if it saves time.",
+      "correct": "False",
+      "explain": "Only the MD, or someone they have authorised in writing, signs in the MD's name.",
+      "id": "a2q16"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "mcq",
+      "text": "What should a briefing pack for the MD's meeting with a potential partner include?",
+      "opts": [
+        "The purpose and desired outcome, background on the organisation and attendees, key figures, open issues, and suggested questions",
+        "Only the meeting time",
+        "The partner's entire website printed out",
+        "Minutes from unrelated meetings"
+      ],
+      "correct": 0,
+      "explain": "A good brief lets the MD walk in prepared in five minutes.",
+      "id": "a2q17"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "mcq",
+      "text": "After a management meeting, three managers each agreed to deliver something by Friday. What is your role?",
+      "opts": [
+        "Nothing; they are managers",
+        "Record each action with its owner and date in the tracker, send a reminder before Friday, and report to the MD what is done and what is late",
+        "Do the three tasks yourself",
+        "Remind them every hour"
+      ],
+      "correct": 1,
+      "explain": "Following up agreed actions is the oversight support an MD relies on. It turns decisions into results.",
+      "id": "a2q18"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "mcq",
+      "text": "A manager misses a deadline recorded in the action tracker for the second time. What do you do?",
+      "opts": [
+        "Tell other staff about it",
+        "Ask them for a revised date and any obstacle, update the tracker, and flag it factually to the MD",
+        "Remove the action from the tracker",
+        "Reprimand the manager yourself"
+      ],
+      "correct": 1,
+      "explain": "The assistant surfaces facts for the MD; performance matters are the MD's to address.",
+      "id": "a2q19"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "mcq",
+      "text": "What is the best format for tracking actions from many meetings?",
+      "opts": [
+        "Notes scattered across emails",
+        "A separate document per meeting nobody revisits",
+        "One tracker listing each action, owner, due date, status and source meeting, reviewed weekly with the MD",
+        "Memory"
+      ],
+      "correct": 2,
+      "explain": "A single tracker makes status visible and nothing is lost between meetings.",
+      "id": "a2q20"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "mcq",
+      "text": "Minutes of a board meeting should be:",
+      "opts": [
+        "A word-for-word transcript",
+        "A summary of the chair's opinions",
+        "Accurate, neutral records of decisions and actions, approved at the next meeting and filed securely",
+        "Shared publicly on social media"
+      ],
+      "correct": 2,
+      "explain": "Board minutes are official records. Accuracy, neutrality and secure filing matter.",
+      "id": "a2q21"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "mcq",
+      "text": "The MD asks for a weekly one-page update. What belongs on it?",
+      "opts": [
+        "Every email received",
+        "Staff birthdays",
+        "Decisions needed, deadlines in the coming fortnight, overdue actions, and notable changes since last week",
+        "The same text every week"
+      ],
+      "correct": 2,
+      "explain": "One page of exceptions and decisions is more useful than a full account of activity.",
+      "id": "a2q22"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "tf",
+      "text": "A meeting that ends without agreed actions, owners and dates is likely to need repeating.",
+      "correct": "True",
+      "explain": "Without clear actions, nothing moves and the same discussion recurs.",
+      "id": "a2q23"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "tf",
+      "text": "An assistant should only follow up actions if the MD asks each time.",
+      "correct": "False",
+      "explain": "Routine follow-up of agreed actions is part of the role; the MD should not have to request it.",
+      "id": "a2q24"
+    },
+    {
+      "sec": "Section D: Records, deadlines and compliance calendar",
+      "type": "mcq",
+      "text": "What is a compliance calendar?",
+      "opts": [
+        "The MD's holiday plan",
+        "A list of public holidays",
+        "A marketing content plan",
+        "A schedule of every statutory filing, licence, permit and contract renewal date, with reminders set well before each deadline"
+      ],
+      "correct": 3,
+      "explain": "Missing a statutory deadline can bring penalties. A calendar with early reminders prevents it.",
+      "id": "a2q25"
+    },
+    {
+      "sec": "Section D: Records, deadlines and compliance calendar",
+      "type": "mcq",
+      "text": "The company's annual return must be filed with the Corporate Affairs Commission. When should the reminder be set?",
+      "opts": [
+        "Several weeks before the deadline, so documents and approvals can be gathered in time",
+        "On the deadline day",
+        "The day after the deadline",
+        "Only if the MD asks"
+      ],
+      "correct": 0,
+      "explain": "Filings need information from several people. Early reminders allow for delays.",
+      "id": "a2q26"
+    },
+    {
+      "sec": "Section D: Records, deadlines and compliance calendar",
+      "type": "mcq",
+      "text": "Which file name follows good records practice?",
+      "opts": [
+        "minutes.pdf",
+        "new minutes FINAL (2).pdf",
+        "scan001.pdf",
+        "2026-10-05_BoardMinutes_Q3_Approved.pdf"
+      ],
+      "correct": 3,
+      "explain": "A date-first, descriptive name sorts correctly and shows the content and status.",
+      "id": "a2q27"
+    },
+    {
+      "sec": "Section D: Records, deadlines and compliance calendar",
+      "type": "mcq",
+      "text": "A signed contract, an original certificate and an insurance policy arrive. How should they be kept?",
+      "opts": [
+        "Left in the MD's inbox",
+        "Scanned to the agreed secure folder with standard names, originals stored securely, and their key dates added to the calendar",
+        "Kept in your desk drawer only",
+        "Photographed on your phone"
+      ],
+      "correct": 1,
+      "explain": "Official documents need a findable digital copy, a safe original and their dates tracked.",
+      "id": "a2q28"
+    },
+    {
+      "sec": "Section D: Records, deadlines and compliance calendar",
+      "type": "mcq",
+      "text": "The company's Microsoft 365 and domain subscriptions renew on different dates. Where should these be tracked?",
+      "opts": [
+        "In the compliance calendar alongside licences and filings, with the renewal owner and cost",
+        "Nowhere; they renew automatically",
+        "Only in the bank statement",
+        "In your personal notes"
+      ],
+      "correct": 0,
+      "explain": "Automatic renewals still need tracking: failed payments and unwanted renewals both cost money.",
+      "id": "a2q29"
+    },
+    {
+      "sec": "Section D: Records, deadlines and compliance calendar",
+      "type": "mcq",
+      "text": "You find three versions of the same policy document in different folders. What is correct?",
+      "opts": [
+        "Delete the two older-looking ones",
+        "Leave all three",
+        "Email all three to everyone",
+        "Confirm the current approved version, keep it in the agreed location, and archive the others clearly marked as superseded"
+      ],
+      "correct": 3,
+      "explain": "One authoritative version prevents people acting on outdated documents.",
+      "id": "a2q30"
+    },
+    {
+      "sec": "Section D: Records, deadlines and compliance calendar",
+      "type": "tf",
+      "text": "Keeping official records only in your personal email account is acceptable if you are organised.",
+      "correct": "False",
+      "explain": "Official records belong in company systems so they are secure, backed up and available to others.",
+      "id": "a2q31"
+    },
+    {
+      "sec": "Section D: Records, deadlines and compliance calendar",
+      "type": "tf",
+      "text": "Reminders for statutory deadlines should be set early enough to allow for delays in gathering documents.",
+      "correct": "True",
+      "explain": "Deadlines are missed at the gathering stage, not the submission stage.",
+      "id": "a2q32"
+    },
+    {
+      "sec": "Section E: Judgement, discretion and authority",
+      "type": "mcq",
+      "text": "You see a confidential salary document on the MD's desk while arranging papers. What do you do?",
+      "opts": [
+        "Read it; you work for the MD",
+        "Mention the figures to a trusted colleague",
+        "Leave it undisturbed or file it securely as instructed, and never discuss its contents",
+        "Photocopy it for your records"
+      ],
+      "correct": 2,
+      "explain": "Discretion is the core of the role. Access through proximity is not permission to read or share.",
+      "id": "a2q33"
+    },
+    {
+      "sec": "Section E: Judgement, discretion and authority",
+      "type": "mcq",
+      "text": "A manager asks you to 'find out what the MD thinks' about their promotion. What do you do?",
+      "opts": [
+        "Politely decline and suggest they raise it with the MD directly",
+        "Look through the MD's emails for them",
+        "Ask the MD on their behalf and report back",
+        "Guess and tell them"
+      ],
+      "correct": 0,
+      "explain": "The assistant is not a channel for confidential information. Staff matters go directly to the MD.",
+      "id": "a2q34"
+    },
+    {
+      "sec": "Section E: Judgement, discretion and authority",
+      "type": "mcq",
+      "text": "An email that appears to come from the MD asks you to transfer N800,000 urgently to a new supplier account. What do you do?",
+      "opts": [
+        "Verify with the MD through a separate, known channel before doing anything; urgent payment requests by email are a common fraud",
+        "Transfer it; the MD asked",
+        "Reply to the email to confirm",
+        "Transfer half to be safe"
+      ],
+      "correct": 0,
+      "explain": "Executive impersonation fraud targets assistants. Independent verification is the control.",
+      "id": "a2q35"
+    },
+    {
+      "sec": "Section E: Judgement, discretion and authority",
+      "type": "mcq",
+      "text": "A supplier offers you a gift voucher 'as thanks for helping with the MD's diary'. What do you do?",
+      "opts": [
+        "Accept it quietly",
+        "Accept it and book them more meetings",
+        "Ask for a larger voucher",
+        "Decline politely or declare it to the MD, following the company's policy on gifts"
+      ],
+      "correct": 3,
+      "explain": "Gifts from people seeking access can create obligations. Transparency protects you and the company.",
+      "id": "a2q36"
+    },
+    {
+      "sec": "Section E: Judgement, discretion and authority",
+      "type": "mcq",
+      "text": "The MD is unreachable and a lawyer's letter arrives demanding a response within 48 hours. What do you do?",
+      "opts": [
+        "Reply fully yourself",
+        "Ignore it until the MD returns",
+        "Forward it to all staff",
+        "Acknowledge receipt without commenting on the substance, log the deadline, and keep trying to reach the MD or the person the MD has designated"
+      ],
+      "correct": 3,
+      "explain": "Acknowledge, record the deadline and escalate. Legal substance is never answered by the assistant.",
+      "id": "a2q37"
+    },
+    {
+      "sec": "Section E: Judgement, discretion and authority",
+      "type": "mcq",
+      "text": "You make a mistake in a document the MD has already sent to a client. What do you do?",
+      "opts": [
+        "Hope nobody notices",
+        "Correct your copy only",
+        "Blame the template",
+        "Tell the MD straight away, explain the error, and propose a correction"
+      ],
+      "correct": 3,
+      "explain": "Early disclosure lets the MD decide how to correct it before the client acts on the error.",
+      "id": "a2q38"
+    },
+    {
+      "sec": "Section E: Judgement, discretion and authority",
+      "type": "tf",
+      "text": "An administrative assistant may approve expenses or payments on the MD's behalf if the amount is small.",
+      "correct": "False",
+      "explain": "Approval authority rests with the MD or those formally authorised, regardless of amount.",
+      "id": "a2q39"
+    },
+    {
+      "sec": "Section E: Judgement, discretion and authority",
+      "type": "tf",
+      "text": "Information learned in the MD's office should be treated as confidential unless the MD says otherwise.",
+      "correct": "True",
+      "explain": "Assume confidentiality by default; the MD decides what can be shared.",
+      "id": "a2q40"
+    },
+    {
+      "sec": "Section F: Microsoft 365 in practice",
+      "type": "mcq",
+      "text": "The MD wants a document shared with an external lawyer so only that lawyer can open it. Which OneDrive option is right?",
+      "opts": [
+        "Share with specific people, entering the lawyer's email address",
+        "'Anyone with the link'",
+        "Make the folder public",
+        "Send it through WhatsApp"
+      ],
+      "correct": 0,
+      "explain": "Specific-people links require the recipient to verify, so a forwarded link will not open for others.",
+      "id": "a2q41"
+    },
+    {
+      "sec": "Section F: Microsoft 365 in practice",
+      "type": "mcq",
+      "text": "Someone saved over the MD's board presentation. What is the quickest recovery?",
+      "opts": [
+        "Restore the earlier version from the file's version history in OneDrive or SharePoint",
+        "Recreate it from memory",
+        "Ask IT to restore the whole server",
+        "Nothing can be done"
+      ],
+      "correct": 0,
+      "explain": "Version history keeps earlier copies that can be restored in moments.",
+      "id": "a2q42"
+    },
+    {
+      "sec": "Section F: Microsoft 365 in practice",
+      "type": "mcq",
+      "text": "Which Excel feature makes deadlines within 14 days turn red automatically in a tracker?",
+      "opts": [
+        "Sorting by date each morning",
+        "Conditional formatting using a rule based on TODAY()",
+        "Bold text",
+        "Freeze panes"
+      ],
+      "correct": 1,
+      "explain": "Conditional formatting updates itself daily, so the tracker always shows what is urgent.",
+      "id": "a2q43"
+    },
+    {
+      "sec": "Section F: Microsoft 365 in practice",
+      "type": "mcq",
+      "text": "You need delegate access so you can manage the MD's calendar and send invitations on the MD's behalf. How is that normally set up?",
+      "opts": [
+        "The MD shares their password with you",
+        "You create a copy of the MD's calendar",
+        "You use a personal Gmail calendar",
+        "The MD grants you delegate permissions on the calendar in Outlook, rather than sharing the MD's password"
+      ],
+      "correct": 3,
+      "explain": "Delegate access keeps actions traceable to you and avoids password sharing.",
+      "id": "a2q44"
+    },
+    {
+      "sec": "Section F: Microsoft 365 in practice",
+      "type": "mcq",
+      "text": "Which PowerPoint practice makes a board presentation clearer?",
+      "opts": [
+        "As much text as fits on each slide",
+        "Different fonts on every slide",
+        "One main point per slide, readable font sizes, and figures shown in simple charts rather than dense tables",
+        "Animations on every bullet"
+      ],
+      "correct": 2,
+      "explain": "Clarity helps the board decide; decoration distracts.",
+      "id": "a2q45"
+    },
+    {
+      "sec": "Section F: Microsoft 365 in practice",
+      "type": "mcq",
+      "text": "In Word, how do you show the MD exactly what you changed in a draft contract?",
+      "opts": [
+        "Highlight everything in yellow",
+        "Save a new copy without telling them",
+        "Turn on Track Changes, so each edit is marked and can be accepted or rejected",
+        "Describe the changes from memory"
+      ],
+      "correct": 2,
+      "explain": "Track Changes records every edit and lets the reviewer decide.",
+      "id": "a2q46"
+    },
+    {
+      "sec": "Section F: Microsoft 365 in practice",
+      "type": "tf",
+      "text": "Two people can edit the same Word document stored in OneDrive at the same time.",
+      "correct": "True",
+      "explain": "Co-authoring allows simultaneous editing with changes saved automatically.",
+      "id": "a2q47"
+    },
+    {
+      "sec": "Section F: Microsoft 365 in practice",
+      "type": "tf",
+      "text": "Sharing the MD's Microsoft 365 password with you is the correct way to give you access to the MD's mailbox.",
+      "correct": "False",
+      "explain": "Access should be granted through delegate or shared-mailbox permissions, never by sharing passwords.",
+      "id": "a2q48"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "mcq",
+      "text": "The MD asks you to check whether decisions from last month's management meeting were carried out. What is the best approach?",
+      "opts": [
+        "Ask one manager for a general impression",
+        "Assume everything was done",
+        "Go through the tracker item by item, confirm status with each owner, and give the MD a short report of what is done, in progress and stalled",
+        "Reopen the whole meeting"
+      ],
+      "correct": 2,
+      "explain": "Oversight means verifying delivery against decisions, item by item, and reporting exceptions.",
+      "id": "a2q49"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "mcq",
+      "text": "Before a quarterly review, the MD wants each department's key figures in one place. What do you do?",
+      "opts": [
+        "Collect whatever arrives and forward it",
+        "Request the figures from each owner with a clear template and deadline, check they are complete and consistent, and compile a single summary",
+        "Estimate the missing numbers yourself",
+        "Ask the departments to present without preparation"
+      ],
+      "correct": 1,
+      "explain": "A common template and a completeness check turn scattered inputs into something the MD can review quickly.",
+      "id": "a2q50"
+    },
+    {
+      "sec": "Section D: Records, deadlines and compliance calendar",
+      "type": "mcq",
+      "text": "A licence the company needs to operate expires in six weeks, and renewal requires documents from three departments. When do you start?",
+      "opts": [
+        "A week before expiry",
+        "On the expiry date",
+        "Now: request the documents with a deadline two to three weeks ahead, so there is time to chase and resubmit",
+        "After it expires, since renewals are routine"
+      ],
+      "correct": 2,
+      "explain": "The lead time is set by the slowest contributor, not by the filing itself.",
+      "id": "a2q51"
+    },
+    {
+      "sec": "Section E: Judgement, discretion and authority",
+      "type": "mcq",
+      "text": "A department head asks you to delay passing a critical report to the MD 'until they have fixed a few things'. What do you do?",
+      "opts": [
+        "Pass it on as agreed, noting that a revised version is coming, or let the MD decide whether to wait; do not withhold it on your own",
+        "Hold it indefinitely",
+        "Edit the report yourself",
+        "Tell other staff about the problems in it"
+      ],
+      "correct": 0,
+      "explain": "The assistant must not filter what the MD sees for someone else's benefit. The MD decides.",
+      "id": "a2q52"
+    },
+    {
+      "sec": "Section B: Correspondence and drafting",
+      "type": "mcq",
+      "text": "You are asked to draft a memo announcing a new expense approval rule to all staff. What makes it effective?",
+      "opts": [
+        "A long history of past policies",
+        "Legal language throughout",
+        "A clear subject, what is changing and from when, why, what staff must do, and whom to ask",
+        "Only the rule, with no date or contact"
+      ],
+      "correct": 2,
+      "explain": "Staff act on memos that tell them plainly what to do and from when.",
+      "id": "a2q53"
+    },
+    {
+      "sec": "Section C: Meetings, briefings and follow-up",
+      "type": "tf",
+      "text": "Following up on agreed actions with managers should be done courteously and factually, without taking over their work.",
+      "correct": "True",
+      "explain": "The assistant tracks and reminds; the owner remains responsible for delivering.",
+      "id": "a2q54"
+    },
+    {
+      "sec": "Section G: Written answers",
+      "type": "text",
+      "text": "The MD is travelling next week and asks you to prepare a one-page summary for Monday morning of what needs their attention while away: two contracts awaiting signature, a CAC filing due in ten days, and a manager's overdue report. Write the summary.",
+      "sub": "Make it clear what needs a decision, by when, and what you will handle. Keep it to what fits on one page.",
+      "placeholder": "For your attention while travelling, week of...",
+      "id": "a2q55"
+    },
+    {
+      "sec": "Section G: Written answers",
+      "type": "text",
+      "text": "Draft a reply, for the MD's approval, to a supplier who has written asking why their invoice of three weeks ago has not been paid. The invoice is awaiting a delivery confirmation from the operations team.",
+      "sub": "Be courteous and factual, do not commit to a payment date the MD has not agreed, and keep it to five to seven sentences.",
+      "placeholder": "Dear Mr Okonkwo, thank you for your email regarding...",
+      "id": "a2q56"
+    }
+  ],
+  "Full Stack Engineer": [
+    {
+      "sec": "Section A: TypeScript and JavaScript",
+      "type": "mcq",
+      "text": "What does `typeof null` evaluate to in JavaScript?",
+      "opts": [
+        "`\"null\"`",
+        "`\"undefined\"`",
+        "`\"object\"`",
+        "It throws a TypeError"
+      ],
+      "correct": 2,
+      "explain": "A long-standing language quirk. Check for null explicitly with `value === null`.",
+      "id": "e2q01"
+    },
+    {
+      "sec": "Section A: TypeScript and JavaScript",
+      "type": "mcq",
+      "text": "What is the difference between `x ?? 'default'` and `x || 'default'`?",
+      "opts": [
+        "They are identical",
+        "`??` falls back for every falsy value; `||` only for null",
+        "`??` falls back only when `x` is null or undefined; `||` also falls back for `0`, `''` and `false`",
+        "`??` is only valid in TypeScript"
+      ],
+      "correct": 2,
+      "explain": "Using `||` for defaults silently replaces legitimate zeros and empty strings.",
+      "id": "e2q02"
+    },
+    {
+      "sec": "Section A: TypeScript and JavaScript",
+      "type": "mcq",
+      "text": "Given `const items = [1, 2]; items.push(3);` what happens?",
+      "opts": [
+        "It works: `const` prevents reassigning the variable, not changing the array it points to",
+        "TypeError: assignment to constant",
+        "It silently does nothing",
+        "It creates a new array"
+      ],
+      "correct": 0,
+      "explain": "`const` binds the name; objects and arrays it refers to remain mutable.",
+      "id": "e2q03"
+    },
+    {
+      "sec": "Section A: TypeScript and JavaScript",
+      "type": "mcq",
+      "text": "`Promise.all([a(), b(), c()])` where `b()` rejects. What happens?",
+      "opts": [
+        "It waits for all three and returns only the successes",
+        "It retries `b()` automatically",
+        "The combined promise rejects as soon as `b()` rejects; use `Promise.allSettled` to get every outcome",
+        "It resolves with `undefined` for `b()`"
+      ],
+      "correct": 2,
+      "explain": "`Promise.all` fails fast. `allSettled` is the choice when each result matters independently.",
+      "id": "e2q04"
+    },
+    {
+      "sec": "Section A: TypeScript and JavaScript",
+      "type": "mcq",
+      "text": "TypeScript rejects `rows as Employee[]` with 'Conversion of type ... may be a mistake', although the data is correct at runtime. What does the error mean?",
+      "opts": [
+        "The code has a runtime bug",
+        "TypeScript does not allow arrays in assertions",
+        "The two types do not overlap enough for a direct assertion; asserting through `unknown` makes the intent explicit, though a proper type or validation is better",
+        "The file must be renamed to .js"
+      ],
+      "correct": 2,
+      "explain": "Assertions between insufficiently related types need `as unknown as T`. A typed query or runtime validation avoids the assertion entirely.",
+      "id": "e2q05"
+    },
+    {
+      "sec": "Section A: TypeScript and JavaScript",
+      "type": "mcq",
+      "text": "Which type should an external API response be given before it is validated?",
+      "opts": [
+        "`unknown`, which forces the value to be checked or narrowed before use",
+        "`any`, to avoid compiler errors",
+        "`never`",
+        "`object`"
+      ],
+      "correct": 0,
+      "explain": "`unknown` keeps the compiler honest about unvalidated data; `any` switches checking off.",
+      "id": "e2q06"
+    },
+    {
+      "sec": "Section A: TypeScript and JavaScript",
+      "type": "mcq",
+      "text": "What does `Partial<User>` produce?",
+      "opts": [
+        "A type with only the first half of the properties",
+        "A type with all of `User`'s properties made optional",
+        "An array of users",
+        "A type with all properties required"
+      ],
+      "correct": 1,
+      "explain": "Useful for update payloads where any subset of fields may be sent.",
+      "id": "e2q07"
+    },
+    {
+      "sec": "Section A: TypeScript and JavaScript",
+      "type": "mcq",
+      "text": "In an `async` function, what happens if an awaited promise rejects and there is no `try/catch`?",
+      "opts": [
+        "The error is silently ignored",
+        "The process always exits immediately",
+        "The async function's own promise rejects with that error, which the caller must handle",
+        "The function returns `undefined`"
+      ],
+      "correct": 2,
+      "explain": "Unhandled rejections propagate to the caller. Route handlers need error handling at the boundary.",
+      "id": "e2q08"
+    },
+    {
+      "sec": "Section A: TypeScript and JavaScript",
+      "type": "tf",
+      "text": "`0.1 + 0.2 === 0.3` evaluates to true in JavaScript.",
+      "correct": "False",
+      "explain": "Floating-point representation makes it 0.30000000000000004. Money should be handled in integer minor units or with a decimal library.",
+      "id": "e2q09"
+    },
+    {
+      "sec": "Section A: TypeScript and JavaScript",
+      "type": "tf",
+      "text": "An `async` function always returns a Promise.",
+      "correct": "True",
+      "explain": "Even a plain `return value` is wrapped in a resolved Promise.",
+      "id": "e2q10"
+    },
+    {
+      "sec": "Section B: React and Next.js",
+      "type": "mcq",
+      "text": "In the Next.js App Router, which component can use `useState` and `useEffect`?",
+      "opts": [
+        "Any component, since all are client components",
+        "Only components in the `pages` directory",
+        "Only layout files",
+        "A component in a file marked with `'use client'` at the top"
+      ],
+      "correct": 3,
+      "explain": "App Router components are Server Components by default; hooks need a Client Component.",
+      "id": "e2q11"
+    },
+    {
+      "sec": "Section B: React and Next.js",
+      "type": "mcq",
+      "text": "How is an API route defined in the App Router?",
+      "opts": [
+        "A default-exported handler in `pages/api` only",
+        "A `.json` file in `public`",
+        "A `route.ts` file in `app/api/...` exporting functions named after HTTP methods, such as `GET` and `POST`",
+        "A `middleware.ts` file per route"
+      ],
+      "correct": 2,
+      "explain": "Route handlers export one function per HTTP method.",
+      "id": "e2q12"
+    },
+    {
+      "sec": "Section B: React and Next.js",
+      "type": "mcq",
+      "text": "A page reads from the database but is rendered once at build time and never changes. Which export makes it render on every request?",
+      "opts": [
+        "`export const runtime = 'edge'`",
+        "`export default async`",
+        "`export const dynamic = 'force-dynamic'`",
+        "`export const revalidate = 31536000`"
+      ],
+      "correct": 2,
+      "explain": "Without a dynamic signal, a page can be statically rendered at build and served stale.",
+      "id": "e2q13"
+    },
+    {
+      "sec": "Section B: React and Next.js",
+      "type": "mcq",
+      "text": "Which environment variables are exposed to the browser in Next.js?",
+      "opts": [
+        "All variables in `.env.local`",
+        "Only those prefixed `NEXT_PUBLIC_`, which are inlined into client bundles at build time",
+        "None, ever",
+        "Any variable read inside a Client Component"
+      ],
+      "correct": 1,
+      "explain": "Secrets must never carry the `NEXT_PUBLIC_` prefix, since the value ships to every visitor.",
+      "id": "e2q14"
+    },
+    {
+      "sec": "Section B: React and Next.js",
+      "type": "mcq",
+      "text": "A list renders with `items.map((item, i) => <Row key={i} ... />)` and rows show the wrong data after deletion. Why?",
+      "opts": [
+        "Keys are optional and not the cause",
+        "`map` cannot render components",
+        "The component needs `useMemo`",
+        "Using the array index as `key` makes React reuse the wrong components when items move; use a stable unique id"
+      ],
+      "correct": 3,
+      "explain": "Keys identify items across renders; index keys break when the list order changes.",
+      "id": "e2q15"
+    },
+    {
+      "sec": "Section B: React and Next.js",
+      "type": "mcq",
+      "text": "A `useEffect` fetching data runs in an infinite loop. What is the most common cause?",
+      "opts": [
+        "Effects cannot fetch data",
+        "It sets state that is in its own dependency array, or depends on an object recreated on every render",
+        "The component is a Server Component",
+        "`useEffect` must always have an empty array"
+      ],
+      "correct": 1,
+      "explain": "State set inside an effect that the effect depends on retriggers it endlessly.",
+      "id": "e2q16"
+    },
+    {
+      "sec": "Section B: React and Next.js",
+      "type": "mcq",
+      "text": "In Next.js 15 and later, how are `params` accessed in a dynamic route handler such as `app/api/items/[id]/route.ts`?",
+      "opts": [
+        "`params.id` directly, synchronously",
+        "From `req.query.id`",
+        "`params` is a Promise, so it is awaited: `const { id } = await params`",
+        "From `process.env.id`"
+      ],
+      "correct": 2,
+      "explain": "Recent Next.js versions made route params asynchronous.",
+      "id": "e2q17"
+    },
+    {
+      "sec": "Section B: React and Next.js",
+      "type": "mcq",
+      "text": "Why should state never be mutated directly, as in `state.items.push(x)` followed by `setState(state)`?",
+      "opts": [
+        "React compares references; mutating in place keeps the same reference, so it may not re-render",
+        "It is a syntax error",
+        "It deletes the state",
+        "React throws an exception"
+      ],
+      "correct": 0,
+      "explain": "Create a new array or object: `setItems([...items, x])`.",
+      "id": "e2q18"
+    },
+    {
+      "sec": "Section B: React and Next.js",
+      "type": "tf",
+      "text": "A Server Component can read from the database directly without an API route.",
+      "correct": "True",
+      "explain": "Server Components run on the server, so they can query the database; the data must not include secrets passed to client components.",
+      "id": "e2q19"
+    },
+    {
+      "sec": "Section B: React and Next.js",
+      "type": "tf",
+      "text": "Putting a secret API key in a `NEXT_PUBLIC_` variable is safe if it is only used in one component.",
+      "correct": "False",
+      "explain": "The value is embedded in the JavaScript sent to browsers, where anyone can read it.",
+      "id": "e2q20"
+    },
+    {
+      "sec": "Section C: APIs, Node.js and Laravel",
+      "type": "mcq",
+      "text": "A Node.js route handler reads a 200 MB file with `fs.readFileSync` on every request. What is the problem?",
+      "opts": [
+        "Nothing; Node.js is multi-threaded for requests",
+        "It only affects Windows servers",
+        "The synchronous call blocks the event loop, stalling every other request; stream the file or use async I/O",
+        "Files cannot be read in route handlers"
+      ],
+      "correct": 2,
+      "explain": "Node serves requests on one event loop. Blocking calls in request paths degrade the whole server.",
+      "id": "e2q21"
+    },
+    {
+      "sec": "Section C: APIs, Node.js and Laravel",
+      "type": "mcq",
+      "text": "A Laravel page listing 100 orders runs 101 database queries. What is the fix?",
+      "opts": [
+        "Eager-load the relationship with `Order::with('customer')->get()` to avoid the N+1 query problem",
+        "Add more RAM",
+        "Cache the page forever",
+        "Switch to MongoDB"
+      ],
+      "correct": 0,
+      "explain": "Lazy-loading a relationship per row triggers one query each. Eager loading fetches them together.",
+      "id": "e2q22"
+    },
+    {
+      "sec": "Section C: APIs, Node.js and Laravel",
+      "type": "mcq",
+      "text": "What does Laravel's `$fillable` property protect against?",
+      "opts": [
+        "SQL injection",
+        "Cross-site scripting",
+        "Mass assignment: users setting fields they should not, such as `is_admin`, through request data",
+        "Slow queries"
+      ],
+      "correct": 2,
+      "explain": "Only whitelisted attributes can be mass-assigned from request input.",
+      "id": "e2q23"
+    },
+    {
+      "sec": "Section C: APIs, Node.js and Laravel",
+      "type": "mcq",
+      "text": "A payment gateway sends a webhook to your API. What must the handler do before trusting it?",
+      "opts": [
+        "Trust it if the JSON parses",
+        "Check the sender's IP only",
+        "Reply with the customer's details",
+        "Verify the webhook's signature with the shared secret, and handle repeats idempotently, since the same event may arrive more than once"
+      ],
+      "correct": 3,
+      "explain": "Unsigned webhooks can be forged; retries mean duplicates must not double-apply.",
+      "id": "e2q24"
+    },
+    {
+      "sec": "Section C: APIs, Node.js and Laravel",
+      "type": "mcq",
+      "text": "Which HTTP status fits a request with a valid session for a user who lacks permission for the resource?",
+      "opts": [
+        "401 Unauthorized",
+        "404 Not Found",
+        "500 Internal Server Error",
+        "403 Forbidden"
+      ],
+      "correct": 3,
+      "explain": "401 means not authenticated; 403 means authenticated but not permitted.",
+      "id": "e2q25"
+    },
+    {
+      "sec": "Section C: APIs, Node.js and Laravel",
+      "type": "mcq",
+      "text": "An integration needs to call Microsoft Graph from a background job with no user signed in. Which OAuth flow applies?",
+      "opts": [
+        "Device code flow",
+        "Client credentials, with application permissions granted by an administrator and limited to what the job needs",
+        "Implicit flow",
+        "Sharing an administrator's password in the job"
+      ],
+      "correct": 1,
+      "explain": "App-only access uses client credentials; least-privilege application permissions limit the damage if the secret leaks.",
+      "id": "e2q26"
+    },
+    {
+      "sec": "Section C: APIs, Node.js and Laravel",
+      "type": "mcq",
+      "text": "A POST endpoint that creates an invoice is sometimes called twice by a client on a slow connection. What design prevents duplicate invoices?",
+      "opts": [
+        "Asking users not to double-click",
+        "Adding a delay before insert",
+        "Deleting duplicates in a nightly job",
+        "An idempotency key, or a unique constraint on a natural key, so a repeated request returns the original result"
+      ],
+      "correct": 3,
+      "explain": "Idempotency must be enforced server-side; the client cannot be relied on.",
+      "id": "e2q27"
+    },
+    {
+      "sec": "Section C: APIs, Node.js and Laravel",
+      "type": "tf",
+      "text": "Returning a full error stack trace to API clients in production helps them debug and is good practice.",
+      "correct": "False",
+      "explain": "Stack traces reveal internals to attackers. Log details server-side and return a safe message.",
+      "id": "e2q28"
+    },
+    {
+      "sec": "Section C: APIs, Node.js and Laravel",
+      "type": "tf",
+      "text": "Rate limiting a login endpoint helps defend against password-guessing attacks.",
+      "correct": "True",
+      "explain": "Limiting attempts per account and per IP makes brute force impractical.",
+      "id": "e2q29"
+    },
+    {
+      "sec": "Section D: Databases: MongoDB and MySQL",
+      "type": "mcq",
+      "text": "A MongoDB query filtering on `email` is slow on a large collection. What is the first thing to check?",
+      "opts": [
+        "Whether the server has an SSD",
+        "The MongoDB version number",
+        "Whether an index exists on `email`, using `explain()` to confirm the query uses it",
+        "Whether the documents are too small"
+      ],
+      "correct": 2,
+      "explain": "Without an index, every document is scanned. `explain()` shows the plan.",
+      "id": "e2q30"
+    },
+    {
+      "sec": "Section D: Databases: MongoDB and MySQL",
+      "type": "mcq",
+      "text": "How should the database guarantee that no two users share an email address?",
+      "opts": [
+        "A check in the signup form only",
+        "A nightly script that deletes duplicates",
+        "A unique index on the email field, not only a check in application code",
+        "Using email as a display name"
+      ],
+      "correct": 2,
+      "explain": "Application checks race under concurrency; a unique index enforces it at the database.",
+      "id": "e2q31"
+    },
+    {
+      "sec": "Section D: Databases: MongoDB and MySQL",
+      "type": "mcq",
+      "text": "What does Mongoose's `.lean()` do?",
+      "opts": [
+        "Deletes unused fields from the database",
+        "Returns plain JavaScript objects instead of full documents, which is faster when you only read data",
+        "Compresses the collection",
+        "Makes the query run on a replica"
+      ],
+      "correct": 1,
+      "explain": "Lean results skip document hydration; they lack methods such as `save()`.",
+      "id": "e2q32"
+    },
+    {
+      "sec": "Section D: Databases: MongoDB and MySQL",
+      "type": "mcq",
+      "text": "Which query is safe from SQL injection?",
+      "opts": [
+        "String concatenation with the user's input",
+        "Concatenation after removing quote characters",
+        "A parameterised query: `SELECT * FROM users WHERE email = ?` with the value passed separately",
+        "Any query run from PHP"
+      ],
+      "correct": 2,
+      "explain": "Parameters are never interpreted as SQL. Escaping by hand is error-prone.",
+      "id": "e2q33"
+    },
+    {
+      "sec": "Section D: Databases: MongoDB and MySQL",
+      "type": "mcq",
+      "text": "Money must move from one account balance to another so that both updates happen or neither does. What is needed?",
+      "opts": [
+        "A database transaction",
+        "Two separate updates in sequence",
+        "A cron job to fix mismatches",
+        "A larger index"
+      ],
+      "correct": 0,
+      "explain": "Transactions give atomicity; separate writes can leave inconsistent balances if one fails.",
+      "id": "e2q34"
+    },
+    {
+      "sec": "Section D: Databases: MongoDB and MySQL",
+      "type": "mcq",
+      "text": "In MySQL, how do you see whether a slow query uses an index?",
+      "opts": [
+        "Run it twice",
+        "Check the table's row count only",
+        "Prefix it with `EXPLAIN` and read the access type and key used",
+        "Restart MySQL"
+      ],
+      "correct": 2,
+      "explain": "EXPLAIN reveals full table scans and missing indexes.",
+      "id": "e2q35"
+    },
+    {
+      "sec": "Section D: Databases: MongoDB and MySQL",
+      "type": "mcq",
+      "text": "Under the NDPA 2023, what is good practice for personal data in the database?",
+      "opts": [
+        "Keep everything forever in case it is useful",
+        "Store it in a public bucket for easy access",
+        "Copy production data to every developer's laptop",
+        "Store only what is needed, restrict access, encrypt sensitive fields where appropriate, and delete it when its purpose ends"
+      ],
+      "correct": 3,
+      "explain": "Minimisation, access control and retention limits apply to what engineers build, not only to policy.",
+      "id": "e2q36"
+    },
+    {
+      "sec": "Section D: Databases: MongoDB and MySQL",
+      "type": "tf",
+      "text": "Adding an index always makes every operation on a collection faster.",
+      "correct": "False",
+      "explain": "Indexes speed reads that use them but cost storage and slow writes. Index for real query patterns.",
+      "id": "e2q37"
+    },
+    {
+      "sec": "Section D: Databases: MongoDB and MySQL",
+      "type": "tf",
+      "text": "Deleting production data should be preceded by a verified backup.",
+      "correct": "True",
+      "explain": "Irreversible operations need a tested way back.",
+      "id": "e2q38"
+    },
+    {
+      "sec": "Section E: Security",
+      "type": "mcq",
+      "text": "How should user passwords be stored?",
+      "opts": [
+        "Encrypted with AES so they can be recovered",
+        "Hashed with a slow, salted password algorithm such as argon2id or bcrypt",
+        "Hashed with SHA-256",
+        "In plain text in a secured table"
+      ],
+      "correct": 1,
+      "explain": "Fast hashes can be brute-forced at scale; password algorithms are deliberately slow and salted.",
+      "id": "e2q39"
+    },
+    {
+      "sec": "Section E: Security",
+      "type": "mcq",
+      "text": "A page displays a user-supplied company name with `innerHTML`. What is the risk and fix?",
+      "opts": [
+        "No risk; company names are harmless",
+        "SQL injection; use an ORM",
+        "CSRF; add a CAPTCHA",
+        "Cross-site scripting: a name containing a script runs in other users' browsers; escape output or use `textContent`"
+      ],
+      "correct": 3,
+      "explain": "Any user-controlled string rendered as HTML is an XSS vector.",
+      "id": "e2q40"
+    },
+    {
+      "sec": "Section E: Security",
+      "type": "mcq",
+      "text": "What is the safest place for a session token in a browser application?",
+      "opts": [
+        "`localStorage`",
+        "An `HttpOnly`, `Secure`, `SameSite` cookie, which scripts cannot read",
+        "A global JavaScript variable",
+        "The URL query string"
+      ],
+      "correct": 1,
+      "explain": "HttpOnly cookies are out of reach of injected scripts; tokens in localStorage or URLs leak easily.",
+      "id": "e2q41"
+    },
+    {
+      "sec": "Section E: Security",
+      "type": "mcq",
+      "text": "An upload endpoint accepts CVs. Which set of controls is appropriate?",
+      "opts": [
+        "Trust the file extension",
+        "Save uploads into `public/` for easy access",
+        "Limit size, allow only expected types, sanitise the file name, store outside the web root, and serve through an authorised route",
+        "Allow any file and scan it later"
+      ],
+      "correct": 2,
+      "explain": "Uploaded files in a web-served folder can be executed or fetched by anyone; each control closes a known attack.",
+      "id": "e2q42"
+    },
+    {
+      "sec": "Section E: Security",
+      "type": "mcq",
+      "text": "When checking an HMAC token signature, why use a constant-time comparison such as `crypto.timingSafeEqual`?",
+      "opts": [
+        "It is faster",
+        "It encrypts the token",
+        "A normal comparison can leak through response timing how many characters matched, allowing the signature to be guessed",
+        "It works with longer strings"
+      ],
+      "correct": 2,
+      "explain": "Timing attacks are practical against naive comparisons of secrets.",
+      "id": "e2q43"
+    },
+    {
+      "sec": "Section E: Security",
+      "type": "mcq",
+      "text": "A secret was accidentally committed to a public GitHub repository and then removed in the next commit. What must be done?",
+      "opts": [
+        "Revoke and rotate the secret immediately; removing it from the code does not remove it from the history",
+        "Nothing; it has been removed",
+        "Make the repository private",
+        "Force-push to hide the commit"
+      ],
+      "correct": 0,
+      "explain": "Assume a published secret is compromised. Rotation is the only real fix.",
+      "id": "e2q44"
+    },
+    {
+      "sec": "Section E: Security",
+      "type": "mcq",
+      "text": "Does a CORS policy protect an API from unauthorised use?",
+      "opts": [
+        "Yes; it blocks all non-browser clients",
+        "Yes, if set to `*`",
+        "No; CORS only controls which browser origins may read responses. APIs still need authentication and authorisation",
+        "Only for POST requests"
+      ],
+      "correct": 2,
+      "explain": "Scripts, servers and tools ignore CORS entirely.",
+      "id": "e2q45"
+    },
+    {
+      "sec": "Section E: Security",
+      "type": "mcq",
+      "text": "Which is the principle of least privilege applied to a service account?",
+      "opts": [
+        "Give it administrator rights to avoid errors",
+        "Share one account between all services",
+        "Grant only the permissions the service needs for its task, and nothing broader",
+        "Use a developer's personal account"
+      ],
+      "correct": 2,
+      "explain": "Narrow permissions limit the damage if the credentials are stolen.",
+      "id": "e2q46"
+    },
+    {
+      "sec": "Section E: Security",
+      "type": "tf",
+      "text": "Two-factor authentication on administrator accounts significantly reduces the risk from stolen passwords.",
+      "correct": "True",
+      "explain": "A stolen password alone is no longer enough to sign in.",
+      "id": "e2q47"
+    },
+    {
+      "sec": "Section E: Security",
+      "type": "tf",
+      "text": "It is acceptable to disable certificate verification in production HTTP calls if a partner's certificate causes errors.",
+      "correct": "False",
+      "explain": "Disabling verification exposes traffic to interception. Fix the trust chain instead.",
+      "id": "e2q48"
+    },
+    {
+      "sec": "Section F: Git, CI/CD and Linux operations",
+      "type": "mcq",
+      "text": "A bad commit has already been pushed to `main`, which others have pulled. What is the right way to undo it?",
+      "opts": [
+        "`git revert <commit>`, which adds a new commit undoing the change without rewriting shared history",
+        "`git reset --hard` and force-push",
+        "Delete the repository and re-clone",
+        "Edit the files on the server directly"
+      ],
+      "correct": 0,
+      "explain": "Rewriting shared history breaks everyone else's copies; revert is safe.",
+      "id": "e2q49"
+    },
+    {
+      "sec": "Section F: Git, CI/CD and Linux operations",
+      "type": "mcq",
+      "text": "Where should a GitHub Actions workflow get the credentials it needs to deploy?",
+      "opts": [
+        "Hard-coded in the workflow file",
+        "From a text file in the repository",
+        "From encrypted repository or environment secrets, referenced as `${{ secrets.NAME }}`",
+        "Typed in by hand at each run"
+      ],
+      "correct": 2,
+      "explain": "Secrets stay out of the codebase and are masked in logs.",
+      "id": "e2q50"
+    },
+    {
+      "sec": "Section F: Git, CI/CD and Linux operations",
+      "type": "mcq",
+      "text": "Behind Nginx as a reverse proxy, the application generates `http://` links although the site uses HTTPS. What is usually missing?",
+      "opts": [
+        "An SSL certificate on the app's port",
+        "The `X-Forwarded-Proto` header from Nginx, so the application knows the original request was HTTPS",
+        "A larger worker pool",
+        "A CNAME record"
+      ],
+      "correct": 1,
+      "explain": "The app sees plain HTTP from the proxy unless the proxy passes the original scheme.",
+      "id": "e2q51"
+    },
+    {
+      "sec": "Section F: Git, CI/CD and Linux operations",
+      "type": "mcq",
+      "text": "On a Cloudflare-managed domain, how must the MX record's target host be configured?",
+      "opts": [
+        "Proxied (orange cloud), for protection",
+        "DNS only (grey cloud), since Cloudflare's proxy handles web traffic, not mail",
+        "Deleted, as Cloudflare handles mail",
+        "As a CNAME to Cloudflare"
+      ],
+      "correct": 1,
+      "explain": "Proxying mail hostnames breaks email delivery.",
+      "id": "e2q52"
+    },
+    {
+      "sec": "Section F: Git, CI/CD and Linux operations",
+      "type": "mcq",
+      "text": "How is a running Node.js app restarted with PM2 after a deployment?",
+      "opts": [
+        "`kill -9` on every node process",
+        "Rebooting the server",
+        "`npm start` in a new terminal",
+        "`pm2 restart <name>` (or `pm2 reload <name>` for a graceful reload)"
+      ],
+      "correct": 3,
+      "explain": "PM2 manages the process, its logs and restarts; killing processes by hand loses that.",
+      "id": "e2q53"
+    },
+    {
+      "sec": "Section F: Git, CI/CD and Linux operations",
+      "type": "mcq",
+      "text": "Static asset files with content hashes in their names can be cached for a year. Why is that not safe for the HTML page itself?",
+      "opts": [
+        "The HTML references the current asset names; if it is cached, browsers keep loading old assets after a deploy",
+        "HTML files are too small to cache",
+        "Browsers never cache HTML",
+        "It is safe; cache everything for a year"
+      ],
+      "correct": 0,
+      "explain": "Long caching suits content-addressed files. HTML must be revalidated so new deployments are seen.",
+      "id": "e2q54"
+    },
+    {
+      "sec": "Section F: Git, CI/CD and Linux operations",
+      "type": "mcq",
+      "text": "Which file permission suits a `.env` file containing secrets on a Linux server?",
+      "opts": [
+        "`777`",
+        "`644`, readable by all users",
+        "`600`, readable and writable only by the owner the application runs as",
+        "`755`"
+      ],
+      "correct": 2,
+      "explain": "Secrets should be readable only by the account that needs them.",
+      "id": "e2q55"
+    },
+    {
+      "sec": "Section F: Git, CI/CD and Linux operations",
+      "type": "tf",
+      "text": "Running `npm ci` in a deployment installs exactly what `package-lock.json` specifies.",
+      "correct": "True",
+      "explain": "`npm ci` fails if the manifest and lock file disagree, which makes builds reproducible.",
+      "id": "e2q56"
+    },
+    {
+      "sec": "Section F: Git, CI/CD and Linux operations",
+      "type": "tf",
+      "text": "Force-pushing to a shared main branch is a safe way to tidy up commit history.",
+      "correct": "False",
+      "explain": "It overwrites commits others depend on. Tidy history on your own branch before merging.",
+      "id": "e2q57"
+    },
+    {
+      "sec": "Section G: Written answers",
+      "type": "text",
+      "text": "Review this Next.js route handler and list the problems you see, most serious first, with a one-line fix for each:\n```\nexport async function GET(req) {\n  const id = new URL(req.url).searchParams.get('id')\n  const user = await db.collection('users').findOne({ _id: id })\n  return Response.json(user)\n}\n```",
+      "sub": "Consider authentication and authorisation, data exposure, input handling and error cases. Bullet points are fine.",
+      "placeholder": "1. ...",
+      "id": "e2q58"
+    },
+    {
+      "sec": "Section G: Written answers",
+      "type": "text",
+      "text": "After a deploy, some users still see an old version of a page while others see the new one. The server returns the new HTML. Describe how you would investigate, in order, and what you would check at each step.",
+      "sub": "Explain your reasoning, not just a list of tools. Aim for six to ten sentences.",
+      "placeholder": "First, I would confirm...",
+      "id": "e2q59"
+    }
   ]
 }
 
@@ -2952,6 +4392,8 @@ export const BANKS: Record<string, RoleBank> = {
   'Social Media & Community Manager': { minutes: 35, draw: 25,   version: 'social-v2',  questions: QUESTIONS['Social Media & Community Manager'] },
   'Hosting Support Technician':       { minutes: 35, draw: 25,   version: 'hosting-v2', questions: QUESTIONS['Hosting Support Technician'] },
   'Sales & Support Associate':        { minutes: 35, draw: 25,   version: 'sales-v2',   questions: QUESTIONS['Sales & Support Associate'] },
+  'Administrative Assistant':         { minutes: 35, draw: 25,   version: 'admin-v1',   questions: QUESTIONS['Administrative Assistant'] },
+  'Full Stack Engineer':              { minutes: 40, draw: 25,   version: 'engineer-v1', questions: QUESTIONS['Full Stack Engineer'] },
 }
 
 export const getBank = (role: string): RoleBank | null => BANKS[role] || null
