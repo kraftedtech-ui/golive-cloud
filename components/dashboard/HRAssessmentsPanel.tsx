@@ -36,7 +36,14 @@ const STATUS_COLORS: Record<string,string> = {
   offered:     'bg-teal-50 text-teal-700 border-teal-200',
   onboarded:   'bg-green-50 text-green-700 border-green-200',
   rejected:    'bg-red-50 text-red-700 border-red-200',
+  not_progressed: 'bg-gray-100 text-gray-700 border-gray-300',
+  lapsed:      'bg-gray-50 text-gray-500 border-gray-200',
 }
+
+/** Set only by the nightly recruitment sweep, which also sends the email.
+ *  Shown in the dropdown so the row always reports the true status, but not
+ *  selectable: choosing one by hand would skip the email. */
+const AUTOMATIC = new Set(['not_progressed', 'lapsed'])
 
 export default function HRAssessmentsPanel() {
   const [apps, setApps] = useState<Application[]>([])
@@ -452,7 +459,7 @@ export default function HRAssessmentsPanel() {
                         {app.ref}
                       </span>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${STATUS_COLORS[app.status] || 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                        {app.status.charAt(0).toUpperCase()+app.status.slice(1)}
+                        {labelOf(app.status)}
                       </span>
                       {((app.tabSwitches || 0) + (app.pasteTries || 0)) > 2 && (
                         <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1">
@@ -507,7 +514,9 @@ export default function HRAssessmentsPanel() {
                       className="rounded-lg border border-border px-2 py-1 text-xs text-foreground bg-white"
                     >
                       {STATUS_FLOW.map(s => (
-                        <option key={s} value={s}>{labelOf(s)}</option>
+                        <option key={s} value={s} disabled={AUTOMATIC.has(s)}>
+                          {labelOf(s)}{AUTOMATIC.has(s) ? ' (automatic)' : ''}
+                        </option>
                       ))}
                     </select>
 
