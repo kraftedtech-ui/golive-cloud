@@ -1,5 +1,5 @@
 /**
- * careersConfig.ts — single source of truth for the public /careers page.
+ * careersConfig.ts: single source of truth for the public /careers page.
  * Add, close, or edit roles here; the page renders from this list.
  * Salary figures are monthly gross NGN.
  */
@@ -13,7 +13,11 @@ export interface CareerRole {
   salaryLower: number
   salaryUpper: number
   commission?: boolean
+  /** false once the role is filled. Filled roles stay listed on /careers as
+   *  filled, rather than vanishing, so applicants see the position existed. */
   open: boolean
+  /** Shown against a filled role, e.g. 'September 2026'. */
+  filledOn?: string
   summary: string
   responsibilities: string[]
   requirements: string[]
@@ -25,7 +29,7 @@ export const CAREERS: CareerRole[] = [
     title: 'Full Stack Engineer',
     department: 'Technical & IT Operations',
     type: 'Full-time',
-    location: 'Lagos \u00b7 Hybrid',
+    location: 'Lagos, hybrid',
     salaryLower: 1500000,
     salaryUpper: 2500000,
     open: true,
@@ -54,10 +58,11 @@ export const CAREERS: CareerRole[] = [
     title: 'Operations Coordinator',
     department: 'Management & Administration',
     type: 'Full-time',
-    location: 'Lagos \u00b7 Hybrid',
+    location: 'Lagos, hybrid',
     salaryLower: 200000,
     salaryUpper: 280000,
-    open: true,
+    open: false,
+    filledOn: 'September 2026',
     summary:
       'The operational right hand of the MD/CEO: vendors, renewals, records, meetings, logistics, and correspondence across all three arms of the company.',
     responsibilities: [
@@ -78,7 +83,7 @@ export const CAREERS: CareerRole[] = [
     title: 'Social Media & Community Manager',
     department: 'Marketing & Content Management',
     type: 'Full-time',
-    location: 'Lagos \u00b7 Hybrid',
+    location: 'Lagos, hybrid',
     salaryLower: 150000,
     salaryUpper: 250000,
     open: true,
@@ -102,7 +107,7 @@ export const CAREERS: CareerRole[] = [
     title: 'Hosting Support Technician',
     department: 'Technical & IT Operations',
     type: 'Full-time',
-    location: 'Lagos \u00b7 Hybrid',
+    location: 'Lagos, hybrid',
     salaryLower: 180000,
     salaryUpper: 280000,
     open: true,
@@ -126,7 +131,7 @@ export const CAREERS: CareerRole[] = [
     title: 'Sales & Support Associate',
     department: 'Sales & Customer Relations',
     type: 'Full-time',
-    location: 'Lagos \u00b7 Hybrid',
+    location: 'Lagos, hybrid',
     salaryLower: 120000,
     salaryUpper: 180000,
     commission: true,
@@ -150,4 +155,4 @@ export const CAREERS: CareerRole[] = [
 
 export const CAREERS_CONTACT = 'talent.acquisition@golivecompany.com'
 export const fmtNairaRange = (a: number, b: number) =>
-  '\u20a6' + a.toLocaleString('en-NG') + ' \u2013 \u20a6' + b.toLocaleString('en-NG')
+  '\u20a6' + a.toLocaleString('en-NG') + ' to \u20a6' + b.toLocaleString('en-NG')

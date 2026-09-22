@@ -87,7 +87,6 @@ jobs:
           git show origin/main:lib/onboardingEmail.ts > lib/onboardingEmail.ts
           git show origin/main:lib/executedPack.ts > lib/executedPack.ts
           git show origin/main:lib/hireProvisioning.ts > lib/hireProvisioning.ts
-          git show origin/main:lib/screeningEmail.ts > lib/screeningEmail.ts
           git show origin/main:lib/careersConfig.ts > lib/careersConfig.ts
           git show origin/main:lib/proposalTemplate.ts > lib/proposalTemplate.ts
           git show origin/main:lib/renderPdf.ts > lib/renderPdf.ts
@@ -240,6 +239,9 @@ jobs:
           git show origin/main:components/onboarding/OnboardAckForm.tsx > components/onboarding/OnboardAckForm.tsx
           mkdir -p app/careers
           git show origin/main:app/careers/page.tsx > app/careers/page.tsx
+          mkdir -p components/careers public/brand
+          git show origin/main:components/careers/CareersBoard.tsx > components/careers/CareersBoard.tsx
+          git cat-file blob origin/main:public/brand/golive-logo.png > public/brand/golive-logo.png
 
           # HR People layer — employee records, the terminal state of the
           # candidate pipeline (models/Employee, conversion at countersignature,
