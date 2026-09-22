@@ -981,184 +981,776 @@ const QUESTIONS: Record<string, BankQuestion[]> = {
   ],
   "Sales & Support Associate": [
     {
-      "id": "q1",
-      "sec": "Section A: Microsoft 365 product knowledge",
+      "sec": "Section A: Microsoft 365 licensing and products",
       "type": "mcq",
-      "text": "A client currently uses Gmail and Google Drive for their 5-person team. They want to switch to Microsoft 365. Which plan would you recommend as the starting point and why?",
+      "text": "A 40-person accounting firm wants the desktop Office apps and business email, and its partners want their laptops managed and protected, since staff carry client financial records. Which single plan is the correct starting recommendation?",
       "opts": [
-        "Microsoft 365 Business Premium: it is the most comprehensive plan",
-        "Microsoft 365 Business Basic: it provides Exchange Online email, Teams, SharePoint, and OneDrive at the lowest cost, suitable for a small team starting out",
-        "Microsoft 365 F1: it is the cheapest plan available",
-        "Microsoft 365 Apps for Business: it includes the desktop Office apps without email"
+        "Microsoft 365 Business Standard, with Defender for Business added later if budget allows",
+        "Microsoft 365 Business Premium, which includes desktop apps, Intune device management and Defender for Business",
+        "Microsoft 365 Business Basic for everyone, plus Business Premium for the partners only",
+        "Microsoft 365 Apps for Business, with Exchange Online Plan 1 for mailboxes"
       ],
       "correct": 1,
-      "explain": "Business Basic is the correct entry point for a small team migrating from Google: it covers email, Teams, SharePoint, and OneDrive at the lowest cost. Premium adds security features that are justified at higher risk profiles or larger organisations."
+      "explain": "Device management and threat protection for a firm handling client financial data is the requirement, and Business Premium is the plan that carries Intune and Defender for Business. Standard has the apps but neither of those. Mixing Basic and Premium leaves most staff unprotected.",
+      "id": "s2q01"
     },
     {
-      "id": "q2",
-      "sec": "Section A: Microsoft 365 product knowledge",
+      "sec": "Section A: Microsoft 365 licensing and products",
       "type": "mcq",
-      "text": "A client asks: \"What is Microsoft Teams and do I need it if I already use WhatsApp for team communication?\" How do you respond?",
+      "text": "A prospect with 350 staff asks for Microsoft 365 Business Standard for everyone. What is the correct response?",
       "opts": [
-        "Tell them Teams and WhatsApp are the same thing",
-        "Explain that Teams is a professional collaboration platform that integrates with their Microsoft 365 files, meetings, and email: giving them searchable history, file sharing, and video calls in one secure place that WhatsApp cannot offer for business",
-        "Tell them Teams is only for video calls",
-        "Tell them WhatsApp is better and they should keep using it"
+        "Quote 350 Business Standard licences",
+        "Explain that the Business plans are limited to 300 users per organisation and propose an Enterprise plan such as Microsoft 365 E3 for the organisation, or a split",
+        "Quote 300 Business Standard and 50 Business Basic to stay under the limit",
+        "Recommend two separate tenants of 175 users each"
       ],
       "correct": 1,
-      "explain": "The correct response positions Teams's business value: integration, searchability, security, and compliance: versus WhatsApp's limitations for professional use."
+      "explain": "Business Basic, Standard and Premium share a combined cap of 300 licences per tenant. Splitting plans does not raise it. Two tenants would break collaboration and administration. Over 300 users is Enterprise territory.",
+      "id": "s2q02"
     },
     {
-      "id": "q3",
-      "sec": "Section A: Microsoft 365 product knowledge",
-      "type": "tf",
-      "text": "A Microsoft 365 Business Basic licence includes the full desktop versions of Word, Excel, and PowerPoint installed on the user's computer.",
-      "correct": "False",
-      "explain": "Business Basic is web and mobile only: it does not include the installed desktop Office applications. Business Standard and above include the full desktop apps."
-    },
-    {
-      "id": "q4",
-      "sec": "Section A: Microsoft 365 product knowledge",
+      "sec": "Section A: Microsoft 365 licensing and products",
       "type": "mcq",
-      "text": "A client has 12 staff members. They want Microsoft 365 Business Standard. As a CSP, GoLive purchases at the distributor price and sells to the client. What is your role in provisioning their licences?",
+      "text": "A client wants Microsoft 365 Copilot for its 20 Business Standard users. What must be true before Copilot can be sold to them?",
       "opts": [
-        "The client must buy directly from Microsoft",
-        "GoLive orders the licences through the distributor (4Sight/Pax8), provisions them in the client's tenant, and invoices the client at the agreed reseller price",
-        "GoLive has no role: the distributor deals with the client directly",
-        "The client buys the licences and GoLive installs them for free"
-      ],
-      "correct": 1,
-      "explain": "As a CSP Indirect Reseller, GoLive orders from the distributor, provisions the licences in the client tenant, and manages the ongoing relationship. This is the core of the CSP business model."
-    },
-    {
-      "id": "q5",
-      "sec": "Section A: Microsoft 365 product knowledge",
-      "type": "mcq",
-      "text": "A client asks what happens to their data if they stop paying for Microsoft 365. What do you tell them?",
-      "opts": [
-        "Their data is deleted immediately when payment stops",
-        "Microsoft keeps their data for 90 days after subscription expiry in a disabled state before permanent deletion: they can export or reactivate within that window",
-        "Their data is transferred to a free OneDrive account automatically",
-        "Nothing happens: they can access everything indefinitely"
-      ],
-      "correct": 1,
-      "explain": "Microsoft retains data for 90 days in a disabled state after subscription lapse. This grace period allows recovery but clients should be advised to export data if they plan to leave."
-    },
-    {
-      "id": "q6",
-      "sec": "Section B: Sales process",
-      "type": "mcq",
-      "text": "A prospect says: \"Microsoft 365 is too expensive for our small business.\" How do you respond?",
-      "opts": [
-        "Agree with them and suggest they try a free alternative",
-        "Immediately offer a discount",
-        "Break down the per-user monthly cost (as low as $6/user/month for Business Basic) against what they currently spend on separate email, storage, and communication tools: showing the consolidated value",
-        "Tell them to come back when they have more budget"
+        "Nothing; Copilot is included in Business Standard",
+        "They must first upgrade everyone to Business Premium",
+        "Copilot is an add-on licence that needs a qualifying base plan such as Business Basic, Standard or Premium, so it can be added to their existing plan",
+        "Copilot is only available on Enterprise E5"
       ],
       "correct": 2,
-      "explain": "The correct response reframes cost as value and uses the price breakdown to show M365's total cost is often lower than the sum of separate tools the client is already paying for."
+      "explain": "Copilot for Microsoft 365 is a separate add-on that sits on a qualifying base licence. Business Standard qualifies, so no upgrade is needed. It is not included in any plan and is not restricted to E5.",
+      "id": "s2q03"
     },
     {
-      "id": "q7",
-      "sec": "Section B: Sales process",
+      "sec": "Section A: Microsoft 365 licensing and products",
       "type": "mcq",
-      "text": "You sent a proposal to a prospect 5 days ago and have not heard back. What do you do?",
+      "text": "A 6-person NGO needs a shared address, info@, that three staff answer from, without paying for a fourth mailbox. What do you set up?",
       "opts": [
-        "Wait another 2 weeks before following up",
-        "Send one polite follow-up email referencing the proposal, asking if they have questions and offering a brief call to walk through it",
-        "Call them every day until they respond",
-        "Mark the lead as lost and move on"
+        "A fourth Business Basic licence for the info@ mailbox",
+        "A shared mailbox, which needs no licence up to 50 GB, with the three staff given access",
+        "A distribution list that forwards to all three",
+        "An Exchange Online Plan 1 licence assigned to info@"
       ],
       "correct": 1,
-      "explain": "One timely, value-added follow-up is the correct approach. Reference the proposal specifically, offer to help with questions, and keep it brief. Multiple daily calls are intrusive and damage the relationship."
+      "explain": "A shared mailbox is free up to 50 GB and gives a common inbox and sent items, which a distribution list does not. A licence is only needed if the shared mailbox needs more than 50 GB or features such as an archive or litigation hold.",
+      "id": "s2q04"
     },
     {
-      "id": "q8",
-      "sec": "Section B: Sales process",
+      "sec": "Section A: Microsoft 365 licensing and products",
+      "type": "mcq",
+      "text": "Which plan gives a user the desktop versions of Word, Excel and PowerPoint but does not include a business email mailbox?",
+      "opts": [
+        "Microsoft 365 Business Basic",
+        "Microsoft 365 Apps for Business",
+        "Microsoft 365 Business Standard",
+        "Exchange Online Plan 1"
+      ],
+      "correct": 1,
+      "explain": "Apps for Business is the desktop apps plus OneDrive, with no Exchange mailbox. Basic has a mailbox but web and mobile apps only. Standard has both. Exchange Online Plan 1 is a mailbox only.",
+      "id": "s2q05"
+    },
+    {
+      "sec": "Section A: Microsoft 365 licensing and products",
+      "type": "mcq",
+      "text": "A school asks whether Teams can run online classes for 400 students across 20 teachers. Which licensing route is correct?",
+      "opts": [
+        "Business Premium for everyone, since it has the most features",
+        "Microsoft 365 Education plans (A1, A3 or A5), which are licensed for education customers and include Teams for Education",
+        "Teams Essentials for the teachers and nothing for students",
+        "Business Basic for the teachers; students can join Teams as guests"
+      ],
+      "correct": 1,
+      "explain": "Education institutions qualify for the Microsoft 365 Education plans, which are priced for education and include Teams for Education features such as class teams and assignments. Business plans are the wrong family for a school.",
+      "id": "s2q06"
+    },
+    {
+      "sec": "Section A: Microsoft 365 licensing and products",
+      "type": "mcq",
+      "text": "A client on Business Basic complains that Outlook on their laptop will not open their mailbox. What is the most likely explanation?",
+      "opts": [
+        "Their mailbox has been suspended for non-payment",
+        "Business Basic does not include the desktop Outlook app; they should use Outlook on the web or the mobile app, or move to Business Standard",
+        "Their DNS records are wrong",
+        "Their laptop needs Windows 11"
+      ],
+      "correct": 1,
+      "explain": "Basic includes web and mobile apps only. Desktop Outlook, Word and Excel come with Standard and Premium. Suspension or DNS faults would affect web access too.",
+      "id": "s2q07"
+    },
+    {
+      "sec": "Section A: Microsoft 365 licensing and products",
+      "type": "mcq",
+      "text": "A client using Google Workspace wants their email history, calendars and contacts moved to Microsoft 365. Which statement is accurate when scoping the work?",
+      "opts": [
+        "An IMAP migration moves email, calendars and contacts together",
+        "Email moves over IMAP or the Google Workspace migration tool in the Exchange admin centre; calendars and contacts need the Google Workspace migration method or a manual export, because IMAP carries mail only",
+        "Google Drive files migrate automatically when the domain is moved",
+        "Nothing can be migrated; the client starts with empty mailboxes"
+      ],
+      "correct": 1,
+      "explain": "IMAP moves mail only. The Google Workspace migration in the Exchange admin centre can bring mail, calendar and contacts; Drive files need a separate migration. Scoping this wrongly is how a migration ends up with missing calendars.",
+      "id": "s2q08"
+    },
+    {
+      "sec": "Section A: Microsoft 365 licensing and products",
+      "type": "mcq",
+      "text": "Which of these is included in Microsoft 365 Business Premium but not in Business Standard?",
+      "opts": [
+        "Teams",
+        "1 TB of OneDrive storage per user",
+        "Microsoft Defender for Business and Intune",
+        "Desktop Office apps"
+      ],
+      "correct": 2,
+      "explain": "Both plans have Teams, 1 TB OneDrive and the desktop apps. Premium adds the security and device management layer: Defender for Business, Intune, Entra ID P1 with Conditional Access, and Purview information protection.",
+      "id": "s2q09"
+    },
+    {
+      "sec": "Section A: Microsoft 365 licensing and products",
+      "type": "mcq",
+      "text": "A client asks why the same Microsoft 365 plan costs more on a month-to-month term than on an annual term. What is the accurate explanation?",
+      "opts": [
+        "GoLive adds a handling fee to monthly terms",
+        "Microsoft's monthly-term pricing carries a premium over the annual commitment, in exchange for the flexibility to cancel or reduce each month",
+        "The monthly price includes VAT and the annual price does not",
+        "There is no difference; the client has misread the proposal"
+      ],
+      "correct": 1,
+      "explain": "Under Microsoft's New Commerce Experience, month-to-month terms cost more than annual commitments (typically about 20% more) because they can be cancelled or reduced monthly. Annual paid monthly costs the same as annual paid upfront, but cannot be reduced during the term.",
+      "id": "s2q10"
+    },
+    {
+      "sec": "Section A: Microsoft 365 licensing and products",
+      "type": "mcq",
+      "text": "A client on an annual commitment, three months in, asks to reduce from 25 licences to 15 because two staff left. What is correct?",
+      "opts": [
+        "Reduce to 15 immediately; they only pay for what they use",
+        "The annual commitment cannot be reduced mid-term; the licences can be reassigned to other staff, and the count can be reduced at renewal",
+        "Reduce to 15 and charge a 50% cancellation fee",
+        "Cancel the subscription and start a new one for 15"
+      ],
+      "correct": 1,
+      "explain": "Annual commitments can be increased at any time but not reduced until renewal, apart from a short cancellation window right after purchase. The right advice is to reassign the licences and note the reduction for renewal.",
+      "id": "s2q11"
+    },
+    {
+      "sec": "Section A: Microsoft 365 licensing and products",
+      "type": "mcq",
+      "text": "After a client buys 10 licences, they realise the next day that they chose Business Standard when they needed Business Premium. What is the best course?",
+      "opts": [
+        "Tell them they are committed for a year",
+        "Use the short cancellation window that applies immediately after a New Commerce purchase to cancel or adjust, then place the correct order; check the window has not passed",
+        "Add 10 Premium licences on top and leave the Standard ones running",
+        "Contact Microsoft support on the client's behalf to swap the SKU free of charge"
+      ],
+      "correct": 1,
+      "explain": "New Commerce subscriptions have a short cancellation window (seven days) after purchase with a pro-rated refund. Acting inside that window fixes the mistake at no cost. Running both plans doubles the bill.",
+      "id": "s2q12"
+    },
+    {
+      "sec": "Section A: Microsoft 365 licensing and products",
       "type": "tf",
-      "text": "Once a client has signed up for Microsoft 365 through GoLive, your involvement with that client ends: the distributor handles everything from that point.",
+      "text": "A Microsoft 365 Business Basic licence allows a user to install Word, Excel and PowerPoint on their laptop.",
       "correct": "False",
-      "explain": "As the CSP reseller, GoLive owns the ongoing client relationship: renewals, support escalations, licence changes, and upsell conversations. The distributor handles backend provisioning, not the client relationship."
+      "explain": "Basic includes web and mobile apps only. Installable desktop apps come with Apps for Business, Business Standard and Business Premium.",
+      "id": "s2q13"
     },
     {
-      "id": "q9",
-      "sec": "Section B: Sales process",
-      "type": "mcq",
-      "text": "A current GoLive Microsoft 365 client emails saying they want to reduce their licences from 20 to 8 because they made redundancies. What is your first step?",
-      "opts": [
-        "Reduce the licences immediately without asking any questions",
-        "Acknowledge the request, check whether they are on an annual or monthly commitment (annual commitments cannot reduce mid-term: seats can only be added, not removed), then advise accordingly",
-        "Tell them they cannot reduce licences under any circumstances",
-        "Immediately cancel their entire subscription"
-      ],
-      "correct": 1,
-      "explain": "Annual NCE commitments allow adding licences but not reducing them mid-term. You must check the commitment type first before advising the client: giving wrong information could cause a billing dispute."
-    },
-    {
-      "id": "q10",
-      "sec": "Section C: Communication",
-      "type": "text",
-      "text": "A prospect contacted GoLive via the website enquiry form asking about Microsoft 365 for their 15-person logistics company. Write a professional first-response email introducing GoLive and asking 2–3 qualifying questions.",
-      "sub": "Be warm, professional, and concise. Position GoLive credibly without overwhelming them with information.",
-      "placeholder": "Dear [Name]..."
-    },
-    {
-      "id": "q11",
-      "sec": "Section C: Communication",
-      "type": "text",
-      "text": "A client is unhappy because their Microsoft 365 email setup took 3 days longer than the 2-day turnaround you quoted them. They are threatening to cancel. Write a short email response.",
-      "sub": "Acknowledge the issue, take responsibility where appropriate, and focus on resolution rather than excuses.",
-      "placeholder": "Dear [Client name]..."
-    },
-    {
-      "id": "q12",
-      "sec": "Section D: Judgement",
-      "type": "mcq",
-      "text": "During a discovery call a prospect mentions they handle sensitive medical records for a hospital. Which Microsoft 365 plan feature becomes particularly important to highlight?",
-      "opts": [
-        "The lower price of Business Basic",
-        "The compliance and data protection features in Business Premium: specifically Microsoft Purview for data governance and Defender for Business for security",
-        "The number of free Teams backgrounds",
-        "The storage size of OneDrive"
-      ],
-      "correct": 1,
-      "explain": "Healthcare clients handling sensitive data need to hear about compliance, security, and data governance: not price. Business Premium's advanced compliance features (Purview, Defender) are directly relevant to their regulatory obligations."
-    },
-    {
-      "id": "q13",
-      "sec": "Section D: Judgement",
-      "type": "mcq",
-      "text": "A prospect tells you a competitor is offering Microsoft 365 at a significantly lower price than GoLive. How do you respond?",
-      "opts": [
-        "Immediately match the price without asking any questions",
-        "Ask what is included in the competitor's price, then clearly differentiate GoLive's value: local support, onboarding assistance, ongoing account management, and GoLive's CSP credentials",
-        "Tell them the competitor's offering is probably fake",
-        "Give up and mark the lead as lost"
-      ],
-      "correct": 1,
-      "explain": "Understand the competitor's offer first, then differentiate on value rather than competing on price alone. GoLive's local presence, proper onboarding, and ongoing support are genuine differentiators in the Nigerian market."
-    },
-    {
-      "id": "q14",
-      "sec": "Section D: Judgement",
+      "sec": "Section A: Microsoft 365 licensing and products",
       "type": "tf",
-      "text": "It is acceptable to verbally commit to a price or service level with a client before checking with the MD, as long as you follow up in writing afterwards.",
-      "correct": "False",
-      "explain": "Verbal commitments are legally binding. Never promise a price or service level without confirming it is approved. If uncertain, tell the client you will confirm within a short timeframe: then get approval before committing."
+      "text": "Multi-factor authentication is available on every Microsoft 365 plan at no extra cost.",
+      "correct": "True",
+      "explain": "MFA is available on every plan at no extra cost, through security defaults or, on Premium and Enterprise plans, through Conditional Access.",
+      "id": "s2q14"
     },
     {
-      "id": "q15",
-      "sec": "Section E: Reasoning",
+      "sec": "Section A: Microsoft 365 licensing and products",
+      "type": "tf",
+      "text": "When a client's subscription is cancelled, their mailbox data is deleted immediately.",
+      "correct": "False",
+      "explain": "Microsoft retains the data for a period after cancellation (the subscription passes through disabled and then deprovisioned stages) before deletion. The client has time to export or renew, but should not rely on that window.",
+      "id": "s2q15"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
       "type": "mcq",
-      "text": "You have three active leads in your pipeline: Lead A needs a callback today, Lead B submitted a proposal request an hour ago, Lead C has not responded to two follow-up emails in two weeks. How do you prioritise your next 2 hours?",
+      "text": "On a first call, a hotel general manager says: \"Just tell me your cheapest email package.\" What is the strongest response?",
       "opts": [
-        "Work on Lead C first since they have been waiting the longest",
-        "Call Lead A immediately (committed deadline), then respond to Lead B's proposal request (fresh interest, highest conversion probability), then make a final follow-up decision on Lead C",
-        "Work on Lead B first since they just came in",
-        "Archive Lead C and focus only on A and B"
+        "Quote Business Basic on the spot; it is what they asked for",
+        "Ask a few questions first: how many staff, whether they use shared devices at reception, whether guest data is handled, and what they use today, then recommend",
+        "Explain that cheapest is a false economy and recommend Business Premium",
+        "Send the full price list and let them choose"
       ],
       "correct": 1,
-      "explain": "Lead A has a committed deadline: that is non-negotiable. Lead B has fresh intent and high conversion probability. Lead C has shown low engagement and should be assessed for a final follow-up or archiving, but only after the higher-priority tasks."
+      "explain": "The cheapest email package for a hotel with shared front-desk PCs and guest data may be the wrong one, and quoting it commits you before you know. Qualifying takes two minutes and produces a recommendation the client can trust.",
+      "id": "s2q16"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "mcq",
+      "text": "A prospect is comparing GoLive with a competitor quoting a lower per-user price for the same Microsoft plan. Which response is both honest and commercially sound?",
+      "opts": [
+        "Match the price to win the deal",
+        "Explain that the Microsoft licence is the same wherever it is bought, then set out what GoLive's price includes that a licence-only quote does not: migration, setup, local-currency invoicing and support, and ask what their quote includes",
+        "Say the competitor is probably not an authorised partner",
+        "Offer a 15% discount on the spot"
+      ],
+      "correct": 1,
+      "explain": "The licence itself is identical; the difference is what surrounds it. Making that concrete and asking what the competitor includes reframes the comparison. Matching or discounting on the spot is outside your authority and undervalues the service.",
+      "id": "s2q17"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "mcq",
+      "text": "A prospect says: \"Our WhatsApp group works fine; why would we pay for Teams?\" Which is the most effective reply?",
+      "opts": [
+        "Teams is more professional than WhatsApp",
+        "Ask what happens to a conversation when a staff member leaves, and to a document sent in the group six months ago, then show how Teams keeps company communication and files in the company's control",
+        "Point out that WhatsApp is insecure",
+        "Agree that WhatsApp is enough and focus on email"
+      ],
+      "correct": 1,
+      "explain": "The gap WhatsApp cannot close is ownership: chats and files leave with the employee's phone. Asking those two questions makes the prospect discover the problem themselves, which persuades better than assertion.",
+      "id": "s2q18"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "mcq",
+      "text": "Which of these prospects should you spend the most time on this week?",
+      "opts": [
+        "A 3-person start-up asking for Business Basic, ready to buy today",
+        "A 60-person logistics company that has asked for a proposal for Business Premium for all staff plus a migration from Google Workspace, with a decision expected this month",
+        "A 20-person firm that asked for pricing four months ago and never replied",
+        "A friend's 8-person business that wants a discount"
+      ],
+      "correct": 1,
+      "explain": "Effort follows value and likelihood. The logistics company is the largest, has a stated need, and a decision date. The start-up should still be closed quickly, since it is easy, but not at the expense of the large opportunity.",
+      "id": "s2q19"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "mcq",
+      "text": "A prospect's IT person is enthusiastic, but the managing director has not been in any conversation. What should you do before sending the proposal?",
+      "opts": [
+        "Send the proposal to the IT person and let them sell it internally",
+        "Ask the IT person who signs off spending of this size and request a short call that includes that person, so the proposal addresses what the decision-maker cares about",
+        "Email the managing director directly without telling the IT person",
+        "Reduce the price so the IT person can approve it alone"
+      ],
+      "correct": 1,
+      "explain": "Deals stall when the economic buyer has never been in the room. Involving them through the champion, rather than around them, keeps the IT person onside and gives the proposal a real audience.",
+      "id": "s2q20"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "mcq",
+      "text": "A prospect asks a technical question you cannot answer with certainty: whether a specific legacy accounting application will work with the new setup. What do you do?",
+      "opts": [
+        "Say yes; most things work",
+        "Say you will confirm with the technical team and give a time by which you will come back, then do so",
+        "Say no to be safe",
+        "Suggest they test it themselves after buying"
+      ],
+      "correct": 1,
+      "explain": "A confident wrong answer becomes a broken promise. Committing to a time to come back, and keeping it, builds more trust than guessing. Saying no loses a deal you might have won.",
+      "id": "s2q21"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "mcq",
+      "text": "A proposal was sent 6 days ago. GoLive proposals are valid for 5 days, and the prospect has not replied. What is the right follow-up?",
+      "opts": [
+        "Wait; chasing looks desperate",
+        "Call, ask whether they have any questions, and let them know the proposal has expired and you can reissue it at current pricing if they are ready to proceed",
+        "Send the same proposal again with a discount",
+        "Mark the lead as lost"
+      ],
+      "correct": 1,
+      "explain": "A call surfaces the real objection, which email rarely does. The expiry is a reason to talk, not a threat: pricing moves with the exchange rate, so reissuing is a genuine service. Discounting unprompted trains prospects to wait.",
+      "id": "s2q22"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "mcq",
+      "text": "A church with 15 staff and 200 volunteers asks for Microsoft 365. What qualifying question matters most before you recommend a plan?",
+      "opts": [
+        "Whether they prefer Outlook or Gmail",
+        "Whether they are a registered non-profit, since Microsoft offers non-profit pricing, and which of the 215 people actually need a licensed mailbox rather than occasional access",
+        "Which bank they use",
+        "How many laptops they own"
+      ],
+      "correct": 1,
+      "explain": "Eligibility for non-profit pricing changes the cost substantially, and the licence count depends on who needs a mailbox; volunteers often do not. Both questions shape the proposal more than anything else.",
+      "id": "s2q23"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "mcq",
+      "text": "A prospect says they will decide after the end of their financial year in two months. What is the best next step?",
+      "opts": [
+        "Close the lead and re-open it in two months",
+        "Agree a specific follow-up date, ask what would need to be true for them to proceed then, and offer a small, useful step in the meantime, such as a licence audit of what they use today",
+        "Call weekly until they decide",
+        "Offer a discount for signing now"
+      ],
+      "correct": 1,
+      "explain": "A dated next step keeps the deal alive without pressure, and a useful interim step keeps you in the conversation. Weekly calls annoy; discounts for artificial urgency erode margin.",
+      "id": "s2q24"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "mcq",
+      "text": "During a call, a prospect volunteers that they process patients' medical records. Which recommendation follows?",
+      "opts": [
+        "Business Basic, to keep costs down for a clinic",
+        "Business Premium, because the data loss prevention, device management and encryption features protect sensitive personal data, which the NDPA treats as requiring stronger safeguards",
+        "Any plan, since Microsoft is secure by default",
+        "Advise them to keep medical records on paper"
+      ],
+      "correct": 1,
+      "explain": "Health data is sensitive personal data under the NDPA 2023. Premium's protection features are the substantive answer. This is also a moment to note it for the proposal narrative, since it justifies the plan.",
+      "id": "s2q25"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "tf",
+      "text": "A prospect who says 'it is too expensive' is usually telling you that they do not yet see enough value, not that they cannot pay.",
+      "correct": "True",
+      "explain": "Price objections are most often value objections. The productive response is to revisit what the package includes and what problem it solves, not to reach for a discount.",
+      "id": "s2q26"
+    },
+    {
+      "sec": "Section B: Consultative selling and qualification",
+      "type": "tf",
+      "text": "Once a client has signed and paid, the Associate's involvement ends and the client is handed to Microsoft.",
+      "correct": "False",
+      "explain": "GoLive remains the client's partner: support, renewals, licence changes and upsell all run through GoLive. The relationship after signature is where recurring revenue and commission come from.",
+      "id": "s2q27"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "mcq",
+      "text": "A GoLive proposal for 8 users of Standard Cloud Office shows a monthly total of N178,467 excluding VAT. What is the total including VAT?",
+      "opts": [
+        "N178,467, because software is VAT-exempt",
+        "N191,852",
+        "N196,314",
+        "N187,390"
+      ],
+      "correct": 1,
+      "explain": "VAT in Nigeria is 7.5%: 178,467 multiplied by 1.075 is 191,852. Software licences and services are not VAT-exempt.",
+      "id": "s2q28"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "mcq",
+      "text": "A prospect asks for 10% off to sign today. You believe the deal is winnable. What do you do?",
+      "opts": [
+        "Give the discount; 90% of a deal is better than none",
+        "Say you are not able to authorise a discount yourself, ask what would make the decision today apart from price, and take the request to the Managing Director for a written decision",
+        "Offer 5% as a compromise",
+        "Tell them GoLive never discounts"
+      ],
+      "correct": 1,
+      "explain": "Under the Commission and Bonus Addendum, no discount, credit term or special pricing may be promised without the MD's written approval. Exploring what else matters often removes the need for a discount; if not, the MD decides.",
+      "id": "s2q29"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "mcq",
+      "text": "A client on a monthly commitment asks why GoLive invoices the first three months in advance. What is the accurate answer?",
+      "opts": [
+        "It is a Microsoft rule",
+        "It is GoLive's standard first payment for monthly commitments, stated on the proposal, which covers the setup period and reduces payment risk on new accounts; thereafter billing is monthly",
+        "It is negotiable if they ask nicely",
+        "It is a deposit that is refunded after a year"
+      ],
+      "correct": 1,
+      "explain": "The three-months-in-advance first payment is GoLive's own term, printed on every monthly-commitment proposal. Presenting it as policy, with the reason, keeps it from becoming a negotiation.",
+      "id": "s2q30"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "mcq",
+      "text": "Your proposal quoted Naira at the exchange rate on the day it was issued. Eight days later the client wants to pay, and the Naira has weakened noticeably. What is correct?",
+      "opts": [
+        "Accept the old Naira figure; a quote is a quote",
+        "The proposal expired after 5 days, so it is reissued at the current rate; explain that GoLive's costs are in dollars and the validity period protects both sides",
+        "Charge the difference on the next invoice without telling them",
+        "Refuse the sale"
+      ],
+      "correct": 1,
+      "explain": "The 5-day validity exists precisely for exchange-rate movement. Honouring an expired quote at a worse rate erodes the margin the business runs on; reissuing, with the reason, is the honest course.",
+      "id": "s2q31"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "mcq",
+      "text": "A client emails asking for a copy of GoLive's Microsoft distributor cost price so they can see the margin. What do you do?",
+      "opts": [
+        "Send it; transparency builds trust",
+        "Decline politely: distributor pricing is confidential commercial information, and explain that GoLive's proposal states what the client pays and what it includes",
+        "Send a rounded figure",
+        "Ask the MD to send it"
+      ],
+      "correct": 1,
+      "explain": "Distributor cost and margin structure are Proprietary Information under the confidentiality agreement every employee signs. The client is entitled to their price, not GoLive's cost.",
+      "id": "s2q32"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "mcq",
+      "text": "A client verbally agrees to 12 licences of Secure Business Cloud. What must happen before you record the deal as won?",
+      "opts": [
+        "Nothing; a verbal yes is a sale",
+        "The proposal must be accepted, payment received, and the licences provisioned; until then it is at the negotiating or quote-sent stage in the CRM",
+        "Move it to won so the pipeline looks healthy",
+        "Ask the client to confirm on WhatsApp"
+      ],
+      "correct": 1,
+      "explain": "Won means paid and activated. Recording it earlier misstates the pipeline, and the commission scheme only recognises a sale once payment is received and the service is delivered.",
+      "id": "s2q33"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "mcq",
+      "text": "Why does GoLive calculate commission on gross profit rather than on revenue?",
+      "opts": [
+        "To pay staff less",
+        "Because the Microsoft licence cost passes through to the distributor; only the margin and services are GoLive's earnings, so commission on revenue would reward selling at no profit",
+        "Because Microsoft requires it",
+        "Because revenue is harder to measure"
+      ],
+      "correct": 1,
+      "explain": "A sale at a discount that wipes out the margin earns the company nothing. Commission on gross profit aligns the Associate with profitable deals and with the service components that carry the best margin.",
+      "id": "s2q34"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "mcq",
+      "text": "A prospect asks you to confirm in writing that migration will be complete within 48 hours of payment. You believe it usually is. What do you do?",
+      "opts": [
+        "Confirm it; it is usually true",
+        "Do not commit to a timeline in writing without the MD's approval; say the typical timeline, note that it depends on the source system and the DNS cutover window, and confirm the plan after technical review",
+        "Promise 24 hours to win the deal",
+        "Say migrations take a week to be safe"
+      ],
+      "correct": 1,
+      "explain": "The Addendum bars committing the company to implementation timelines or guarantees without written approval. 'Usually' is not a promise; state the typical case honestly and let the plan set the date.",
+      "id": "s2q35"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "tf",
+      "text": "GoLive charges in Naira; the US dollar figure on a proposal is shown for reference only.",
+      "correct": "True",
+      "explain": "Naira is the charging currency; the dollar figure is shown for reference at the day's rate. The proposal states the currency the client pays in.",
+      "id": "s2q36"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "tf",
+      "text": "A discount agreed verbally with a client is binding on GoLive once the client relies on it.",
+      "correct": "False",
+      "explain": "The Associate has no authority to grant discounts, so a verbal promise does not bind the company; but it does damage trust when withdrawn. That is why the rule is never to make one.",
+      "id": "s2q37"
+    },
+    {
+      "sec": "Section C: Pricing, proposals and commercial discipline",
+      "type": "tf",
+      "text": "Renewals actively managed by the Associate can earn commission after the first year.",
+      "correct": "True",
+      "explain": "The post-confirmation schedule pays a percentage of gross profit on renewals the Associate actively manages, which is why keeping in touch with clients before renewal matters.",
+      "id": "s2q38"
+    },
+    {
+      "sec": "Section D: Customer support and service recovery",
+      "type": "mcq",
+      "text": "A client emails at 9:10 that 'email is down for everyone'. You cannot fix it yourself. What is the right first action?",
+      "opts": [
+        "Forward the email to the technical team and wait",
+        "Reply within minutes to acknowledge, say it is being investigated, ask two or three clarifying questions (all users or some, since when, any error message), and tell them when you will next update them; then escalate with those details",
+        "Tell them to restart their computers",
+        "Wait until you have a fix, then reply"
+      ],
+      "correct": 1,
+      "explain": "Silence is the worst part of an outage for a client. Acknowledging fast, gathering the details the engineers need, and committing to an update time turns a crisis into a managed incident, even before anything is fixed.",
+      "id": "s2q39"
+    },
+    {
+      "sec": "Section D: Customer support and service recovery",
+      "type": "mcq",
+      "text": "The client's outage turns out to be caused by their own domain registrar deleting the MX record. Whose fault is it, and what do you say?",
+      "opts": [
+        "Tell the client it is their fault and close the ticket",
+        "Explain what happened plainly and without blame, help them restore the record or do it with them, and suggest how to prevent it, such as locking the DNS records",
+        "Fix it silently and say nothing",
+        "Bill them for the time"
+      ],
+      "correct": 1,
+      "explain": "The client wants their email back and to understand why it broke. Cause without blame, a fix, and a prevention step is what a partner does. Whether to bill is the MD's decision, not the Associate's.",
+      "id": "s2q40"
+    },
+    {
+      "sec": "Section D: Customer support and service recovery",
+      "type": "mcq",
+      "text": "A migration you quoted as two days took five, and the client is angry. Which reply is best?",
+      "opts": [
+        "Explain that migrations are unpredictable",
+        "Apologise for the delay without excuses, say what caused it and what has been done to finish it, confirm the current status, and say what GoLive will do differently; then ask the MD whether any goodwill gesture is appropriate",
+        "Offer a refund immediately",
+        "Point out that the contract does not guarantee a timeline"
+      ],
+      "correct": 1,
+      "explain": "Service recovery is apology, explanation, status and prevention, in that order. Refunds and credits are for the MD to decide. Citing the contract at an angry client ends the relationship.",
+      "id": "s2q41"
+    },
+    {
+      "sec": "Section D: Customer support and service recovery",
+      "type": "mcq",
+      "text": "A client asks you to reset the password on their managing director's mailbox because 'he is travelling and cannot get in'. What do you do?",
+      "opts": [
+        "Reset it and send the new password by WhatsApp",
+        "Do not reset it on a third party's request; verify with the account holder directly through a known channel, or route the request through the client's own designated admin contact, and log it",
+        "Reset it if the caller sounds genuine",
+        "Refuse and end the call"
+      ],
+      "correct": 1,
+      "explain": "This is exactly how account takeovers happen. Password changes go to the account holder through a verified channel or to the client's authorised admin, never on a colleague's say-so. Logging it protects everyone.",
+      "id": "s2q42"
+    },
+    {
+      "sec": "Section D: Customer support and service recovery",
+      "type": "mcq",
+      "text": "You receive four support requests at once: a new-user setup due tomorrow, a client who cannot send email, a request for an invoice copy, and a question about adding Copilot. In what order do you handle them?",
+      "opts": [
+        "In the order received",
+        "Cannot send email first, since it stops work; the invoice copy next because it takes two minutes; then the new-user setup; then the Copilot question, which is a sales conversation to schedule",
+        "Copilot first, since it is a sales opportunity",
+        "New-user setup first, since it has a deadline"
+      ],
+      "correct": 1,
+      "explain": "Triage by impact and effort: stop the bleeding, clear what is trivial, then the dated work, then the conversation that deserves proper time. Chasing the sales opportunity while a client cannot work damages the account you already have.",
+      "id": "s2q43"
+    },
+    {
+      "sec": "Section D: Customer support and service recovery",
+      "type": "mcq",
+      "text": "A client's SLA is a 95% response rate within the agreed time. Which practice most reliably protects it?",
+      "opts": [
+        "Replying to everything with 'noted' immediately",
+        "A short acknowledgement to every request on receipt, with an expected time for a full answer, logged in the CRM, so nothing sits unanswered even when the answer takes longer",
+        "Working late on Fridays",
+        "Asking clients to phone instead of emailing"
+      ],
+      "correct": 1,
+      "explain": "Response is not resolution. An acknowledgement with an expected time meets the SLA, sets expectations, and creates the record the month-end SLA check is made against.",
+      "id": "s2q44"
+    },
+    {
+      "sec": "Section D: Customer support and service recovery",
+      "type": "mcq",
+      "text": "A client's staff member says the new Outlook 'lost' folders that existed in Gmail. Before escalating, what is the most useful thing to check?",
+      "opts": [
+        "Whether they have paid this month",
+        "Whether the folders were Gmail labels that migrated but are collapsed or under a different parent, and whether the migration report lists them, so the escalation carries facts rather than 'folders lost'",
+        "Whether they restarted Outlook",
+        "Nothing; escalate immediately"
+      ],
+      "correct": 1,
+      "explain": "Gmail labels become folders on migration and are often present but not where the user expects. Checking the report and the folder tree resolves many cases outright and makes the rest a precise escalation.",
+      "id": "s2q45"
+    },
+    {
+      "sec": "Section D: Customer support and service recovery",
+      "type": "mcq",
+      "text": "A long-standing client mentions in passing that they are 'looking at options' for next year's renewal. What do you do?",
+      "opts": [
+        "Nothing; renewals are automatic",
+        "Treat it as a live retention risk: log it in the CRM, ask what is prompting the review, book a proper conversation before the renewal date, and tell the MD",
+        "Offer a discount immediately",
+        "Wait for them to raise it formally"
+      ],
+      "correct": 1,
+      "explain": "A renewal remark is a signal, and renewals the Associate actively manages carry commission. Understanding the cause early is how a renewal is saved; a reflex discount is neither necessary nor within authority.",
+      "id": "s2q46"
+    },
+    {
+      "sec": "Section D: Customer support and service recovery",
+      "type": "tf",
+      "text": "It is acceptable to tell a client a problem is fixed once the ticket has been passed to the technical team.",
+      "correct": "False",
+      "explain": "Passed on is not fixed. Telling the client it is resolved before it is destroys credibility the first time it fails again. Report status accurately and confirm resolution with the client.",
+      "id": "s2q47"
+    },
+    {
+      "sec": "Section D: Customer support and service recovery",
+      "type": "tf",
+      "text": "Every support interaction, including phone calls, should be logged in the CRM.",
+      "correct": "True",
+      "explain": "The CRM is the record the company runs on: SLA performance, testimonials, commission attribution and renewals are all verified from it. A call that is not logged did not happen, as far as the records show.",
+      "id": "s2q48"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "mcq",
+      "text": "You receive an email that appears to be from Microsoft Partner Center saying GoLive's CSP account will be suspended unless you sign in through the link within 24 hours. What do you do?",
+      "opts": [
+        "Sign in quickly; suspension would be serious",
+        "Do not click; report it to the MD and the technical team, and check Partner Center by typing the address yourself, since urgency plus a link is the standard phishing pattern",
+        "Reply asking whether it is genuine",
+        "Forward it to the client"
+      ],
+      "correct": 1,
+      "explain": "Urgency, a threat and a link are the signature of phishing. Partner credentials give access to every client tenant, so the stakes are higher than a personal account. Check through a known route, never the link.",
+      "id": "s2q49"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "mcq",
+      "text": "A client sends you their staff list with names, phone numbers and salary bands to help size a proposal. Where may it be stored?",
+      "opts": [
+        "Your personal Gmail, so you can work on it at home",
+        "GoLive's own systems only, such as the CRM or company OneDrive, with access limited to those who need it; it is personal data GoLive now processes under the NDPA",
+        "A WhatsApp group with the technical team",
+        "Anywhere convenient; it is the client's data, not GoLive's"
+      ],
+      "correct": 1,
+      "explain": "Once received, GoLive is processing personal data and is accountable for it. The confidentiality agreement and NDPA both require it to stay in company systems with limited access. Personal email and WhatsApp are prohibited.",
+      "id": "s2q50"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "mcq",
+      "text": "Under the Nigeria Data Protection Act 2023, what is the correct action if a client's personal data held by GoLive is accessed by an unauthorised person?",
+      "opts": [
+        "Fix the gap quietly and say nothing",
+        "Report it to the MD immediately; GoLive must assess it and, where required, notify the Nigeria Data Protection Commission within 72 hours and inform affected data subjects",
+        "Tell the client only if they ask",
+        "Post a notice on the website"
+      ],
+      "correct": 1,
+      "explain": "The NDPA sets a 72-hour notification duty to the Commission for breaches that are likely to cause harm, and a duty to inform affected individuals. That decision is the MD's, which is why it must reach the MD at once.",
+      "id": "s2q51"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "mcq",
+      "text": "A client asks you to give their new IT contractor global admin rights on their Microsoft 365 tenant 'for the afternoon'. What is correct?",
+      "opts": [
+        "Grant it; it is their tenant",
+        "Confirm the request with the client's authorised contact, grant the minimum role needed for the task rather than global admin, and remove it when the work is done, with the change logged",
+        "Refuse; contractors should never have access",
+        "Give them GoLive's own admin login instead"
+      ],
+      "correct": 1,
+      "explain": "Least privilege and time-limited access are the rule. Global admin can delete the tenant. Sharing GoLive's partner credentials is never acceptable; a compromised partner login exposes every client.",
+      "id": "s2q52"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "mcq",
+      "text": "A prospect offers you N50,000 personally to 'make sure the discount goes through'. What do you do?",
+      "opts": [
+        "Accept it; it is a private matter",
+        "Decline, explain that pricing decisions are not yours to make, and report the offer to the MD in writing",
+        "Decline but say nothing",
+        "Accept it and pass it to GoLive as a deposit"
+      ],
+      "correct": 1,
+      "explain": "This is an attempted bribe. Declining is necessary; reporting it protects you if the prospect later claims you accepted, and lets the company decide how to handle the account.",
+      "id": "s2q53"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "mcq",
+      "text": "You are leaving GoLive. Which of these may you take with you?",
+      "opts": [
+        "The client list, since you built the relationships",
+        "A copy of the pricing catalogue for reference",
+        "Your personal copies of your payslips and employment documents",
+        "The proposal templates"
+      ],
+      "correct": 2,
+      "explain": "The confidentiality agreement permits personal copies of compensation and employment records. Client lists, pricing and templates are Proprietary Information and must be returned. Taking them is a breach with legal consequences.",
+      "id": "s2q54"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "mcq",
+      "text": "A client wants to know where their Microsoft 365 data is physically stored, because their board asked about data leaving Nigeria. What is the accurate answer?",
+      "opts": [
+        "All data stays on servers in Lagos",
+        "Data is held in Microsoft's cloud regions outside Nigeria; the NDPA permits cross-border transfer where adequate safeguards apply, and Microsoft's terms and certifications provide those; offer to share Microsoft's data location documentation",
+        "The data is stored on GoLive's server",
+        "Nobody knows where cloud data is kept"
+      ],
+      "correct": 1,
+      "explain": "Microsoft has no Nigerian datacentre region. Honesty here matters: the correct answer is about safeguards under the NDPA, backed by Microsoft's documentation, not a false claim of local storage.",
+      "id": "s2q55"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "mcq",
+      "text": "A colleague asks to borrow your portal login because theirs is locked. What do you do?",
+      "opts": [
+        "Share it; you trust them",
+        "Do not share it; help them reset their own access through the MD, since every action in the portal is attributed to the account that performed it",
+        "Share it but change the password afterwards",
+        "Log in for them and leave the session open"
+      ],
+      "correct": 1,
+      "explain": "Credentials are personal by policy and by the confidentiality agreement. Shared logins break the audit trail that commission attribution, SLA records and security investigations depend on.",
+      "id": "s2q56"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "tf",
+      "text": "It is acceptable to discuss a client's proposal figures with a friend who works at a competitor, as long as no documents are shared.",
+      "correct": "False",
+      "explain": "Proposal figures, pricing and client information are Proprietary Information whether written or spoken. Disclosure is a breach of the confidentiality agreement.",
+      "id": "s2q57"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "tf",
+      "text": "Under the NDPA, personal data about a prospect should not be kept for longer than the purpose it was collected for requires.",
+      "correct": "True",
+      "explain": "The NDPA requires data to be kept no longer than needed for its purpose. Prospect data should follow GoLive's retention practice and be removed when the purpose lapses.",
+      "id": "s2q58"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "tf",
+      "text": "If you accidentally send a proposal to the wrong client, the correct action is to tell the MD at once rather than hoping it goes unnoticed.",
+      "correct": "True",
+      "explain": "A misdirected document is a data incident. Reporting it immediately allows recall, an apology, and an assessment of whether it must be reported; hiding it makes a small problem a serious one.",
+      "id": "s2q59"
+    },
+    {
+      "sec": "Section E: Security, data protection and conduct",
+      "type": "tf",
+      "text": "Using a personal AI tool to draft a client email is fine if the client's name and figures are pasted in for accuracy.",
+      "correct": "False",
+      "explain": "Pasting client data into a personal tool sends it outside GoLive's systems, which the confidentiality agreement prohibits. Draft without the identifying details, or use only company-approved tools.",
+      "id": "s2q60"
+    },
+    {
+      "sec": "Section F: Written answers",
+      "type": "text",
+      "text": "A prospect, a 15-person law firm, emails: \"Your proposal is N40,000 a month more than another partner quoted for the same Microsoft licences. Match it or we will go with them.\" Write your reply email.",
+      "sub": "Write clearly and professionally, in the way you would actually send it. Stay within your authority; do not offer a discount. Aim for five to eight sentences.",
+      "placeholder": "Dear Mr Adeyemi, thank you for coming back to me...",
+      "id": "s2q61"
+    },
+    {
+      "sec": "Section F: Written answers",
+      "type": "text",
+      "text": "A client's migration to Microsoft 365 has slipped by three days and their staff cannot yet send email from the new system. Write the update you would send to the client's managing director this morning.",
+      "sub": "Be honest about the status without making excuses. Say what is being done, when they will next hear from you, and do not promise a completion time you cannot guarantee. Aim for five to eight sentences.",
+      "placeholder": "Dear Mrs Okafor, I am writing to update you on...",
+      "id": "s2q62"
     }
   ]
 }
@@ -1167,7 +1759,7 @@ export const BANKS: Record<string, RoleBank> = {
   'Operations Coordinator':           { minutes: 30, draw: null, version: 'ops-v1',     questions: QUESTIONS['Operations Coordinator'] },
   'Social Media & Community Manager': { minutes: 30, draw: null, version: 'social-v1',  questions: QUESTIONS['Social Media & Community Manager'] },
   'Hosting Support Technician':       { minutes: 30, draw: null, version: 'hosting-v1', questions: QUESTIONS['Hosting Support Technician'] },
-  'Sales & Support Associate':        { minutes: 30, draw: null, version: 'sales-v1',   questions: QUESTIONS['Sales & Support Associate'] },
+  'Sales & Support Associate':        { minutes: 35, draw: 25,   version: 'sales-v2',   questions: QUESTIONS['Sales & Support Associate'] },
 }
 
 export const getBank = (role: string): RoleBank | null => BANKS[role] || null
