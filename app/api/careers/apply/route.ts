@@ -3,7 +3,7 @@ import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import Position from '@/models/Position'
 import { ensureSeeded, remaining } from '@/lib/positions'
-import { generateAccessCode, sendApplicationReceived, ASSESSMENT_WINDOW_DAYS, ASSESSMENT_PAGE } from '@/lib/recruitment'
+import { generateAccessCode, sendApplicationReceived, sendApplicationNotice, ASSESSMENT_WINDOW_DAYS, ASSESSMENT_PAGE } from '@/lib/recruitment'
 import fs from 'fs'
 import path from 'path'
 
@@ -91,7 +91,8 @@ export async function POST(req: NextRequest) {
 
   const dir = path.join(CV_DIR, ref)
   fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(path.join(dir, cvName), Buffer.from(await cv.arrayBuffer()))
+  const cvBuffer = Buffer.from(await cv.arrayBuffer())
+  fs.writeFileSync(path.join(dir, cvName), cvBuffer)
 
   await Application.create({
     ref,
@@ -111,6 +112,14 @@ export async function POST(req: NextRequest) {
 
   const mail = await sendApplicationReceived({ name, email, role: position.title, ref, code, expiresAt })
   if (!mail.ok) console.error(`[careers/apply] code email to ${ref} failed:`, mail.error)
+
+  // Talent acquisition gets the application with the CV attached. A failure
+  // here never fails the application: the CV is on the record in the portal.
+  const notice = await sendApplicationNotice({
+    name, email, phone: phone || undefined, role: position.title, ref, note: note || undefined,
+    cv: { filename: cvName, content: cvBuffer },
+  })
+  if (!notice.ok) console.error(`[careers/apply] notice for ${ref} failed:`, notice.error)
 
   return NextResponse.json({ ok: true, ref, emailSent: mail.ok })
 }

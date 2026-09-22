@@ -13,6 +13,7 @@ type Application = {
   _id: string; ref: string; name: string; email: string; role: string
   status: string; assessmentScore?: string; assessmentPct?: number
   eligible?: boolean; passMark?: number; declineDueAt?: string; declinedAt?: string
+  cvFilename?: string; phone?: string; note?: string
   accessCode?: string; codeSentAt?: string; codeExpiresAt?: string; reminderSentAt?: string; paper?: unknown; source?: string
   assessmentDate?: string; assessmentFilename?: string
   tabSwitches?: number; pasteTries?: number; violations?: string[]
@@ -511,6 +512,13 @@ export default function HRAssessmentsPanel() {
                     </select>
 
                     <div className="flex gap-1.5">
+                      {app.cvFilename && (
+                        <a href={`/api/applications/cv?ref=${encodeURIComponent(app.ref)}`} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center gap-1 rounded-lg border border-border px-2 py-1 text-xs font-medium text-foreground hover:bg-secondary transition-colors">
+                          <FileText className="size-3.5" />
+                          CV
+                        </a>
+                      )}
                       {app.assessmentFilename && (
                         <button onClick={() => download(app.assessmentFilename!)}
                           disabled={downloading === app.assessmentFilename}

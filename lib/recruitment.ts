@@ -57,9 +57,12 @@ const shell = (inner: string) => `
 </div>`
 
 type Send = { ok: boolean; error?: string }
-async function send(to: string, subject: string, html: string): Promise<Send> {
+async function send(
+  to: string, subject: string, html: string,
+  attachments?: { filename: string; content: Buffer }[]
+): Promise<Send> {
   try {
-    const { error } = await resend.emails.send({ from: FROM, to, subject, html })
+    const { error } = await resend.emails.send({ from: FROM, to, subject, html, ...(attachments?.length ? { attachments } : {}) })
     if (error) return { ok: false, error: String(error.message || error) }
     return { ok: true }
   } catch (e) {
@@ -113,5 +116,36 @@ export function sendNotProgressed(a: { name: string; email: string; role: string
     <p>After careful consideration, we will not be taking your application further on this occasion. The position has moved forward with other candidates whose assessment results were a closer match for the role.</p>
     <p>We were grateful for your interest in GoLive, and you are welcome to apply for future positions. Open roles are listed at <a href="${PORTAL_URL}/careers" style="color:#0b7e9b">${PORTAL_URL.replace(/^https?:\/\//, '')}/careers</a>.</p>
     <p style="font-size:13px;color:#555">In line with the Nigeria Data Protection Act 2023 and our Privacy Policy, your assessment data will be deleted in accordance with our retention schedule unless you apply for another role.</p>
+  `))
+}
+
+/** Internal: tells talent acquisition a new application has arrived, with the CV attached. */
+export function sendApplicationNotice(a: {
+  name: string; email: string; phone?: string; role: string; ref: string; note?: string
+  cv?: { filename: string; content: Buffer }
+}): Promise<Send> {
+  const row = (k: string, v: string) =>
+    `<tr><td style="padding:6px 0;color:#5c7184;width:130px;vertical-align:top">${k}</td><td style="padding:6px 0;color:#0d2233">${v}</td></tr>`
+  return send('talent.acquisition@golivecompany.com', `New application: ${a.name}, ${a.role} (${a.ref})`, `
+<div style="font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#2d3436;line-height:1.6;max-width:620px">
+  <p style="margin:0 0 12px"><strong>${esc(a.name)}</strong> has applied for <strong>${esc(a.role)}</strong> through the careers page and has been sent their personal assessment code.</p>
+  <table style="width:100%;border-collapse:collapse;font-size:13.5px">
+    ${row('Reference', esc(a.ref))}
+    ${row('Email', `<a href="mailto:${esc(a.email)}" style="color:#0b7e9b">${esc(a.email)}</a>`)}
+    ${a.phone ? row('Phone', esc(a.phone)) : ''}
+    ${row('CV', a.cv ? `Attached: ${esc(a.cv.filename)}` : 'Not attached (see the portal)')}
+    ${a.note ? row('Their note', esc(a.note).replace(/\n/g, '<br>')) : ''}
+  </table>
+  <p style="font-size:13px;color:#555;margin-top:14px">No action is needed yet. You will be notified when they submit the assessment, with the outcome against the pass mark. The CV is also available on their record in Candidate assessments.</p>
+</div>`, a.cv ? [a.cv] : undefined)
+}
+
+/** Candidate: a receipt straight after submission. No score and no outcome yet. */
+export function sendAssessmentReceived(a: { name: string; email: string; role: string; ref: string }): Promise<Send> {
+  return send(a.email, `We have received your ${a.role} assessment (${a.ref})`, shell(`
+    <p>Dear ${esc(first(a.name))},</p>
+    <p>Thank you for completing the online assessment for the <strong>${esc(a.role)}</strong> position. Your answers and session recording have been received safely.</p>
+    <p>Your result will now be reviewed. We will write to you with the outcome, normally within a few working days. There is nothing further you need to do in the meantime.</p>
+    <p style="font-size:13px;color:#555">Please keep your reference, <strong>${esc(a.ref)}</strong>, for any correspondence about your application.</p>
   `))
 }

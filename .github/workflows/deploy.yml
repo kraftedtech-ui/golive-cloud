@@ -302,6 +302,8 @@ jobs:
           git show origin/main:lib/recruitmentSweep.ts > lib/recruitmentSweep.ts
           mkdir -p app/api/careers/apply
           git show origin/main:app/api/careers/apply/route.ts > app/api/careers/apply/route.ts
+          mkdir -p app/api/applications/cv
+          git show origin/main:app/api/applications/cv/route.ts > app/api/applications/cv/route.ts
 
           # NOTE: app/api/public/lead-assessment/route.ts was removed here —
           # that path was never actually committed to the repo (confirmed

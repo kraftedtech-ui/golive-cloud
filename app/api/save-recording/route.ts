@@ -8,7 +8,7 @@ import { claimsFromRequest } from '@/lib/assessmentToken'
 import { getBank } from '@/lib/assessmentBank'
 import { markPaper, isLate, type Paper } from '@/lib/assessmentPaper'
 import Position from '@/models/Position'
-import { DECLINE_HOLD_HOURS } from '@/lib/recruitment'
+import { DECLINE_HOLD_HOURS, sendAssessmentReceived } from '@/lib/recruitment'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -181,6 +181,14 @@ export async function POST(req: NextRequest) {
         )
       } catch (e) { console.error('[save-recording] app update error:', e) }
     }
+    // A receipt to the candidate. It confirms safe arrival only: no score and
+    // no outcome, which follow from review (or the automatic decline).
+    if (email) {
+      sendAssessmentReceived({ name: candidate, email, role, ref: appRef || claims.ref })
+        .then((r) => { if (!r.ok) console.error('[save-recording] candidate receipt failed:', r.error) })
+        .catch((e) => console.error('[save-recording] candidate receipt failed:', e))
+    }
+
     return NextResponse.json({ success: true, filename })
   } catch (err) {
     console.error('[save-recording] Error:', err)
