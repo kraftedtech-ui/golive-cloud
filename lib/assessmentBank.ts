@@ -45,938 +45,2130 @@ export type RoleBank = {
 const QUESTIONS: Record<string, BankQuestion[]> = {
   "Operations Coordinator": [
     {
-      "id": "q1",
-      "sec": "Section A: Administrative skills",
+      "sec": "Section A: Microsoft 365 tools",
       "type": "mcq",
-      "text": "You receive three tasks simultaneously: 1) a vendor awaits a signed contract, 2) the MD needs meeting notes sent within the hour, 3) a new team member needs their email account set up. How do you prioritise?",
+      "text": "In the contract renewal tracker, column D holds renewal dates. Which feature makes renewals due within 30 days stand out automatically?",
       "opts": [
-        "Set up the email account first: it is the most technical task",
-        "Send meeting notes first (fixed deadline), then contract, then email setup",
-        "Ask the MD to decide priority",
-        "Do all three at the same time to save time"
+        "Sorting the sheet once a month",
+        "Typing 'urgent' next to each row by hand",
+        "Freezing the top row",
+        "Conditional formatting with a formula comparing the date to TODAY()+30"
+      ],
+      "correct": 3,
+      "explain": "Conditional formatting updates itself every day, so nothing depends on remembering to check.",
+      "id": "o2q01"
+    },
+    {
+      "sec": "Section A: Microsoft 365 tools",
+      "type": "mcq",
+      "text": "You need the total spend with one vendor, 'Apex Supplies', from a table of invoices with vendor names in column B and amounts in column C. Which formula works?",
+      "opts": [
+        "=SUM(C:C)",
+        "=SUMIFS(C:C, B:B, \"Apex Supplies\")",
+        "=COUNTIF(B:B, \"Apex Supplies\")",
+        "=AVERAGE(C:C)"
       ],
       "correct": 1,
-      "explain": "Meeting notes have a defined 1-hour deadline. The contract is second. Email setup is routine and can wait. Spotting the fixed deadline and working backwards from it is the key skill."
+      "explain": "SUMIFS adds amounts that meet a condition. COUNTIF counts rows rather than adding amounts.",
+      "id": "o2q02"
     },
     {
-      "id": "q2",
-      "sec": "Section A: Administrative skills",
+      "sec": "Section A: Microsoft 365 tools",
       "type": "mcq",
-      "text": "A vendor emails about an unpaid 30-day invoice. The MD is in a meeting. You find the invoice was never forwarded internally. What do you do?",
+      "text": "A formula copied down a column should always refer to the VAT rate in cell F1. How should F1 be written in the formula?",
       "opts": [
-        "Forward to accounts and update the vendor that payment is being processed",
-        "Wait for the MD before taking any action",
-        "Tell the vendor it is not your responsibility",
-        "Delete and re-send the email"
-      ],
-      "correct": 0,
-      "explain": "Forwarding an internal document and giving the vendor a factual update is within the coordinator's authority. Waiting is not productive."
-    },
-    {
-      "id": "q3",
-      "sec": "Section A: Administrative skills",
-      "type": "tf",
-      "text": "An Operations Coordinator can sign contracts on behalf of the company if the MD is unavailable and the deadline is urgent.",
-      "correct": "False",
-      "explain": "Signing authority must be formally delegated in writing. Without delegation, a coordinator cannot sign binding documents regardless of urgency."
-    },
-    {
-      "id": "q4",
-      "sec": "Section B: Microsoft 365 & Digital tools",
-      "type": "mcq",
-      "text": "You need to share a 25MB file with an external partner but the email limit is 20MB. What is the best Microsoft 365 solution?",
-      "opts": [
-        "Ask the partner to create a WeTransfer account",
-        "Upload the file to OneDrive and share a link",
-        "Compress with WinRAR and retry",
-        "Split into two separate emails"
-      ],
-      "correct": 1,
-      "explain": "OneDrive sharing is the correct Microsoft 365 answer: secure, traceable, and requires no third-party tools."
-    },
-    {
-      "id": "q5",
-      "sec": "Section B: Microsoft 365 & Digital tools",
-      "type": "mcq",
-      "text": "A meeting is scheduled for 3pm Lagos time (WAT). EST is 6 hours behind WAT. What time do you tell the Indianapolis participants?",
-      "opts": [
-        "9am EST",
-        "9pm EST",
-        "3pm EST",
-        "6am EST"
-      ],
-      "correct": 0,
-      "explain": "3pm WAT minus 6 hours = 9am EST. This matters for coordinating GoLive's Nigeria and US operations."
-    },
-    {
-      "id": "q6",
-      "sec": "Section B: Microsoft 365 & Digital tools",
-      "type": "mcq",
-      "text": "Which Microsoft 365 app is best for tracking vendor contracts with renewal dates, values, and status?",
-      "opts": [
-        "Microsoft Word",
-        "Microsoft PowerPoint",
-        "Microsoft Excel",
-        "Microsoft Teams"
+        "F1",
+        "F$1$",
+        "$F$1",
+        "#F1"
       ],
       "correct": 2,
-      "explain": "Excel is correct for structured tabular data with sortable and filterable fields."
+      "explain": "The dollar signs make an absolute reference, so the formula keeps pointing at F1 when copied.",
+      "id": "o2q03"
     },
     {
-      "id": "q7",
-      "sec": "Section C: Professional judgement",
+      "sec": "Section A: Microsoft 365 tools",
       "type": "mcq",
-      "text": "While writing meeting minutes you notice a decision was made that you personally disagree with. What do you do?",
+      "text": "Which Excel feature best summarises monthly spend by vendor and category from a long invoice list?",
       "opts": [
-        "Leave it out of the minutes",
-        "Record it accurately in the minutes as decided",
-        "Add a personal note of disagreement",
-        "Tell a colleague before circulating"
+        "A PivotTable",
+        "Find and replace",
+        "Spell check",
+        "Page layout view"
+      ],
+      "correct": 0,
+      "explain": "PivotTables summarise large lists by any combination of fields in seconds.",
+      "id": "o2q04"
+    },
+    {
+      "sec": "Section A: Microsoft 365 tools",
+      "type": "mcq",
+      "text": "Someone overwrote the vendor register saved in OneDrive yesterday. What is the quickest fix?",
+      "opts": [
+        "Recreate it from memory",
+        "Ask IT to restore the whole server",
+        "Nothing can be done",
+        "Restore the previous version from the file's version history"
+      ],
+      "correct": 3,
+      "explain": "OneDrive and SharePoint keep version history, so an earlier version can be restored in moments.",
+      "id": "o2q05"
+    },
+    {
+      "sec": "Section A: Microsoft 365 tools",
+      "type": "mcq",
+      "text": "You need to share a confidential contract with an external lawyer through OneDrive. Which sharing option is appropriate?",
+      "opts": [
+        "Share with specific people, entering the lawyer's email, so only they can open it",
+        "'Anyone with the link', so it is easy to open",
+        "Attach it to a WhatsApp message",
+        "Make the folder public"
+      ],
+      "correct": 0,
+      "explain": "Specific-people links need the recipient to verify, so a forwarded link cannot be opened by others.",
+      "id": "o2q06"
+    },
+    {
+      "sec": "Section A: Microsoft 365 tools",
+      "type": "mcq",
+      "text": "The MD wants emails from a key client flagged and moved to a folder automatically. What do you set up in Outlook?",
+      "opts": [
+        "A calendar reminder",
+        "An inbox rule based on the sender's address",
+        "A distribution list",
+        "An out-of-office reply"
       ],
       "correct": 1,
-      "explain": "Minutes are a factual record, not personal commentary. Record what was decided accurately."
+      "explain": "Rules sort mail automatically on conditions such as sender or subject.",
+      "id": "o2q07"
     },
     {
-      "id": "q8",
-      "sec": "Section C: Professional judgement",
+      "sec": "Section A: Microsoft 365 tools",
       "type": "mcq",
-      "text": "A colleague asks for another staff member's salary details, saying it is \"just between us.\" You have access to this information. What do you do?",
+      "text": "The team needs one shared address, operations@, that several people can read and reply from. What is the right setup in Microsoft 365?",
       "opts": [
-        "Share since you trust the colleague",
-        "Decline: HR information is confidential",
-        "Check with the MD first",
-        "Share only if they promise not to tell anyone"
+        "Everyone shares one person's password",
+        "A personal mailbox forwarded to all",
+        "Separate accounts with auto-forwarding",
+        "A shared mailbox, with access granted to each team member"
       ],
-      "correct": 1,
-      "explain": "Confidentiality is non-negotiable. Access to information does not equal permission to share it."
+      "correct": 3,
+      "explain": "Shared mailboxes give common access with each person using their own login, which keeps an audit trail.",
+      "id": "o2q08"
     },
     {
-      "id": "q9",
-      "sec": "Section C: Professional judgement",
+      "sec": "Section A: Microsoft 365 tools",
+      "type": "mcq",
+      "text": "You need to find a meeting time for five busy people in Outlook. Which tool helps most?",
+      "opts": [
+        "The Scheduling Assistant, which shows attendees' free and busy times side by side",
+        "Emailing each person separately",
+        "Booking any time and hoping",
+        "A Teams chat poll only"
+      ],
+      "correct": 0,
+      "explain": "The Scheduling Assistant avoids back-and-forth by showing availability directly.",
+      "id": "o2q09"
+    },
+    {
+      "sec": "Section A: Microsoft 365 tools",
       "type": "tf",
-      "text": "If a task is not specifically listed in your job description, it is acceptable to decline to do it.",
+      "text": "A formula using a relative reference such as F1 will keep pointing at F1 when copied down a column.",
       "correct": "False",
-      "explain": "Job descriptions outline core responsibilities but are not exhaustive. Flexibility is expected, especially in an early-stage company."
+      "explain": "Relative references shift as they are copied. Use $F$1 to fix the reference.",
+      "id": "o2q10"
     },
     {
-      "id": "q10",
-      "sec": "Section D: Written communication",
-      "type": "text",
-      "text": "Draft a short professional email (3–5 sentences) to a vendor called Apex Supplies Ltd, informing them that your company will not be renewing a contract expiring at the end of this month.",
-      "sub": "Write clearly, politely, and professionally. This will be reviewed by the interviewer.",
-      "placeholder": "Dear Apex Supplies Ltd..."
-    },
-    {
-      "id": "q11",
-      "sec": "Section D: Written communication",
-      "type": "text",
-      "text": "A new team member, John, is starting on Monday. Write a short internal message (3 sentences) to notify existing staff.",
-      "sub": "Write clearly and professionally. This will be reviewed by the interviewer.",
-      "placeholder": "Hi team..."
-    },
-    {
-      "id": "q12",
-      "sec": "Section E: Situation handling",
-      "type": "mcq",
-      "text": "You are alone in the office when someone arrives claiming to be a CAC inspector and demands company registration documents immediately. What do you do?",
-      "opts": [
-        "Hand over all documents to avoid trouble",
-        "Ask for official ID, note their name and badge number, and call the MD before providing any documents",
-        "Say the MD is unavailable and ask them to return another day",
-        "Give documents and call the MD afterwards"
-      ],
-      "correct": 1,
-      "explain": "Verify identity before releasing company documents. A legitimate inspector will understand a brief verification pause."
-    },
-    {
-      "id": "q13",
-      "sec": "Section E: Situation handling",
-      "type": "mcq",
-      "text": "You notice a recurring office supply invoice charged 20% above the agreed contract rate. What is your first step?",
-      "opts": [
-        "Pay it and mention it to the MD next week",
-        "Contact the vendor about the discrepancy before the invoice is paid",
-        "Approve it since the amount is not large",
-        "Assume the contract rate has been updated"
-      ],
-      "correct": 1,
-      "explain": "Flag the discrepancy to the vendor before payment. This is exactly the kind of detail the Operations Coordinator role exists to catch."
-    },
-    {
-      "id": "q14",
-      "sec": "Section E: Situation handling",
+      "sec": "Section A: Microsoft 365 tools",
       "type": "tf",
-      "text": "If you are unsure whether a task is within your authority, the best approach is to attempt it and explain afterwards if something goes wrong.",
-      "correct": "False",
-      "explain": "When uncertain about authority, ask before acting. Acting outside authority on contracts or financial matters can have irreversible consequences."
-    },
-    {
-      "id": "q15",
-      "sec": "Section F: Reasoning",
-      "type": "mcq",
-      "text": "You receive simultaneous \"urgent\" requests from GoLive Forge (book a meeting room) and B2B Services (prepare a vendor proposal). How do you handle it?",
-      "opts": [
-        "Complete the B2B request first: it is client-facing",
-        "Ask each team which deadline is actually fixed versus which is perceived urgency, then sequence accordingly",
-        "Flip a coin since both are equally important",
-        "Tell both teams you cannot help simultaneously and ask them to resubmit tomorrow"
-      ],
-      "correct": 1,
-      "explain": "Asking about actual vs. perceived urgency is the correct operational response. The coordinator's job is to triage effectively."
-    },
-    {
-      "id": "q16",
-      "sec": "Section G: Advanced administration",
-      "type": "mcq",
-      "text": "The MD asks you to prepare a report showing how much the company has spent on vendor services in Q2, but the invoices are spread across three different email inboxes and a physical folder. How do you approach this?",
-      "opts": [
-        "Ask the MD to gather the information himself since it is too disorganised",
-        "Create a systematic approach: work through each source in turn, log each invoice into a spreadsheet with vendor name, date, amount, and category, then reconcile the total before presenting",
-        "Estimate the total based on what you can find quickly",
-        "Only report on the digital invoices since the physical ones are too difficult to include"
-      ],
-      "correct": 1,
-      "explain": "Systematic collation across multiple sources is a core operations skill. Every invoice must be accounted for: estimating or excluding physical records would produce an inaccurate report that could affect financial decisions."
-    },
-    {
-      "id": "q17",
-      "sec": "Section G: Advanced administration",
-      "type": "mcq",
-      "text": "You discover that a recurring supplier contract automatically renews in 7 days at a cost of ₦480,000. The MD has not reviewed it. What do you do?",
-      "opts": [
-        "Let it renew: it is not your decision to cancel it",
-        "Immediately flag it to the MD in writing with the contract details, renewal date, cost, and a clear recommendation that they review it before the renewal date",
-        "Cancel the renewal without asking: GoLive can always re-subscribe later",
-        "Wait until the MD asks about it"
-      ],
-      "correct": 1,
-      "explain": "Contract renewals with significant cost implications must be surfaced to the decision-maker in advance with enough time to act. Flagging with full details is the coordinator's job: the decision belongs to the MD."
-    },
-    {
-      "id": "q18",
-      "sec": "Section G: Advanced administration",
-      "type": "mcq",
-      "text": "You are managing meeting logistics for a client pitch. Two hours before the meeting, the video conferencing link stops working. The client is remote. What do you do?",
-      "opts": [
-        "Cancel the meeting and apologise",
-        "Immediately try an alternative platform (Google Meet, WhatsApp video, phone call as last resort), email the client with the new link before they attempt to join, and notify the MD",
-        "Wait for the IT team to fix the original link",
-        "Tell the client the meeting is delayed until tomorrow"
-      ],
-      "correct": 1,
-      "explain": "Crisis management under time pressure is a key test of an operations coordinator. The goal is continuity: find a working alternative fast and communicate proactively to the client before they experience the problem."
-    },
-    {
-      "id": "q19",
-      "sec": "Section G: Advanced administration",
-      "type": "tf",
-      "text": "A well-written set of meeting minutes should include your personal interpretation of what each agenda item means for the company.",
-      "correct": "False",
-      "explain": "Minutes are a factual record of what was discussed, decided, and assigned. Personal interpretation, commentary, and analysis have no place in minutes: they belong in a separate memo or report if needed."
-    },
-    {
-      "id": "q20",
-      "sec": "Section G: Advanced administration",
-      "type": "mcq",
-      "text": "GoLive is onboarding a new corporate client. You need to set up a shared folder structure in OneDrive that the client's team and GoLive's team can both access. Which approach is correct?",
-      "opts": [
-        "Share your personal OneDrive folder with the client's email addresses",
-        "Create a shared SharePoint folder under the GoLive tenant, set appropriate permissions for internal and external users, and share a controlled access link with the client",
-        "Email all documents back and forth: shared folders are too complex",
-        "Use WhatsApp to share documents with the client"
-      ],
-      "correct": 1,
-      "explain": "SharePoint with controlled external sharing is the correct Microsoft 365 approach for client collaboration. Sharing personal OneDrive creates governance and data control issues. Email is not suitable for ongoing document collaboration."
-    },
-    {
-      "id": "q21",
-      "sec": "Section H: Compliance & data handling",
-      "type": "mcq",
-      "text": "A client asks you to send them a copy of GoLive's internal staff salary structure to help them benchmark their own team. What do you do?",
-      "opts": [
-        "Send it since they are a valued client",
-        "Decline politely and explain that internal HR data is confidential: offer to help them find publicly available salary benchmarking data instead",
-        "Ask the MD and send it if they say yes",
-        "Send only the junior staff salaries, not the senior ones"
-      ],
-      "correct": 1,
-      "explain": "Internal HR data is strictly confidential and is never shared externally regardless of the relationship with the requester. Offering an alternative shows professionalism without compromising the company."
-    },
-    {
-      "id": "q22",
-      "sec": "Section H: Compliance & data handling",
-      "type": "mcq",
-      "text": "You receive an email that appears to be from GoLive's bank asking you to confirm account details by clicking a link. The email address is \"alerts@firstbankng-secure.com.\" What do you do?",
-      "opts": [
-        "Click the link and confirm the details as requested",
-        "Do not click anything: mark the email as suspicious, report it to the MD, and verify directly with the bank using a phone number from the bank's official website",
-        "Forward it to the MD and let them handle it",
-        "Reply to the email asking if it is legitimate"
-      ],
-      "correct": 1,
-      "explain": "This is a phishing email. The domain \"firstbankng-secure.com\" is not a legitimate bank domain. Never click links in suspicious emails. Always verify by calling the institution directly using contact details from their official website, not from the email itself."
-    },
-    {
-      "id": "q23",
-      "sec": "Section H: Compliance & data handling",
-      "type": "tf",
-      "text": "Under Nigeria's NDPA 2023, an organisation is required to notify affected individuals if their personal data is breached.",
+      "text": "Two people can edit the same Word document in OneDrive at the same time.",
       "correct": "True",
-      "explain": "The Nigeria Data Protection Act 2023 requires organisations to notify both the Nigeria Data Protection Commission (NDPC) and affected data subjects of a breach within 72 hours of becoming aware of it. As Operations Coordinator you would be expected to understand this requirement."
+      "explain": "Co-authoring lets several people work in a document at once, with changes saved automatically.",
+      "id": "o2q11"
     },
     {
-      "id": "q24",
-      "sec": "Section I: Reasoning under pressure",
+      "sec": "Section B: Records, filing and document control",
       "type": "mcq",
-      "text": "It is 4:30pm on a Friday. You have three things left: 1) a staff timesheet report due to the MD by 5pm, 2) a vendor who needs a purchase order approved by end of day or they cannot deliver Monday, 3) a client who called about a billing query. The MD is unreachable. What is your sequence?",
+      "text": "Which file name follows good practice for a vendor contract?",
       "opts": [
-        "Handle the billing query first since the client is waiting",
-        "Approve the purchase order first (operational dependency for Monday delivery), send the timesheet report (hard deadline with the MD), then log the billing query with a note that it will be addressed Monday morning",
-        "Work on the timesheet: it is the most important internal document",
-        "Call the vendor back on Monday morning"
+        "contract final FINAL new.pdf",
+        "Apex.pdf",
+        "scan0023.pdf",
+        "2026-10-01_ApexSupplies_ServiceAgreement_v2.pdf"
       ],
-      "correct": 1,
-      "explain": "The purchase order has an operational consequence for Monday: if it is not approved, delivery fails. The timesheet has a hard 5pm deadline. The billing query, while important, can be logged and addressed first thing Monday without immediate harm. Sequence by consequence."
+      "correct": 3,
+      "explain": "A date-first, consistent name sorts correctly and shows the content and version at a glance.",
+      "id": "o2q12"
     },
     {
-      "id": "q25",
-      "sec": "Section I: Reasoning under pressure",
+      "sec": "Section B: Records, filing and document control",
       "type": "mcq",
-      "text": "The MD asks you to draft a formal letter to a government ministry on company letterhead. You have never done this before and are unsure of the correct format. What do you do?",
+      "text": "Three versions of a policy document exist in different folders and nobody knows which is current. What prevents this in future?",
       "opts": [
-        "Draft something and hope for the right format",
-        "Research the correct formal letter format for Nigerian government correspondence, draft the letter, clearly label it as a draft, and ask the MD to review before it is sent",
-        "Tell the MD you cannot do it because you lack experience",
-        "Copy a letter from the internet and change the names"
+        "One agreed location, a version number in the file name or properties, and superseded versions archived rather than left beside the current one",
+        "Keeping all versions in everyone's email",
+        "Printing the latest version",
+        "Deleting all but the newest-looking file"
+      ],
+      "correct": 0,
+      "explain": "Document control means a single source of truth with clear versions.",
+      "id": "o2q13"
+    },
+    {
+      "sec": "Section B: Records, filing and document control",
+      "type": "mcq",
+      "text": "A vendor contract auto-renews unless cancelled 60 days before its end date of 31 December. By when must notice be given to avoid renewal?",
+      "opts": [
+        "By 31 December",
+        "By 1 December",
+        "By 31 January the following year",
+        "By 1 November"
+      ],
+      "correct": 3,
+      "explain": "Sixty days before 31 December is 1 November. The tracker should flag it well before, allowing time for a decision.",
+      "id": "o2q14"
+    },
+    {
+      "sec": "Section B: Records, filing and document control",
+      "type": "mcq",
+      "text": "What should a vendor register record, at minimum?",
+      "opts": [
+        "Only the vendor's phone number",
+        "Only unpaid invoices",
+        "Vendor name, contact, service provided, contract start and end dates, notice period, cost, and the owner inside GoLive",
+        "The vendor's personal social media accounts"
+      ],
+      "correct": 2,
+      "explain": "The register exists so renewals, costs and responsibilities are never a surprise.",
+      "id": "o2q15"
+    },
+    {
+      "sec": "Section B: Records, filing and document control",
+      "type": "mcq",
+      "text": "A signed contract arrives by email. What is the correct handling?",
+      "opts": [
+        "Leave it in your inbox",
+        "Save it to the agreed contracts folder with a standard name, update the vendor register and renewal tracker, and confirm receipt",
+        "Print it and file the paper only",
+        "Forward it to all staff"
       ],
       "correct": 1,
-      "explain": "Research, draft, label clearly, seek review: this is the correct approach for any unfamiliar task with formal or legal implications. Submitting an unchecked letter to a government ministry on company letterhead could have consequences. The MD's review before sending is non-negotiable."
+      "explain": "Filing, registering and tracking together ensure the contract can be found and its dates are acted on.",
+      "id": "o2q16"
+    },
+    {
+      "sec": "Section B: Records, filing and document control",
+      "type": "tf",
+      "text": "Keeping the only copy of important records in your personal email is acceptable if you are organised.",
+      "correct": "False",
+      "explain": "Records must be in company systems so they survive absences and departures and can be found by others.",
+      "id": "o2q17"
+    },
+    {
+      "sec": "Section B: Records, filing and document control",
+      "type": "tf",
+      "text": "A renewal tracker should flag contracts early enough to allow a decision before the notice deadline, not just before the end date.",
+      "correct": "True",
+      "explain": "The notice deadline is the real deadline. Missing it can lock the company into another term.",
+      "id": "o2q18"
+    },
+    {
+      "sec": "Section C: Meetings, minutes and correspondence",
+      "type": "mcq",
+      "text": "What should good meeting minutes record?",
+      "opts": [
+        "Everything everyone said, word for word",
+        "Decisions made, actions agreed with an owner and a due date, and key points, stated neutrally",
+        "Only the chair's opinions",
+        "Personal remarks and jokes"
+      ],
+      "correct": 1,
+      "explain": "Minutes exist to capture decisions and accountability, not a transcript.",
+      "id": "o2q19"
+    },
+    {
+      "sec": "Section C: Meetings, minutes and correspondence",
+      "type": "mcq",
+      "text": "In a meeting, a manager says something unflattering about a colleague who is absent. How should it appear in the minutes?",
+      "opts": [
+        "Record it exactly",
+        "Record it with the manager's name in bold",
+        "It should not appear unless it relates to a decision, and then only in neutral, factual terms",
+        "Send it to the colleague"
+      ],
+      "correct": 2,
+      "explain": "Minutes are neutral records. Personal remarks do not belong in them.",
+      "id": "o2q20"
+    },
+    {
+      "sec": "Section C: Meetings, minutes and correspondence",
+      "type": "mcq",
+      "text": "When should minutes be circulated?",
+      "opts": [
+        "Just before the next meeting",
+        "Only if someone asks",
+        "At the end of the quarter",
+        "Promptly, ideally within one working day, while memories are fresh, with actions highlighted"
+      ],
+      "correct": 3,
+      "explain": "Prompt minutes mean actions start straight away and errors are corrected early.",
+      "id": "o2q21"
+    },
+    {
+      "sec": "Section C: Meetings, minutes and correspondence",
+      "type": "mcq",
+      "text": "A meeting is set for 3pm in Lagos in October with a board member in New York. What time is it for them?",
+      "opts": [
+        "10am, since Lagos is five hours ahead of New York while the United States observes daylight saving time",
+        "9am",
+        "8pm",
+        "3pm"
+      ],
+      "correct": 0,
+      "explain": "Lagos is UTC+1 all year. New York is UTC-4 during daylight saving time (March to November) and UTC-5 in winter, so the gap is five hours in October and six in January.",
+      "id": "o2q22"
+    },
+    {
+      "sec": "Section C: Meetings, minutes and correspondence",
+      "type": "mcq",
+      "text": "A vendor emails the MD directly with a complaint that is really an operations matter. What is best?",
+      "opts": [
+        "Acknowledge the vendor, handle it within your remit, keep the MD informed with a short summary, and escalate only what needs the MD's decision",
+        "Forward every vendor email to the MD without comment",
+        "Ignore it because it was not sent to you",
+        "Reply to the vendor promising a refund"
+      ],
+      "correct": 0,
+      "explain": "Handling what you can, and escalating decisions with context, saves the MD time.",
+      "id": "o2q23"
+    },
+    {
+      "sec": "Section C: Meetings, minutes and correspondence",
+      "type": "mcq",
+      "text": "Which subject line is best for an email asking the MD to approve a vendor renewal?",
+      "opts": [
+        "'Hello'",
+        "'Quick question'",
+        "'Approval needed by Friday: Apex Supplies renewal, N1.2m per year'",
+        "'URGENT!!! PLEASE READ'"
+      ],
+      "correct": 2,
+      "explain": "A good subject line says what is needed, by when, and the key detail.",
+      "id": "o2q24"
+    },
+    {
+      "sec": "Section C: Meetings, minutes and correspondence",
+      "type": "tf",
+      "text": "An agenda sent before a meeting, with the decisions needed, helps meetings end on time.",
+      "correct": "True",
+      "explain": "Attendees come prepared and the discussion stays on the decisions required.",
+      "id": "o2q25"
+    },
+    {
+      "sec": "Section C: Meetings, minutes and correspondence",
+      "type": "tf",
+      "text": "When drafting a reply for the MD's signature, it is fine to send it yourself without their approval if it seems routine.",
+      "correct": "False",
+      "explain": "Anything issued in the MD's name needs the MD's approval. Send in your own name only what is within your remit.",
+      "id": "o2q26"
+    },
+    {
+      "sec": "Section D: Vendors, invoices and reporting",
+      "type": "mcq",
+      "text": "A vendor invoice for N200,000 excludes VAT. What is the total including VAT at 7.5%?",
+      "opts": [
+        "N200,000",
+        "N207,500",
+        "N215,000",
+        "N230,000"
+      ],
+      "correct": 2,
+      "explain": "200,000 multiplied by 1.075 is 215,000.",
+      "id": "o2q27"
+    },
+    {
+      "sec": "Section D: Vendors, invoices and reporting",
+      "type": "mcq",
+      "text": "Before an invoice is passed for payment, what should be checked?",
+      "opts": [
+        "Only that the vendor's logo is on it",
+        "Only the total",
+        "Nothing; vendors are trusted",
+        "That it matches the purchase order or agreement and the goods or services actually received, and that it is not a duplicate"
+      ],
+      "correct": 3,
+      "explain": "Matching invoice, order and delivery, and checking for duplicates, prevents overpayment and fraud.",
+      "id": "o2q28"
+    },
+    {
+      "sec": "Section D: Vendors, invoices and reporting",
+      "type": "mcq",
+      "text": "An email from a regular vendor says their bank details have changed and asks that future payments go to a new account. What do you do?",
+      "opts": [
+        "Update the details and pay",
+        "Reply to the email to confirm",
+        "Pay half to each account",
+        "Treat it as a possible fraud; verify by phoning the vendor on a number already on file, not one in the email, before any change"
+      ],
+      "correct": 3,
+      "explain": "Payment redirection is the most common invoice fraud. Independent verification is the control.",
+      "id": "o2q29"
+    },
+    {
+      "sec": "Section D: Vendors, invoices and reporting",
+      "type": "mcq",
+      "text": "Two invoices from the same vendor show the same amount, date and description but different invoice numbers. What is the right action?",
+      "opts": [
+        "Pay both; the numbers differ",
+        "Pay the first one received",
+        "Delete one",
+        "Hold both, query the vendor, and pay only after confirming whether one is a duplicate"
+      ],
+      "correct": 3,
+      "explain": "Duplicates often come with new numbers. Confirm before paying.",
+      "id": "o2q30"
+    },
+    {
+      "sec": "Section D: Vendors, invoices and reporting",
+      "type": "mcq",
+      "text": "What makes a vendor spend report useful to management?",
+      "opts": [
+        "Spend by vendor and category against budget, with the change on last month and any unusual items explained",
+        "A list of every invoice with no summary",
+        "Only the total",
+        "Vendor contact details"
+      ],
+      "correct": 0,
+      "explain": "Management needs the picture and the exceptions, not raw data.",
+      "id": "o2q31"
+    },
+    {
+      "sec": "Section D: Vendors, invoices and reporting",
+      "type": "mcq",
+      "text": "What is the purpose of a weekly operations report?",
+      "opts": [
+        "To record every email sent",
+        "To replace meetings entirely",
+        "To show pending decisions, upcoming renewals and spend at a glance, so nothing important waits unnoticed",
+        "To report colleagues' attendance"
+      ],
+      "correct": 2,
+      "explain": "It surfaces what needs attention before it becomes urgent.",
+      "id": "o2q32"
+    },
+    {
+      "sec": "Section D: Vendors, invoices and reporting",
+      "type": "tf",
+      "text": "Paying an invoice without matching it to a purchase order or agreement is acceptable if the vendor is well known.",
+      "correct": "False",
+      "explain": "Familiarity is how fraud and errors slip through. Every invoice is checked.",
+      "id": "o2q33"
+    },
+    {
+      "sec": "Section D: Vendors, invoices and reporting",
+      "type": "tf",
+      "text": "Withholding tax may need to be deducted from certain vendor payments, so the accountant's guidance should be followed.",
+      "correct": "True",
+      "explain": "Withholding tax applies to specified payments in Nigeria. The coordinator follows the accountant's rules rather than guessing.",
+      "id": "o2q34"
+    },
+    {
+      "sec": "Section E: Judgement, authority and escalation",
+      "type": "mcq",
+      "text": "A vendor needs a contract signed today to keep a discount, and the MD is unreachable on a flight. What do you do?",
+      "opts": [
+        "Do not sign; tell the vendor it is awaiting the MD, ask whether the deadline can move, and message the MD with the details",
+        "Sign it yourself to save the discount",
+        "Ask a colleague to sign it",
+        "Ignore the vendor until the MD lands"
+      ],
+      "correct": 0,
+      "explain": "Only authorised signatories bind the company. A missed discount costs less than an unauthorised commitment.",
+      "id": "o2q35"
+    },
+    {
+      "sec": "Section E: Judgement, authority and escalation",
+      "type": "mcq",
+      "text": "The MD asks you to book travel but the booking exceeds the budget they set. What do you do?",
+      "opts": [
+        "Present the options and the cost difference and ask the MD to decide before booking",
+        "Book it anyway",
+        "Book a cheaper option without saying anything",
+        "Cancel the trip"
+      ],
+      "correct": 0,
+      "explain": "When a request conflicts with a constraint, surface the trade-off and let the decision-maker choose.",
+      "id": "o2q36"
+    },
+    {
+      "sec": "Section E: Judgement, authority and escalation",
+      "type": "mcq",
+      "text": "You notice a colleague has not logged three vendor calls in the tracker. What is the right approach?",
+      "opts": [
+        "Report them to the MD immediately",
+        "Fix it quietly every time",
+        "Ignore it",
+        "Mention it to them directly and helpfully first; escalate only if it continues and affects the work"
+      ],
+      "correct": 3,
+      "explain": "Direct, respectful feedback solves most issues. Escalate patterns, not single slips.",
+      "id": "o2q37"
+    },
+    {
+      "sec": "Section E: Judgement, authority and escalation",
+      "type": "mcq",
+      "text": "Three urgent tasks land at once: a contract renewal deadline today, the MD's travel for next week, and filing from last month. What order?",
+      "opts": [
+        "The filing first, as it is overdue",
+        "The renewal deadline first, then the travel, then the filing",
+        "The travel first, as it is for the MD",
+        "All three at once"
+      ],
+      "correct": 1,
+      "explain": "Order by consequence and deadline. A missed renewal notice can lock in a year of cost.",
+      "id": "o2q38"
+    },
+    {
+      "sec": "Section E: Judgement, authority and escalation",
+      "type": "mcq",
+      "text": "You make an error in the spend report already sent to the MD. What do you do?",
+      "opts": [
+        "Hope nobody notices",
+        "Wait until next month's report",
+        "Blame the source data without checking",
+        "Send a correction promptly, saying what changed and why"
+      ],
+      "correct": 3,
+      "explain": "Prompt, transparent correction protects decisions made on the report and your credibility.",
+      "id": "o2q39"
+    },
+    {
+      "sec": "Section E: Judgement, authority and escalation",
+      "type": "tf",
+      "text": "An operations coordinator may approve payments on the MD's behalf when the amount is small.",
+      "correct": "False",
+      "explain": "Payment approval rests with the authorised person regardless of amount. The coordinator prepares and checks; the MD approves.",
+      "id": "o2q40"
+    },
+    {
+      "sec": "Section E: Judgement, authority and escalation",
+      "type": "tf",
+      "text": "Escalating early with the facts and options is better than escalating late with only the problem.",
+      "correct": "True",
+      "explain": "Early escalation keeps choices open; offering options respects the decision-maker's time.",
+      "id": "o2q41"
+    },
+    {
+      "sec": "Section F: Confidentiality and data protection",
+      "type": "mcq",
+      "text": "A colleague asks you what another colleague earns, since you process payroll documents. What do you say?",
+      "opts": [
+        "Tell them; everyone talks about pay",
+        "Give a rough figure",
+        "Show them the document",
+        "Decline; salary information is confidential and not shared"
+      ],
+      "correct": 3,
+      "explain": "Compensation is confidential. Access through your role does not permit disclosure.",
+      "id": "o2q42"
+    },
+    {
+      "sec": "Section F: Confidentiality and data protection",
+      "type": "mcq",
+      "text": "Under the Nigeria Data Protection Act 2023, how should personal data in the files you manage be treated?",
+      "opts": [
+        "Kept forever in case it is useful",
+        "Shared freely inside the company",
+        "Collected for a clear purpose, kept secure, accessed only by those who need it, and kept no longer than necessary",
+        "Stored wherever is convenient"
+      ],
+      "correct": 2,
+      "explain": "These principles apply to the staff, vendor and customer data an operations coordinator handles daily.",
+      "id": "o2q43"
+    },
+    {
+      "sec": "Section F: Confidentiality and data protection",
+      "type": "mcq",
+      "text": "You receive an email that looks like it is from the MD, asking you to buy gift cards urgently and send the codes. What do you do?",
+      "opts": [
+        "Buy them quickly; the MD asked",
+        "Reply asking how many",
+        "Do not act; verify with the MD through a separate known channel, since this is a common impersonation scam",
+        "Buy them and ask for a refund later"
+      ],
+      "correct": 2,
+      "explain": "Urgent gift card requests from 'the boss' are a classic fraud. Always verify independently.",
+      "id": "o2q44"
+    },
+    {
+      "sec": "Section F: Confidentiality and data protection",
+      "type": "mcq",
+      "text": "You need to send a file of staff details to the accountant. Which method is appropriate?",
+      "opts": [
+        "Share it securely through OneDrive with the accountant only, or as a password-protected file with the password sent separately",
+        "Attach it unprotected to an email to several people",
+        "Send it through WhatsApp",
+        "Post it in a Teams channel for all staff"
+      ],
+      "correct": 0,
+      "explain": "Personal data is sent only to those who need it, through secure means.",
+      "id": "o2q45"
+    },
+    {
+      "sec": "Section F: Confidentiality and data protection",
+      "type": "mcq",
+      "text": "A laptop containing company files is lost. What should happen first?",
+      "opts": [
+        "Wait to see if it turns up",
+        "Buy a replacement quietly",
+        "Report it immediately to the MD so the device can be blocked, passwords changed and any data breach assessed",
+        "Tell only your team"
+      ],
+      "correct": 2,
+      "explain": "Speed limits the damage. A breach may also have to be reported to the regulator within 72 hours.",
+      "id": "o2q46"
+    },
+    {
+      "sec": "Section F: Confidentiality and data protection",
+      "type": "tf",
+      "text": "It is acceptable to discuss a vendor's contract terms with a friend who works for a competing vendor.",
+      "correct": "False",
+      "explain": "Contract terms are confidential company information and must not be disclosed.",
+      "id": "o2q47"
+    },
+    {
+      "sec": "Section F: Confidentiality and data protection",
+      "type": "tf",
+      "text": "Leaving your computer unlocked while away from your desk is a security risk even in the office.",
+      "correct": "True",
+      "explain": "An unlocked screen gives anyone access to email, files and systems under your name.",
+      "id": "o2q48"
+    },
+    {
+      "sec": "Section A: Microsoft 365 tools",
+      "type": "mcq",
+      "text": "In a Word document being reviewed by three people, how do you show exactly what each reviewer changed?",
+      "opts": [
+        "Ask each person to use a different font colour",
+        "Save three separate copies",
+        "Compare printed versions by hand",
+        "Turn on Track Changes, so edits are marked by author and can be accepted or rejected"
+      ],
+      "correct": 3,
+      "explain": "Track Changes records every edit with its author and makes review controlled.",
+      "id": "o2q49"
+    },
+    {
+      "sec": "Section A: Microsoft 365 tools",
+      "type": "mcq",
+      "text": "Which Excel feature stops people typing inconsistent vendor names such as 'Apex', 'APEX Ltd' and 'Apex Supplies'?",
+      "opts": [
+        "Bold formatting",
+        "Wrap text",
+        "Data validation with a drop-down list of approved vendor names",
+        "Merge cells"
+      ],
+      "correct": 2,
+      "explain": "Consistent entries make SUMIFS and PivotTables accurate. Drop-down lists enforce them.",
+      "id": "o2q50"
+    },
+    {
+      "sec": "Section B: Records, filing and document control",
+      "type": "mcq",
+      "text": "How long should records be kept?",
+      "opts": [
+        "Forever, in case they are needed",
+        "Until the folder is full",
+        "One month",
+        "In line with the company's retention schedule and legal requirements, then disposed of securely"
+      ],
+      "correct": 3,
+      "explain": "Retention follows law and policy. Keeping personal data longer than needed breaches the NDPA; disposing too early can breach tax and company law.",
+      "id": "o2q51"
+    },
+    {
+      "sec": "Section C: Meetings, minutes and correspondence",
+      "type": "mcq",
+      "text": "The MD asks you to arrange a meeting 'sometime next week' with a client. What should the invitation include?",
+      "opts": [
+        "Only the date",
+        "Only a Teams link",
+        "The MD's personal phone number",
+        "A clear subject, the purpose, date and time with time zone, location or Teams link, attendees, and any documents to read first"
+      ],
+      "correct": 3,
+      "explain": "A complete invitation prevents confusion and wasted time.",
+      "id": "o2q52"
+    },
+    {
+      "sec": "Section D: Vendors, invoices and reporting",
+      "type": "mcq",
+      "text": "A vendor's price rose 40% at renewal without notice. What is the right step?",
+      "opts": [
+        "Pay it; renewals are automatic",
+        "Cancel the service immediately",
+        "Ignore it",
+        "Check the contract terms, compare with alternatives, and give the MD a short summary with options before the renewal date"
+      ],
+      "correct": 3,
+      "explain": "The coordinator's value is in preparing the decision: facts, options and deadlines.",
+      "id": "o2q53"
+    },
+    {
+      "sec": "Section E: Judgement, authority and escalation",
+      "type": "mcq",
+      "text": "A staff member asks you to approve their leave while the MD is away. What do you do?",
+      "opts": [
+        "Explain that leave approval sits with the MD or the designated approver, log the request, and pass it on",
+        "Approve it",
+        "Refuse it",
+        "Ignore it until the MD returns"
+      ],
+      "correct": 0,
+      "explain": "Knowing the limits of your authority, and routing requests correctly, is part of the role.",
+      "id": "o2q54"
+    },
+    {
+      "sec": "Section G: Written answers",
+      "type": "text",
+      "text": "Draft a short, professional email (four to six sentences) to a vendor, Apex Supplies Ltd, declining their request to increase their monthly fee by 25% from next month, and asking them to propose an alternative before the contract review in two weeks.",
+      "sub": "Write clearly and politely, stay within your authority, and do not threaten to end the contract.",
+      "placeholder": "Dear Apex Supplies Ltd, thank you for your letter...",
+      "id": "o2q55"
+    },
+    {
+      "sec": "Section G: Written answers",
+      "type": "text",
+      "text": "Write the minutes entry for this discussion: the team agreed to move the office internet contract from Provider A to Provider B from 1 November, Tunde will give notice to Provider A by 15 October, and the MD will sign Provider B's contract once legal has reviewed it.",
+      "sub": "Record the decision and each action with its owner and date, neutrally and concisely.",
+      "placeholder": "Decision: ...",
+      "id": "o2q56"
     }
   ],
   "Social Media & Community Manager": [
     {
-      "id": "q1",
-      "sec": "Section A: Platform knowledge",
+      "sec": "Section A: Platforms and formats",
       "type": "mcq",
-      "text": "Which Microsoft 365 application would you use to schedule and post approved social media content directly to LinkedIn from within the Microsoft ecosystem?",
+      "text": "GoLive wants to reach finance and operations managers at Lagos businesses with 50 or more staff. Which platform should lead?",
       "opts": [
-        "Microsoft Teams",
-        "Microsoft Viva Engage",
-        "SharePoint",
-        "Microsoft Whiteboard"
+        "LinkedIn, where decision-makers at that level are reachable by job title and company size",
+        "TikTok, because it has the most users",
+        "Snapchat, for its younger audience",
+        "Pinterest, for its visual format"
       ],
-      "correct": 1,
-      "explain": "Viva Engage (formerly Yammer) is Microsoft's community and social platform within M365. For external scheduling, tools like Buffer or Hootsuite are used: but within M365, Viva Engage handles internal social and community features."
+      "correct": 0,
+      "explain": "Platform choice follows the audience. B2B decision-makers are best reached on LinkedIn, where targeting by role and company size is native.",
+      "id": "m2q01"
     },
     {
-      "id": "q2",
-      "sec": "Section A: Platform knowledge",
+      "sec": "Section A: Platforms and formats",
       "type": "mcq",
-      "text": "GoLive wants to reach corporate decision-makers about Microsoft 365 services. Which platform should be the primary channel for this B2B audience?",
+      "text": "Which Instagram format disappears after 24 hours unless saved to Highlights?",
       "opts": [
-        "Instagram Reels",
-        "TikTok",
-        "LinkedIn",
-        "Snapchat"
+        "Stories",
+        "Reels",
+        "Carousel posts",
+        "Grid posts"
       ],
-      "correct": 2,
-      "explain": "LinkedIn is the correct channel for B2B technology services targeting corporate decision-makers in Nigeria and internationally."
+      "correct": 0,
+      "explain": "Stories expire after 24 hours; Highlights keep the useful ones on the profile.",
+      "id": "m2q02"
     },
     {
-      "id": "q3",
-      "sec": "Section A: Platform knowledge",
-      "type": "tf",
-      "text": "Posting at the same time every day, regardless of when your audience is most active, is the best approach for maximising engagement.",
-      "correct": "False",
-      "explain": "Post timing should be based on platform analytics showing when your specific audience is most active. This varies by platform, audience location, and day of week."
-    },
-    {
-      "id": "q4",
-      "sec": "Section A: Platform knowledge",
+      "sec": "Section A: Platforms and formats",
       "type": "mcq",
-      "text": "A post on GoLive's LinkedIn page gets a comment from a prospect asking for pricing. What is the best response?",
+      "text": "A 60-second product explainer performs poorly as a static grid video on Instagram. What change is most likely to improve reach?",
       "opts": [
-        "Ignore it: pricing should not be discussed publicly",
-        "Reply with the full price list in the comments",
-        "Thank them publicly and direct them to DM or a contact form for a proper conversation",
-        "Delete the comment to keep the page clean"
+        "Post it at a higher resolution",
+        "Add more hashtags to the caption",
+        "Recut it as a vertical Reel with a strong hook in the first two seconds and captions",
+        "Post the same video three times a day"
       ],
       "correct": 2,
-      "explain": "Acknowledge publicly to show responsiveness, but move the sales conversation to a private channel. Public pricing discussions can create complications and are better handled personally."
+      "explain": "Reels are distributed more widely and are watched with sound off. The first seconds decide whether anyone stays.",
+      "id": "m2q03"
     },
     {
-      "id": "q5",
-      "sec": "Section A: Platform knowledge",
+      "sec": "Section A: Platforms and formats",
       "type": "mcq",
-      "text": "What does \"reach\" mean in social media analytics?",
+      "text": "What is the standard post length limit on X for accounts without a paid subscription?",
       "opts": [
-        "The number of times your post was clicked",
-        "The number of unique accounts that saw your post",
-        "The total number of likes and comments",
-        "The number of times your post was saved"
+        "140 characters",
+        "500 characters",
+        "280 characters",
+        "Unlimited"
       ],
-      "correct": 1,
-      "explain": "Reach is the number of unique accounts that saw a piece of content. Impressions (total views, including multiple views by the same account) is different from reach."
+      "correct": 2,
+      "explain": "Standard accounts are limited to 280 characters. Longer posts need a paid tier, so write for 280.",
+      "id": "m2q04"
     },
     {
-      "id": "q6",
-      "sec": "Section B: Content creation",
+      "sec": "Section A: Platforms and formats",
       "type": "mcq",
-      "text": "GoLive is launching a new Microsoft 365 package. You need to create a LinkedIn post that explains the value without using technical jargon. The post should be:",
+      "text": "Where should GoLive manage its Facebook and Instagram pages and ad accounts?",
       "opts": [
-        "Long, detailed, and technical: LinkedIn professionals appreciate depth",
-        "Short, benefit-focused, and end with a clear call to action",
-        "Written entirely in hashtags so it trends",
-        "Copied from Microsoft's own website to ensure accuracy"
+        "Through the MD's personal Facebook profile",
+        "Through a shared password kept in WhatsApp",
+        "In Meta Business Suite, with each team member given their own role, rather than through one shared personal login",
+        "Through a freelancer's account"
       ],
-      "correct": 1,
-      "explain": "LinkedIn posts that perform best are concise, benefit-led, and tell the reader what to do next. Technical depth belongs in articles or documents, not feed posts."
+      "correct": 2,
+      "explain": "Business Suite roles keep access controlled and removable. Pages tied to a personal profile or shared login are lost when that person leaves.",
+      "id": "m2q05"
     },
     {
-      "id": "q7",
-      "sec": "Section B: Content creation",
+      "sec": "Section A: Platforms and formats",
+      "type": "mcq",
+      "text": "A LinkedIn post from the company page gets far less reach than the same post from the MD's personal profile. Why?",
+      "opts": [
+        "The company page is broken",
+        "LinkedIn penalises Nigerian companies",
+        "LinkedIn tends to distribute posts from people more widely than from company pages, so employee and leader posts extend reach",
+        "The post had too few hashtags"
+      ],
+      "correct": 2,
+      "explain": "Personal profiles usually outperform pages. A good strategy uses both, with leaders sharing and adding their own view.",
+      "id": "m2q06"
+    },
+    {
+      "sec": "Section A: Platforms and formats",
       "type": "tf",
-      "text": "Using 30 hashtags on every LinkedIn post significantly increases reach and is best practice.",
+      "text": "Most people watch short-form video on social media with the sound off, so captions matter.",
+      "correct": "True",
+      "explain": "Captions make video understandable without sound and improve accessibility.",
+      "id": "m2q07"
+    },
+    {
+      "sec": "Section A: Platforms and formats",
+      "type": "tf",
+      "text": "Posting identical content with identical captions on every platform is the most effective approach.",
       "correct": "False",
-      "explain": "LinkedIn recommends 3–5 relevant hashtags per post. Overloading hashtags looks spammy and can reduce reach. Quality and relevance matter more than quantity."
+      "explain": "Each platform has its own audience, format and tone. Adapting content performs better than copying it.",
+      "id": "m2q08"
     },
     {
-      "id": "q8",
-      "sec": "Section B: Content creation",
+      "sec": "Section B: Content and copywriting",
       "type": "mcq",
-      "text": "Your manager asks for a content calendar for the next month. What should it include?",
+      "text": "Which opening line is strongest for a LinkedIn post about Microsoft 365 security for SMEs?",
       "opts": [
-        "Just the post text for each day",
-        "Post date, platform, content type, topic, copy draft, visual description, and status",
-        "Only the images: copy can be written on the day",
-        "A list of hashtags to use across all posts"
+        "'GoLive is a leading provider of Microsoft 365 solutions.'",
+        "'Security is very important in today's digital world.'",
+        "'Last month, a Lagos law firm lost access to every client email for four days. Here is what stopped it happening to our clients.'",
+        "'Click here to learn about our services!!!'"
+      ],
+      "correct": 2,
+      "explain": "A specific, relatable story earns attention. Generic statements and hard selling are scrolled past. (Any real case would need the client's permission.)",
+      "id": "m2q09"
+    },
+    {
+      "sec": "Section B: Content and copywriting",
+      "type": "mcq",
+      "text": "Which call to action best suits a post aimed at generating leads?",
+      "opts": [
+        "'Like and share!'",
+        "'We are the best.'",
+        "'Book a free 20-minute Microsoft 365 assessment. Link in the comments.'",
+        "'Contact us for more information about anything.'"
+      ],
+      "correct": 2,
+      "explain": "A clear, low-effort next step tied to a business outcome converts. Vague calls to action do not.",
+      "id": "m2q10"
+    },
+    {
+      "sec": "Section B: Content and copywriting",
+      "type": "mcq",
+      "text": "A caption for Nigerian SME owners reads stiff and corporate. What is the best adjustment?",
+      "opts": [
+        "Write in the clear, direct, professional English they use every day, with concrete examples from their business life",
+        "Use heavy slang to seem relatable",
+        "Add more technical terms to show expertise",
+        "Make it longer"
+      ],
+      "correct": 0,
+      "explain": "The register should match the audience: professional but plain. Heavy slang undermines a B2B brand; jargon excludes.",
+      "id": "m2q11"
+    },
+    {
+      "sec": "Section B: Content and copywriting",
+      "type": "mcq",
+      "text": "You need an image for a post and find a perfect one on Google Images. What do you do?",
+      "opts": [
+        "Use it; everything on Google is free",
+        "Use it and credit 'Google'",
+        "Crop it so it is unrecognisable",
+        "Use a properly licensed image, or create one in Canva with licensed elements, rather than using the Google result"
+      ],
+      "correct": 3,
+      "explain": "Images found online are usually copyrighted. Using them without a licence exposes the company to claims.",
+      "id": "m2q12"
+    },
+    {
+      "sec": "Section B: Content and copywriting",
+      "type": "mcq",
+      "text": "What makes a carousel post effective on LinkedIn or Instagram?",
+      "opts": [
+        "As much text as possible on each slide",
+        "Twenty slides minimum",
+        "Only the logo on the first slide",
+        "A strong first slide that promises something, one idea per slide, and a clear final slide with the next step"
+      ],
+      "correct": 3,
+      "explain": "Each slide must earn the swipe. The first sells the rest; the last converts.",
+      "id": "m2q13"
+    },
+    {
+      "sec": "Section B: Content and copywriting",
+      "type": "mcq",
+      "text": "GoLive has a real customer success story. What must happen before publishing it?",
+      "opts": [
+        "Publish it; it is positive",
+        "Publish it without the company name",
+        "Get the customer's written permission, and confirm the facts and figures with them",
+        "Post it and ask for permission afterwards"
+      ],
+      "correct": 2,
+      "explain": "Customer stories need consent. Publishing without it risks the relationship and may breach data protection and confidentiality duties.",
+      "id": "m2q14"
+    },
+    {
+      "sec": "Section B: Content and copywriting",
+      "type": "tf",
+      "text": "Using a popular song in a promotional video is allowed as long as the video is short.",
+      "correct": "False",
+      "explain": "Commercial use of music needs a licence regardless of length. Use the platform's commercial music library or licensed tracks.",
+      "id": "m2q15"
+    },
+    {
+      "sec": "Section B: Content and copywriting",
+      "type": "tf",
+      "text": "A post should have one clear message and one clear action rather than several.",
+      "correct": "True",
+      "explain": "Focus converts. Several messages dilute each other.",
+      "id": "m2q16"
+    },
+    {
+      "sec": "Section C: Analytics and reporting",
+      "type": "mcq",
+      "text": "A post had 10,000 impressions and 6,000 reach. What is the difference?",
+      "opts": [
+        "They are the same measure",
+        "Reach includes repeats; impressions do not",
+        "Impressions count every view including repeats; reach counts unique accounts that saw it",
+        "Impressions are clicks"
+      ],
+      "correct": 2,
+      "explain": "Knowing the difference stops inflated reporting. Reach says how many people; impressions how many views.",
+      "id": "m2q17"
+    },
+    {
+      "sec": "Section C: Analytics and reporting",
+      "type": "mcq",
+      "text": "A post got 200 clicks from 8,000 impressions. What is its click-through rate?",
+      "opts": [
+        "0.25%",
+        "2.5%",
+        "25%",
+        "4%"
       ],
       "correct": 1,
-      "explain": "A proper content calendar is a planning and coordination tool. It needs enough detail for anyone to pick it up and execute: date, platform, content type, topic, copy, visual direction, and approval status."
+      "explain": "CTR is clicks divided by impressions: 200 divided by 8,000 is 0.025, or 2.5%.",
+      "id": "m2q18"
     },
     {
-      "id": "q9",
-      "sec": "Section B: Content creation",
+      "sec": "Section C: Analytics and reporting",
       "type": "mcq",
-      "text": "A follower posts a negative comment on GoLive's Instagram saying the hosting service went down and they lost a client. What do you do first?",
+      "text": "Management asks whether social media produced any business last month. Which report answers it?",
       "opts": [
-        "Delete the comment before anyone else sees it",
-        "Reply publicly apologising and acknowledging the issue, then escalate internally to the technical team",
-        "Ignore it: one comment will not affect the brand",
-        "Argue with the commenter and explain it was not GoLive's fault"
+        "Follower growth only",
+        "Total likes",
+        "Number of posts published",
+        "Leads and enquiries attributed to social, using UTM-tagged links and the CRM, alongside cost where ads were run"
+      ],
+      "correct": 3,
+      "explain": "The role reports on leads, not vanity metrics. UTM links show which posts sent visitors who became enquiries.",
+      "id": "m2q19"
+    },
+    {
+      "sec": "Section C: Analytics and reporting",
+      "type": "mcq",
+      "text": "What is a UTM parameter used for?",
+      "opts": [
+        "Shortening links",
+        "Hiding a link from search engines",
+        "Scheduling posts",
+        "Tagging a link so website analytics can show which platform, campaign and post a visitor came from"
+      ],
+      "correct": 3,
+      "explain": "UTM tags such as utm_source and utm_campaign let you attribute visits and leads to specific posts.",
+      "id": "m2q20"
+    },
+    {
+      "sec": "Section C: Analytics and reporting",
+      "type": "mcq",
+      "text": "Two versions of an ad differ in image, headline and audience at once. Version B wins. What can you conclude?",
+      "opts": [
+        "The image caused the difference",
+        "The audience caused the difference",
+        "Little about why it won, because three variables changed together; test one variable at a time",
+        "Headlines never matter"
+      ],
+      "correct": 2,
+      "explain": "A fair test changes one thing. Otherwise the result cannot be explained or repeated.",
+      "id": "m2q21"
+    },
+    {
+      "sec": "Section C: Analytics and reporting",
+      "type": "mcq",
+      "text": "Engagement is high on funny posts, but none of the enquiries came from them. What do you recommend?",
+      "opts": [
+        "Keep some lighter posts for reach, but weight the calendar towards content that produces enquiries, and report both",
+        "Post only funny content, since engagement is high",
+        "Stop all light content immediately",
+        "Ignore the enquiry data"
+      ],
+      "correct": 0,
+      "explain": "Engagement and business outcomes are different goals. A balanced calendar serves both, measured honestly.",
+      "id": "m2q22"
+    },
+    {
+      "sec": "Section C: Analytics and reporting",
+      "type": "mcq",
+      "text": "How should the best posting times for GoLive's audience be decided?",
+      "opts": [
+        "From a generic blog post about best times",
+        "From GoLive's own analytics on when its followers are active, tested over several weeks",
+        "By posting at midnight to avoid competition",
+        "By asking one colleague"
       ],
       "correct": 1,
-      "explain": "Respond publicly and promptly to show the brand takes feedback seriously, then escalate to the right team internally. Deleting complaints and arguing both damage trust significantly."
+      "explain": "Audiences differ. Your own data beats general advice.",
+      "id": "m2q23"
     },
     {
-      "id": "q10",
-      "sec": "Section C: Brand & strategy",
+      "sec": "Section C: Analytics and reporting",
+      "type": "tf",
+      "text": "A rising follower count on its own proves the social media strategy is working.",
+      "correct": "False",
+      "explain": "Followers without engagement or enquiries show little. Outcomes matter more than audience size.",
+      "id": "m2q24"
+    },
+    {
+      "sec": "Section C: Analytics and reporting",
+      "type": "tf",
+      "text": "Engagement rate is commonly calculated as total engagements divided by reach.",
+      "correct": "True",
+      "explain": "It shows how much of the audience that saw the content interacted with it. Always state which denominator you use.",
+      "id": "m2q25"
+    },
+    {
+      "sec": "Section D: Community management and crisis",
+      "type": "mcq",
+      "text": "A customer posts publicly: 'GoLive set up our email and it has been down all day. Terrible service.' What is the right first response?",
+      "opts": [
+        "Delete the comment",
+        "Argue that the fault is probably theirs",
+        "Ignore it until support has fixed it",
+        "Reply publicly within the hour, acknowledging the problem, saying you are looking into it, and inviting them to DM their account details; then escalate internally"
+      ],
+      "correct": 3,
+      "explain": "A prompt, calm public acknowledgement shows everyone watching that GoLive takes it seriously. Details move to private messages.",
+      "id": "m2q26"
+    },
+    {
+      "sec": "Section D: Community management and crisis",
+      "type": "mcq",
+      "text": "A clearly abusive comment uses insults but contains no genuine complaint. What is appropriate?",
+      "opts": [
+        "Reply with an insult",
+        "Leave it permanently to seem open",
+        "Report the person to the police",
+        "Hide or remove it under the page's published community rules, and document it"
+      ],
+      "correct": 3,
+      "explain": "Abuse can be moderated under clear community guidelines. Genuine criticism, however, should be answered, not deleted.",
+      "id": "m2q27"
+    },
+    {
+      "sec": "Section D: Community management and crisis",
+      "type": "mcq",
+      "text": "An old post from GoLive's account is being shared angrily because it can be read as offensive. What do you do first?",
+      "opts": [
+        "Delete it and say nothing",
+        "Post a joke to lighten the mood",
+        "Reply to every critic individually straight away",
+        "Alert the MD immediately, stop scheduled posts, and agree a response before replying publicly"
+      ],
+      "correct": 3,
+      "explain": "In a reputation incident, pause, escalate and agree one response. Deleting silently often looks like a cover-up.",
+      "id": "m2q28"
+    },
+    {
+      "sec": "Section D: Community management and crisis",
+      "type": "mcq",
+      "text": "A prospect sends a DM asking about Microsoft 365 pricing late on a Friday. What should happen?",
+      "opts": [
+        "Leave it until Monday without replying",
+        "Quote prices yourself from memory",
+        "Acknowledge it promptly with a friendly reply and log it as a lead, passing it to sales with the details",
+        "Tell them to email instead"
+      ],
+      "correct": 2,
+      "explain": "DMs are leads. A fast acknowledgement and a clean handover protect them; quoting prices is the sales team's role.",
+      "id": "m2q29"
+    },
+    {
+      "sec": "Section D: Community management and crisis",
+      "type": "mcq",
+      "text": "A customer complaint on social media turns out to be a misunderstanding on their part. How do you close it publicly?",
+      "opts": [
+        "Post proof that they were wrong",
+        "Thank them, explain briefly and politely what happened, and confirm it is resolved, without making them look foolish",
+        "Leave the thread unanswered",
+        "Delete the thread"
+      ],
+      "correct": 1,
+      "explain": "Graceful resolution in public wins more trust than winning the argument.",
+      "id": "m2q30"
+    },
+    {
+      "sec": "Section D: Community management and crisis",
+      "type": "tf",
+      "text": "Deleting genuine negative reviews is an effective way to protect the brand.",
+      "correct": "False",
+      "explain": "Deleted criticism resurfaces as screenshots, looking worse. A good public response builds more trust.",
+      "id": "m2q31"
+    },
+    {
+      "sec": "Section D: Community management and crisis",
+      "type": "tf",
+      "text": "Details such as account numbers or phone numbers should be moved from public comments to private messages.",
+      "correct": "True",
+      "explain": "Personal details must never be discussed publicly. Move the conversation to a private channel.",
+      "id": "m2q32"
+    },
+    {
+      "sec": "Section E: Strategy and planning",
+      "type": "mcq",
+      "text": "What are content pillars?",
+      "opts": [
+        "The number of posts per day",
+        "The company's logo and colours",
+        "A small set of recurring themes that all content maps to, such as education, customer stories and product, keeping the calendar consistent",
+        "A list of hashtags"
+      ],
+      "correct": 2,
+      "explain": "Pillars give a calendar structure and keep the brand's message coherent.",
+      "id": "m2q33"
+    },
+    {
+      "sec": "Section E: Strategy and planning",
+      "type": "mcq",
+      "text": "The MD asks for daily posting on all four platforms, but you can only produce quality content three times a week. What do you recommend?",
+      "opts": [
+        "Agree and post low-quality content daily",
+        "Refuse without explanation",
+        "Explain the trade-off with data, propose a realistic cadence per platform, and show how quality posts outperform frequent weak ones",
+        "Post the same content everywhere daily"
+      ],
+      "correct": 2,
+      "explain": "Honest capacity planning backed by evidence is more useful than overpromising.",
+      "id": "m2q34"
+    },
+    {
+      "sec": "Section E: Strategy and planning",
+      "type": "mcq",
+      "text": "What is the main advantage of a monthly content calendar?",
+      "opts": [
+        "It aligns posts with business priorities and dates, allows approval in advance, and avoids last-minute weak content",
+        "It removes the need to check analytics",
+        "It guarantees viral posts",
+        "It lets you post the same thing monthly"
+      ],
+      "correct": 0,
+      "explain": "Planning ahead improves quality and makes approvals and campaigns manageable.",
+      "id": "m2q35"
+    },
+    {
+      "sec": "Section E: Strategy and planning",
+      "type": "mcq",
+      "text": "Boosting a post versus using Ads Manager: which statement is accurate?",
+      "opts": [
+        "Boosting always outperforms Ads Manager",
+        "Ads Manager gives more control over objectives, audiences, placements and testing than the Boost button",
+        "Ads Manager cannot target by location",
+        "They are identical"
+      ],
+      "correct": 1,
+      "explain": "Boosting is quick but limited. Ads Manager is the right tool for lead-generation campaigns.",
+      "id": "m2q36"
+    },
+    {
+      "sec": "Section E: Strategy and planning",
+      "type": "mcq",
+      "text": "A competitor's post went viral. What is the professional response?",
+      "opts": [
+        "Copy the post exactly",
+        "Criticise the competitor publicly",
+        "Understand why it worked and apply the lesson to GoLive's own voice and audience, rather than copying it",
+        "Ignore competitors entirely"
+      ],
+      "correct": 2,
+      "explain": "Learning from competitors is smart; copying is unoriginal and can breach copyright.",
+      "id": "m2q37"
+    },
+    {
+      "sec": "Section E: Strategy and planning",
+      "type": "tf",
+      "text": "Every post should be tied to at least one business goal, such as awareness, leads or customer support.",
+      "correct": "True",
+      "explain": "Purposeful content is measurable. Posting without a goal makes reporting impossible.",
+      "id": "m2q38"
+    },
+    {
+      "sec": "Section E: Strategy and planning",
+      "type": "tf",
+      "text": "A strong brand voice means changing tone completely depending on the mood of the day.",
+      "correct": "False",
+      "explain": "Consistency builds recognition. Tone adapts to context, but the voice stays recognisably GoLive.",
+      "id": "m2q39"
+    },
+    {
+      "sec": "Section F: Compliance, ethics and account security",
+      "type": "mcq",
+      "text": "A former freelancer still has admin access to GoLive's Facebook page. What do you do?",
+      "opts": [
+        "Leave it in case they are needed",
+        "Change the page name",
+        "Ask them nicely not to post",
+        "Remove their access in Business Suite straight away, review who else has access, and confirm two-factor authentication is on"
+      ],
+      "correct": 3,
+      "explain": "Access should end when the work ends. Stale admin access is a common route to page takeovers.",
+      "id": "m2q40"
+    },
+    {
+      "sec": "Section F: Compliance, ethics and account security",
+      "type": "mcq",
+      "text": "You receive a message claiming to be from Meta saying the page will be deleted unless you verify through a link. What do you do?",
+      "opts": [
+        "Click and verify quickly",
+        "Do not click; check the page's status directly in Business Suite and report the message as phishing",
+        "Forward it to the team to click",
+        "Reply asking for more information"
+      ],
+      "correct": 1,
+      "explain": "Fake 'Meta support' messages are a common way to steal page access. Verify only inside the official tools.",
+      "id": "m2q41"
+    },
+    {
+      "sec": "Section F: Compliance, ethics and account security",
+      "type": "mcq",
+      "text": "GoLive pays an influencer to post about its Microsoft 365 packages. What is required?",
+      "opts": [
+        "Nothing, if the influencer likes the product",
+        "Only a hashtag the audience will not notice",
+        "Disclosure only if more than N1m is paid",
+        "The post must be clearly disclosed as a paid partnership, using the platform's label or equivalent wording"
+      ],
+      "correct": 3,
+      "explain": "Paid promotion must be disclosed clearly. Hidden advertising misleads the audience and breaches advertising standards.",
+      "id": "m2q42"
+    },
+    {
+      "sec": "Section F: Compliance, ethics and account security",
+      "type": "mcq",
+      "text": "A delighted customer sends a screenshot of their invoice praising GoLive. Can it be posted?",
+      "opts": [
+        "Yes, as it is positive",
+        "Only with the customer's permission and with personal and financial details removed",
+        "Yes, if posted as a Story that disappears",
+        "Yes, if the name is kept but the amount removed"
+      ],
+      "correct": 1,
+      "explain": "Invoices contain personal and commercial data. Consent and redaction are needed under the NDPA and ordinary confidentiality.",
+      "id": "m2q43"
+    },
+    {
+      "sec": "Section F: Compliance, ethics and account security",
+      "type": "mcq",
+      "text": "Which body regulates advertising in Nigeria, including advertising on digital platforms?",
+      "opts": [
+        "The Nigerian Communications Commission only",
+        "The Advertising Regulatory Council of Nigeria (ARCON)",
+        "The Corporate Affairs Commission",
+        "No body regulates digital advertising"
+      ],
+      "correct": 1,
+      "explain": "ARCON regulates advertising, including digital. Campaign claims should be accurate and within its rules.",
+      "id": "m2q44"
+    },
+    {
+      "sec": "Section F: Compliance, ethics and account security",
+      "type": "tf",
+      "text": "Social media passwords should be shared with the whole team in a WhatsApp group so anyone can post in an emergency.",
+      "correct": "False",
+      "explain": "Each person should have their own access through business tools. Shared passwords cannot be revoked individually and leak easily.",
+      "id": "m2q45"
+    },
+    {
+      "sec": "Section F: Compliance, ethics and account security",
+      "type": "tf",
+      "text": "Two-factor authentication should be enabled on every account that can post for GoLive.",
+      "correct": "True",
+      "explain": "2FA stops most account takeovers even when a password is stolen.",
+      "id": "m2q46"
+    },
+    {
+      "sec": "Section A: Platforms and formats",
+      "type": "mcq",
+      "text": "GoLive wants to share a 90-second customer testimonial on LinkedIn. Which upload method usually performs best?",
+      "opts": [
+        "Post a YouTube link only",
+        "Post a screenshot of the video",
+        "Share a Google Drive link",
+        "Upload the video natively to LinkedIn with captions, rather than posting a YouTube link"
+      ],
+      "correct": 3,
+      "explain": "Platforms favour native video over links that take users away. Captions carry the message without sound.",
+      "id": "m2q47"
+    },
+    {
+      "sec": "Section B: Content and copywriting",
+      "type": "mcq",
+      "text": "Which hashtag approach is most effective on LinkedIn?",
+      "opts": [
+        "Thirty hashtags in every post",
+        "No hashtags ever, under any circumstances",
+        "Three to five relevant hashtags that the target audience actually follows",
+        "Only trending hashtags unrelated to the post"
+      ],
+      "correct": 2,
+      "explain": "A few relevant hashtags help discovery. Excessive or irrelevant ones look like spam.",
+      "id": "m2q48"
+    },
+    {
+      "sec": "Section B: Content and copywriting",
+      "type": "mcq",
+      "text": "A graphic has small text over a busy photo. What is the most important fix?",
+      "opts": [
+        "Add more text",
+        "Use more colours",
+        "Add the logo three times",
+        "Increase the contrast and size of the text so it is readable on a phone screen"
+      ],
+      "correct": 3,
+      "explain": "Most viewers are on phones. If the text cannot be read at a glance, the graphic fails.",
+      "id": "m2q49"
+    },
+    {
+      "sec": "Section C: Analytics and reporting",
+      "type": "mcq",
+      "text": "Link clicks rose but website enquiries did not. Where should you look?",
+      "opts": [
+        "At the post's colours",
+        "At follower count",
+        "At the landing page and the journey after the click, since the problem may be what visitors find, not the post",
+        "Nowhere; clicks are the goal"
+      ],
+      "correct": 2,
+      "explain": "Social can deliver the visit; the page must convert it. Reporting both shows where the funnel breaks.",
+      "id": "m2q50"
+    },
+    {
+      "sec": "Section C: Analytics and reporting",
+      "type": "mcq",
+      "text": "A campaign spent N150,000 on ads and produced 30 qualified leads. What was the cost per lead?",
+      "opts": [
+        "N5,000",
+        "N4,500",
+        "N50,000",
+        "N500"
+      ],
+      "correct": 0,
+      "explain": "150,000 divided by 30 is 5,000.",
+      "id": "m2q51"
+    },
+    {
+      "sec": "Section D: Community management and crisis",
+      "type": "mcq",
+      "text": "A customer's complaint on X is gaining retweets while you are off duty. What arrangement prevents this becoming a crisis?",
+      "opts": [
+        "Turning off notifications at weekends",
+        "Deleting the account",
+        "Replying only on Mondays",
+        "An agreed escalation path and out-of-hours cover, so urgent public complaints are acknowledged quickly"
+      ],
+      "correct": 3,
+      "explain": "Complaints do not keep office hours. A simple rota and escalation list keeps response times short.",
+      "id": "m2q52"
+    },
+    {
+      "sec": "Section E: Strategy and planning",
+      "type": "mcq",
+      "text": "What is the best way to repurpose a detailed blog article about Microsoft 365 security?",
+      "opts": [
+        "Paste the full article into one post",
+        "Post the link once and forget it",
+        "Turn its key points into a carousel, a short video tip, and a few single-idea posts spread across the month",
+        "Rewrite it as a press release"
+      ],
+      "correct": 2,
+      "explain": "One strong piece can feed many formats, each suited to its platform.",
+      "id": "m2q53"
+    },
+    {
+      "sec": "Section B: Content and copywriting",
+      "type": "tf",
+      "text": "Proofreading every post before publishing is part of protecting a B2B brand's credibility.",
+      "correct": "True",
+      "explain": "Errors in a company's public posts undermine confidence in its professionalism.",
+      "id": "m2q54"
+    },
+    {
+      "sec": "Section G: Written answers",
       "type": "text",
-      "text": "Write a short LinkedIn post (50–80 words) announcing that GoLive Digital Solutions is now an authorised Microsoft Cloud Solution Provider (CSP) in Nigeria. The audience is Nigerian business owners and IT decision-makers.",
-      "sub": "Write professionally and in a tone that is confident but not boastful. Include one call to action.",
-      "placeholder": "We are excited to announce..."
+      "text": "Write a LinkedIn post (80 to 120 words) announcing that GoLive now offers Microsoft 365 migrations completed over a single weekend, aimed at owners of Nigerian businesses with 10 to 50 staff.",
+      "sub": "Open with a strong hook, keep it professional and clear, and end with one call to action. Do not invent customer names or statistics.",
+      "placeholder": "Moving your team to Microsoft 365 does not have to mean...",
+      "id": "m2q55"
     },
     {
-      "id": "q11",
-      "sec": "Section C: Brand & strategy",
+      "sec": "Section G: Written answers",
       "type": "text",
-      "text": "A client tags GoLive in an Instagram story praising the team for a smooth Microsoft 365 migration. Write a short reply (2–3 sentences) to their story.",
-      "sub": "Keep it warm, professional, and on-brand.",
-      "placeholder": "Thank you so much..."
-    },
-    {
-      "id": "q12",
-      "sec": "Section D: Judgement",
-      "type": "mcq",
-      "text": "Your manager asks you to post something immediately about a news story that appears to show a competitor in a bad light. What do you do?",
-      "opts": [
-        "Post it immediately: speed is everything in social media",
-        "Check the story source, verify accuracy, assess reputational risk, then consult the MD before posting anything",
-        "Share it to your personal account instead",
-        "Repost it without comment so GoLive cannot be blamed"
-      ],
-      "correct": 1,
-      "explain": "Reactive posts about competitors carry significant reputational risk. Verify facts, assess tone, and get senior approval before publishing anything that could be seen as attacking a competitor."
-    },
-    {
-      "id": "q13",
-      "sec": "Section D: Judgement",
-      "type": "mcq",
-      "text": "You notice GoLive's Instagram engagement has dropped 40% over the last two weeks with no change to posting frequency. What is your first step?",
-      "opts": [
-        "Post more frequently to compensate",
-        "Check Instagram Insights to identify whether reach, impressions, or saves also dropped: then form a hypothesis before changing strategy",
-        "Switch entirely to TikTok",
-        "Ask followers in the comments what happened"
-      ],
-      "correct": 1,
-      "explain": "Data analysis before action is the correct approach. A drop in engagement could be caused by algorithm changes, audience fatigue, poor content-timing, or platform-wide issues. Diagnose first."
-    },
-    {
-      "id": "q14",
-      "sec": "Section D: Judgement",
-      "type": "tf",
-      "text": "It is acceptable to repost competitor content on GoLive's official pages without permission as long as you credit the original creator.",
-      "correct": "False",
-      "explain": "Reposting competitor content on brand pages is poor practice regardless of credit: it amplifies their message, not yours. Content should always serve GoLive's brand objectives."
-    },
-    {
-      "id": "q15",
-      "sec": "Section E: Reasoning",
-      "type": "mcq",
-      "text": "GoLive has three arms: GoLive Naija, GoLive Forge, and B2B Services. As Social Media Manager, how would you approach content across these arms?",
-      "opts": [
-        "Create one generic GoLive feed and post the same content for all arms",
-        "Create distinct content pillars for each arm within a unified GoLive brand voice: so each audience gets relevant content while the brand feels cohesive",
-        "Run three completely separate social media accounts with no connection",
-        "Only post about B2B Services since it generates the most revenue"
-      ],
-      "correct": 1,
-      "explain": "Content pillars per business arm within a single brand identity is the correct strategy. It keeps the brand cohesive while ensuring each audience segment sees content relevant to their needs."
-    },
-    {
-      "id": "q16",
-      "sec": "Section F: Analytics & performance",
-      "type": "mcq",
-      "text": "GoLive's LinkedIn engagement rate drops from 4.2% to 1.8% over 6 weeks despite no change in posting frequency or content type. What is your first investigative step?",
-      "opts": [
-        "Immediately double posting frequency",
-        "Check LinkedIn Analytics for changes in reach, follower demographics, and post-type performance: then cross-reference with any LinkedIn algorithm update announcements during that period",
-        "Switch the entire content strategy to video immediately",
-        "Ask the MD to approve a paid promotion budget"
-      ],
-      "correct": 1,
-      "explain": "Data-led diagnosis before action is essential. A drop this significant could be algorithm-driven, audience saturation, or content fatigue. You need to understand the cause before prescribing a solution: otherwise you risk compounding the problem."
-    },
-    {
-      "id": "q17",
-      "sec": "Section F: Analytics & performance",
-      "type": "mcq",
-      "text": "A LinkedIn post about GoLive's Microsoft 365 services gets 850 impressions but only 4 likes and 0 comments. What does this tell you and what do you do next?",
-      "opts": [
-        "The content is performing well: 850 people saw it",
-        "The content reached people but failed to drive engagement: analyse the hook, CTA, and format. Test a rewrite with a stronger opening line and a direct question to provoke responses",
-        "Delete the post and try again",
-        "Pay to boost the post immediately"
-      ],
-      "correct": 1,
-      "explain": "High impressions with low engagement signals a reach problem solved but a resonance problem remaining. The content is being shown but not connecting. The fix is creative: stronger hook, more relatable framing, or a question that invites response."
-    },
-    {
-      "id": "q18",
-      "sec": "Section F: Analytics & performance",
-      "type": "tf",
-      "text": "A 5% engagement rate on an Instagram business page with 2,000 followers is considered below average for that audience size.",
-      "correct": "False",
-      "explain": "5% is actually a strong engagement rate for Instagram. Average engagement rates for business accounts typically sit between 1–3%. Anything above 3–5% is considered above average. Understanding benchmarks by platform and audience size is essential for accurate performance reporting."
-    },
-    {
-      "id": "q19",
-      "sec": "Section G: Crisis & reputation",
-      "type": "mcq",
-      "text": "A disgruntled former employee posts publicly on Twitter/X accusing GoLive of unfair treatment and names the MD directly. The post is gaining traction. What is your recommended response strategy?",
-      "opts": [
-        "Respond publicly defending the company immediately",
-        "Do not respond publicly: escalate to the MD immediately, document the post, monitor for spread, and advise the MD that a measured private response or legal review may be appropriate depending on the severity of the claims",
-        "Report the post to Twitter and block the account",
-        "Repost the claims on GoLive's account with a rebuttal"
-      ],
-      "correct": 1,
-      "explain": "Responding publicly to a disgruntled employee escalates and amplifies the situation. The correct approach is to escalate, document, monitor, and advise: not to engage publicly. Legal and HR implications must be assessed before any external response."
-    },
-    {
-      "id": "q20",
-      "sec": "Section G: Crisis & reputation",
-      "type": "mcq",
-      "text": "GoLive is about to launch a major Microsoft 365 campaign when a major data breach at Microsoft makes international news. How do you adjust the campaign?",
-      "opts": [
-        "Launch as planned: the breach has nothing to do with GoLive",
-        "Pause the campaign immediately, assess whether the breach affects the specific products being promoted, and propose a revised message that addresses security proactively rather than ignoring the context",
-        "Cancel the campaign entirely",
-        "Post about the breach to show GoLive is aware of current events"
-      ],
-      "correct": 1,
-      "explain": "Launching a cloud security-adjacent campaign during a high-profile breach without acknowledging the context looks tone-deaf. Pausing, assessing relevance, and pivoting the messaging to address security head-on turns the moment into a trust-building opportunity."
-    },
-    {
-      "id": "q21",
-      "sec": "Section H: Content strategy & planning",
-      "type": "mcq",
-      "text": "The MD asks you to build a 3-month content plan for GoLive across LinkedIn and Instagram. What framework do you use to structure it?",
-      "opts": [
-        "Post whatever feels relevant each week",
-        "Build content pillars mapped to GoLive's three business arms (Naija, Forge, B2B), assign a posting cadence per platform, plan content types (educational, promotional, behind-the-scenes, client stories), and schedule around key dates and product launches",
-        "Use the same content on both platforms since it saves time",
-        "Focus only on promotional content since the goal is sales"
-      ],
-      "correct": 1,
-      "explain": "Content pillars aligned to business objectives, platform-specific cadence, and content type variety is the correct strategic framework. Identical cross-posting ignores platform-specific audience behaviour. Random posting lacks strategic intent."
-    },
-    {
-      "id": "q22",
-      "sec": "Section H: Content strategy & planning",
-      "type": "mcq",
-      "text": "You are tasked with growing GoLive's LinkedIn follower count from 500 to 2,000 in 6 months organically. Which combination of tactics is most likely to achieve this?",
-      "opts": [
-        "Post daily and hope the algorithm rewards consistency",
-        "Publish high-value thought leadership content consistently, engage actively in comments on relevant industry posts, encourage team members to share and engage with company posts, optimise the company page for SEO, and use relevant hashtags strategically",
-        "Buy followers from a third-party provider",
-        "Run giveaways offering cash prizes to new followers"
-      ],
-      "correct": 1,
-      "explain": "Organic LinkedIn growth requires a multi-pronged approach: great content, active engagement, employee amplification, and page optimisation. Bought followers are a violation of LinkedIn's terms and damage credibility. Giveaways attract low-quality followers with no business intent."
-    },
-    {
-      "id": "q23",
-      "sec": "Section H: Content strategy & planning",
-      "type": "tf",
-      "text": "Repurposing a long-form blog post into multiple shorter social media posts, an infographic, and a short video is a poor use of content because it dilutes the original message.",
-      "correct": "False",
-      "explain": "Content repurposing is best practice: it maximises the value of high-quality content by adapting it to different formats and platform behaviours. A single blog post can generate weeks of social content without diluting the message. Each format reaches a different consumption preference."
-    },
-    {
-      "id": "q24",
-      "sec": "Section I: Brand voice & judgement",
-      "type": "mcq",
-      "text": "GoLive's MD asks you to post a strong opinion piece on LinkedIn about a controversial government technology policy. You personally disagree with the MD's position. What do you do?",
-      "opts": [
-        "Refuse to post it",
-        "Post it as written since it is the MD's content and not your personal view: you are publishing on behalf of the company, not yourself",
-        "Post your own counter-opinion on the GoLive page instead",
-        "Ask the MD to post it from their personal profile instead of the company page"
-      ],
-      "correct": 1,
-      "explain": "As Social Media Manager you publish on behalf of the brand, not yourself. The MD's position is the company's position. If you have concerns, raise them privately before publishing: but the final call belongs to leadership, not you. Publishing a counter-opinion on the company page would be a serious professional breach."
-    },
-    {
-      "id": "q25",
-      "sec": "Section I: Brand voice & judgement",
-      "type": "mcq",
-      "text": "You are given a monthly content budget of ₦150,000 for paid promotion. LinkedIn CPM in Nigeria averages ₦8,000. Instagram averages ₦3,500. You want to reach corporate decision-makers for the B2B Services arm and young creatives for GoLive Forge. How do you split the budget?",
-      "opts": [
-        "Split 50/50 between both platforms for fairness",
-        "Allocate the majority to LinkedIn for the B2B decision-maker audience and a smaller portion to Instagram for GoLive Forge's creative audience: based on where each target segment is most active and most reachable cost-effectively",
-        "Spend it all on Instagram since it is cheaper per impression",
-        "Ask the MD to increase the budget before making any allocation decisions"
-      ],
-      "correct": 1,
-      "explain": "Budget allocation should follow audience behaviour. Corporate decision-makers are on LinkedIn: higher CPM but better targeting. Young creatives are on Instagram: lower CPM, broader reach. Allocating by target segment rather than splitting equally or choosing the cheapest platform is the correct strategic approach."
+      "text": "A customer posts on Facebook: 'Paid GoLive two weeks ago and still no email setup. Is this a scam?' Write the public reply you would post, and one sentence on what you would do next internally.",
+      "sub": "Stay calm and professional. Do not share personal or account details publicly, and do not promise a timeline you cannot confirm.",
+      "placeholder": "Hello Mr Eze, we are sorry to hear this...",
+      "id": "m2q56"
     }
   ],
   "Hosting Support Technician": [
     {
-      "id": "q1",
-      "sec": "Section A: DNS & domains",
+      "sec": "Section A: DNS and domains",
       "type": "mcq",
-      "text": "A client's website is showing a \"domain not found\" error after they transferred their domain to GoLive Naija. The domain was transferred yesterday. What is the most likely cause?",
+      "text": "A customer is moving their website to GoLive tomorrow and wants the switch to be as quick as possible for visitors. What should you do today?",
       "opts": [
-        "GoLive's server is down",
-        "DNS propagation has not completed yet: this can take up to 48 hours",
-        "The client needs to buy the domain again",
-        "The website files need to be re-uploaded"
-      ],
-      "correct": 1,
-      "explain": "DNS propagation after a domain transfer can take 24–48 hours globally. This is normal and the client should be reassured, not panicked."
-    },
-    {
-      "id": "q2",
-      "sec": "Section A: DNS & domains",
-      "type": "mcq",
-      "text": "A client wants their email to route to Google Workspace. Which DNS record type do you need to update?",
-      "opts": [
-        "A record",
-        "CNAME record",
-        "MX record",
-        "TXT record"
-      ],
-      "correct": 2,
-      "explain": "MX (Mail Exchange) records control where email for a domain is delivered. Changing MX records to point to Google's mail servers routes email to Google Workspace."
-    },
-    {
-      "id": "q3",
-      "sec": "Section A: DNS & domains",
-      "type": "tf",
-      "text": "An A record maps a domain name to an IPv4 address.",
-      "correct": "True",
-      "explain": "An A record (Address record) maps a hostname to its IPv4 address. This is how domain names resolve to the server's IP address."
-    },
-    {
-      "id": "q4",
-      "sec": "Section A: DNS & domains",
-      "type": "mcq",
-      "text": "A client asks why their website is showing as \"Not Secure\" in the browser. What is the most likely cause?",
-      "opts": [
-        "Their internet connection is slow",
-        "Their SSL certificate has expired or is not installed",
-        "Their website has too many images",
-        "Their hosting plan has expired"
-      ],
-      "correct": 1,
-      "explain": "A \"Not Secure\" warning in browsers means the site is either not using HTTPS or the SSL certificate is missing, expired, or incorrectly configured."
-    },
-    {
-      "id": "q5",
-      "sec": "Section A: DNS & domains",
-      "type": "mcq",
-      "text": "What does TTL stand for in DNS, and what does it control?",
-      "opts": [
-        "Total Transfer Limit: controls file upload sizes",
-        "Time To Live: controls how long DNS records are cached before being refreshed",
-        "Transfer Time Limit: controls how long domain transfers take",
-        "Traffic Threshold Level: controls server load"
-      ],
-      "correct": 1,
-      "explain": "TTL (Time To Live) is the duration in seconds that a DNS record is cached by resolvers. Lower TTL means changes propagate faster but increase DNS query load."
-    },
-    {
-      "id": "q6",
-      "sec": "Section B: Hosting & cPanel",
-      "type": "mcq",
-      "text": "A client calls saying their website loads very slowly. After checking, you see the server CPU is at 95%. What is your immediate first step?",
-      "opts": [
-        "Tell the client to restart their computer",
-        "Identify which processes or scripts are consuming the most CPU using the server's resource monitor, then escalate to senior technical staff",
-        "Immediately migrate the client to a new server without investigation",
-        "Increase the client's hosting plan without investigating the cause"
-      ],
-      "correct": 1,
-      "explain": "Diagnose before acting. Identify the specific process causing the spike: it could be a rogue plugin, a traffic surge, or a malware script. Document findings before escalating."
-    },
-    {
-      "id": "q7",
-      "sec": "Section B: Hosting & cPanel",
-      "type": "mcq",
-      "text": "A client wants to create a new email address using their domain (e.g. info@theircompany.com). Where in cPanel do you set this up?",
-      "opts": [
-        "File Manager",
-        "Email Accounts",
-        "MySQL Databases",
-        "Softaculous Apps Installer"
-      ],
-      "correct": 1,
-      "explain": "Email Accounts in cPanel is where you create, manage, and configure email addresses for a domain hosted on the server."
-    },
-    {
-      "id": "q8",
-      "sec": "Section B: Hosting & cPanel",
-      "type": "tf",
-      "text": "If a client's hosting account is suspended for non-payment, their website and email stop working immediately.",
-      "correct": "True",
-      "explain": "A suspended hosting account takes all associated services offline: website, email, databases, and subdomains: until the account is reactivated after payment."
-    },
-    {
-      "id": "q9",
-      "sec": "Section B: Hosting & cPanel",
-      "type": "mcq",
-      "text": "A client reports that their website was working yesterday but now shows a blank white page. What are the first two things you check?",
-      "opts": [
-        "Check if the domain has expired, then check error logs for PHP or application errors",
-        "Reinstall the website from scratch",
-        "Call the client back and tell them to wait 24 hours",
-        "Increase the server RAM immediately"
+        "Lower the TTL on the domain's A record, so that tomorrow's change is picked up by resolvers within minutes",
+        "Change the nameservers today and the A record tomorrow",
+        "Delete the old A record so browsers stop caching it",
+        "Nothing; DNS changes always take 24 to 48 hours regardless of settings"
       ],
       "correct": 0,
-      "explain": "A blank white page (White Screen of Death) in web hosting is typically caused by a PHP error or a failed plugin/theme update. Error logs reveal the exact cause quickly."
+      "explain": "Resolvers cache a record for its TTL. Lowering the TTL a day ahead means the old value expires quickly when the record changes. The '24 to 48 hours' rule is a myth rooted in long default TTLs.",
+      "id": "h2q01"
     },
     {
-      "id": "q10",
-      "sec": "Section C: Customer support",
-      "type": "text",
-      "text": "A client submits a ticket at 2am saying their business email is not working and they are losing customers. Write a professional support response acknowledging the issue and setting expectations.",
-      "sub": "Be empathetic, clear about next steps, and professional. Do not over-promise resolution time.",
-      "placeholder": "Dear [Client name]..."
-    },
-    {
-      "id": "q11",
-      "sec": "Section C: Customer support",
-      "type": "text",
-      "text": "You are ending your day shift and handing over to the night shift technician. Write a brief handover note covering: 2 open tickets, a scheduled maintenance window at 11pm, and a client who called twice about a slow website.",
-      "sub": "Be concise and structured so the night shift technician has everything they need.",
-      "placeholder": "Handover note: [Date]..."
-    },
-    {
-      "id": "q12",
-      "sec": "Section D: Judgement",
+      "sec": "Section A: DNS and domains",
       "type": "mcq",
-      "text": "During your shift a server monitoring alert fires showing disk usage at 98% on a shared hosting server. You are not authorised to delete files without approval. What do you do?",
+      "text": "A customer wants www.example.com to point to their hosting while the bare domain example.com keeps its existing A record. Which record is appropriate for www?",
       "opts": [
-        "Ignore it: 98% is not 100%",
-        "Immediately escalate to your senior technician and document the alert with timestamp, server name, and disk usage figure",
-        "Delete the largest files you can find to free up space",
-        "Restart the server to clear cache"
+        "A CNAME at the bare domain example.com",
+        "A CNAME for www pointing to the hosting hostname, or an A record for www to the server IP",
+        "An MX record for www",
+        "A TXT record containing the server IP"
       ],
       "correct": 1,
-      "explain": "Disk usage at 98% is a critical alert: at 100% the server stops functioning. Escalate immediately with full documentation. Do not take unauthorised action on shared hosting servers."
+      "explain": "A CNAME is fine on a subdomain such as www. It cannot sit at the zone apex alongside the SOA and NS records, which is why the bare domain uses an A record.",
+      "id": "h2q02"
     },
     {
-      "id": "q13",
-      "sec": "Section D: Judgement",
+      "sec": "Section A: DNS and domains",
       "type": "mcq",
-      "text": "A client calls and claims their account was hacked and demands you reset their password immediately over the phone. What do you do?",
+      "text": "A domain has two MX records: priority 10 pointing to mx1, and priority 20 pointing to mx2. How do sending servers use them?",
       "opts": [
-        "Reset the password immediately to help the client",
-        "Verify the caller's identity against account records first, then follow the official password reset procedure: never reset based on an unverified phone call",
-        "Tell them to submit a ticket and hang up",
-        "Give them the current password so they can log in"
+        "They try mx2 first, because the higher number is preferred",
+        "They try mx1 first, because the lower number is preferred, and fall back to mx2 if mx1 is unreachable",
+        "They split mail evenly between the two",
+        "Only mx2 is used; mx1 is ignored"
       ],
       "correct": 1,
-      "explain": "Social engineering attacks often come as urgent password reset requests. Always verify identity against account records before any security action. An unverified phone request should never trigger a password reset."
+      "explain": "MX preference: lower numbers are tried first. Equal numbers share the load.",
+      "id": "h2q03"
     },
     {
-      "id": "q14",
-      "sec": "Section D: Judgement",
-      "type": "tf",
-      "text": "If a client's website is hacked and contains malware, your first action should be to take the site offline immediately to prevent the malware from spreading to other hosted sites.",
-      "correct": "True",
-      "explain": "Malware on shared hosting can spread to other accounts on the same server. Isolating the compromised site immediately is the correct first step, followed by investigation, cleaning, and notification."
-    },
-    {
-      "id": "q15",
-      "sec": "Section E: Reasoning",
+      "sec": "Section A: DNS and domains",
       "type": "mcq",
-      "text": "GoLive Naija runs 24-hour hosting support across a day shift (8am–8pm) and night shift (8pm–6am). A client submits a critical ticket at 7:45pm. You are the day shift technician with 15 minutes left. What do you do?",
+      "text": "A customer changed their nameservers to GoLive's two hours ago. Their site loads for you but not for them. What is the most likely reason?",
       "opts": [
-        "Log off at 8pm: it is not your problem after your shift ends",
-        "Immediately start working the ticket, brief the incoming night shift technician on its status before you leave, and ensure it is marked as in-progress",
-        "Tell the client to wait until tomorrow morning",
-        "Only look at the ticket if it takes less than 15 minutes to fix"
+        "The website files are corrupted",
+        "Their resolver is still caching the old nameserver delegation; it will clear as the TTL expires, and you can confirm by querying a public resolver",
+        "Their SSL certificate has expired",
+        "Nameserver changes are rejected unless made in cPanel"
       ],
       "correct": 1,
-      "explain": "A critical ticket 15 minutes before shift end must be triaged and handed over: not ignored. Start it, document what you have done, and give the night shift technician a clear brief. Client continuity is the priority."
+      "explain": "Delegation changes propagate as caches expire. Checking with a public resolver or a DNS lookup tool shows whether the new records are visible, which separates a propagation delay from a real fault.",
+      "id": "h2q04"
     },
     {
-      "id": "q16",
-      "sec": "Section F: Email authentication & security",
+      "sec": "Section A: DNS and domains",
       "type": "mcq",
-      "text": "A client reports their emails are landing in recipients' spam folders despite having a valid MX record. Which DNS record is most likely missing or misconfigured?",
+      "text": "Which record type maps a hostname to an IPv6 address?",
       "opts": [
-        "A record",
-        "CNAME record",
-        "SPF, DKIM, or DMARC record",
-        "NS record"
+        "A",
+        "PTR",
+        "AAAA",
+        "SRV"
       ],
       "correct": 2,
-      "explain": "SPF, DKIM, and DMARC are email authentication records that verify a sending domain is legitimate. Without them, emails from the domain are treated as suspicious by receiving mail servers. This is one of the most common causes of legitimate email landing in spam."
+      "explain": "A maps to IPv4, AAAA to IPv6. PTR is reverse lookup from IP to name. SRV locates services.",
+      "id": "h2q05"
     },
     {
-      "id": "q17",
-      "sec": "Section F: Email authentication & security",
+      "sec": "Section A: DNS and domains",
       "type": "mcq",
-      "text": "What does DMARC stand for and what does it do?",
+      "text": "A customer wants to move their domain from another registrar to GoLive. What do you need from them first?",
       "opts": [
-        "Domain Mail Authentication Record Certification: certifies your domain with email providers",
-        "Domain-based Message Authentication, Reporting and Conformance: tells receiving servers how to handle emails that fail SPF or DKIM checks",
-        "Dynamic Mail Access and Relay Control: controls email forwarding",
-        "Domain Management and Record Configuration: manages all DNS records"
+        "Their cPanel password",
+        "A copy of their SSL certificate",
+        "Their website files",
+        "The domain unlocked at the current registrar and its transfer authorisation (EPP) code"
       ],
-      "correct": 1,
-      "explain": "DMARC tells receiving mail servers what to do when an email fails SPF or DKIM authentication: reject it, quarantine it, or deliver it. It also enables reporting so domain owners can see who is sending email on their behalf."
+      "correct": 3,
+      "explain": "Transfers need the domain unlocked and the authorisation code. Hosting details are separate. Domains are also usually locked for 60 days after registration or a previous transfer.",
+      "id": "h2q06"
     },
     {
-      "id": "q18",
-      "sec": "Section F: Email authentication & security",
+      "sec": "Section A: DNS and domains",
+      "type": "mcq",
+      "text": "Which tool gives the most reliable view of what the rest of the internet sees for a domain's DNS right now?",
+      "opts": [
+        "Pinging the domain from your own laptop",
+        "Opening the site in your browser",
+        "Querying the authoritative nameservers directly, for example with dig @ns1.provider.com example.com",
+        "Checking the customer's cPanel zone editor only"
+      ],
+      "correct": 2,
+      "explain": "The authoritative nameservers are the source of truth. Your own resolver and browser may be serving cached answers, and cPanel only helps if the domain actually uses those nameservers.",
+      "id": "h2q07"
+    },
+    {
+      "sec": "Section A: DNS and domains",
       "type": "tf",
-      "text": "A wildcard SSL certificate (*.golivecompany.com) covers both golivecompany.com and all its subdomains such as mail.golivecompany.com and cloud.golivecompany.com.",
+      "text": "A CNAME record can safely be created at the same name as an MX record.",
       "correct": "False",
-      "explain": "A wildcard certificate covers subdomains (*.golivecompany.com = mail.golivecompany.com, cloud.golivecompany.com) but does NOT cover the apex/root domain (golivecompany.com) by default. A separate SAN entry or additional certificate is required for the root domain."
+      "explain": "A CNAME cannot coexist with any other record at the same name. Doing so breaks mail and is rejected by most DNS software.",
+      "id": "h2q08"
     },
     {
-      "id": "q19",
-      "sec": "Section G: Server & performance",
-      "type": "mcq",
-      "text": "A shared hosting server has 200 active websites. One website is suddenly experiencing a traffic spike from a viral social media post. How could this affect other websites on the same server?",
-      "opts": [
-        "It has no effect: each website is isolated",
-        "The traffic spike consumes server CPU and RAM resources shared across all 200 sites, potentially causing slowdowns or timeouts on unrelated websites: this is the risk of shared hosting over VPS or dedicated hosting",
-        "Only websites in the same cPanel account are affected",
-        "The viral website will automatically be migrated to a separate server"
-      ],
-      "correct": 1,
-      "explain": "Shared hosting means shared resources. A traffic spike on one account can degrade performance for all other accounts on the same server. This is why high-traffic or business-critical websites should be on VPS or dedicated hosting with guaranteed resource allocation."
+      "sec": "Section A: DNS and domains",
+      "type": "tf",
+      "text": "Lowering a record's TTL a day before changing it shortens how long the old value stays cached after the change.",
+      "correct": "True",
+      "explain": "Caches hold a record for its TTL. A lower TTL, set in advance, means the change is seen sooner.",
+      "id": "h2q09"
     },
     {
-      "id": "q20",
-      "sec": "Section G: Server & performance",
+      "sec": "Section B: Email authentication and deliverability",
       "type": "mcq",
-      "text": "A client's website loads in 12 seconds. After investigation you find their homepage has 45 uncompressed images totalling 18MB. What is your recommended fix?",
+      "text": "A customer's emails to Gmail are landing in spam, and their domain has no SPF record. What is the right first fix?",
       "opts": [
-        "Tell the client to use a faster internet connection",
-        "Compress and resize the images using tools like TinyPNG or ShortPixel, implement lazy loading so images below the fold only load when scrolled to, and recommend converting images to WebP format",
-        "Upgrade the client's hosting plan to a higher tier",
-        "Delete half the images from the page"
+        "Publish a single SPF TXT record listing every service that sends mail for the domain",
+        "Add a separate SPF record for each sending service",
+        "Ask recipients to mark the emails as not spam",
+        "Switch the domain to a new IP address"
       ],
-      "correct": 1,
-      "explain": "Image optimisation is the single most impactful performance fix for image-heavy pages. Compression, proper sizing, lazy loading, and modern formats (WebP) can reduce page load from 12 seconds to under 3 seconds without removing any content."
+      "correct": 0,
+      "explain": "SPF authorises sending sources. A domain may have only one SPF record; several records make SPF fail outright.",
+      "id": "h2q10"
     },
     {
-      "id": "q21",
-      "sec": "Section G: Server & performance",
+      "sec": "Section B: Email authentication and deliverability",
       "type": "mcq",
-      "text": "A client wants to set up a subdomain \"shop.theirdomain.com\" pointing to a Shopify store. What DNS record do you create?",
+      "text": "A domain's SPF record contains eleven include statements. Mail from it fails SPF checks at some receivers. Why?",
       "opts": [
-        "An MX record pointing to Shopify's servers",
-        "A CNAME record pointing shop.theirdomain.com to Shopify's provided CNAME value (e.g. shops.myshopify.com)",
-        "An A record pointing to the main website's IP address",
-        "A TXT record with the Shopify verification code"
+        "SPF records must be under 50 characters",
+        "SPF evaluation is limited to 10 DNS lookups; exceeding it returns a permanent error, so the record must be simplified",
+        "Include statements are not allowed in SPF",
+        "The record needs the ~all qualifier removed"
       ],
       "correct": 1,
-      "explain": "Subdomains pointing to third-party platforms use CNAME records. Shopify provides a CNAME target value during custom domain setup. An A record would only work if pointing to a static IP, which Shopify does not use for custom storefronts."
+      "explain": "The 10-lookup limit is one of the commonest silent SPF failures. Flattening or removing unused includes fixes it.",
+      "id": "h2q11"
     },
     {
-      "id": "q22",
-      "sec": "Section H: Advanced troubleshooting",
+      "sec": "Section B: Email authentication and deliverability",
       "type": "mcq",
-      "text": "A client reports that their website shows the correct content in Nigeria but shows an old cached version of the page to visitors in the UK. What is the most likely cause?",
+      "text": "Where is a DKIM public key published?",
       "opts": [
-        "The website has two different versions for different countries",
-        "A CDN (Content Delivery Network) is serving a cached version from a UK edge server that has not been purged since the last update",
-        "The UK visitors' browsers have old cookies",
-        "The domain DNS is not propagating correctly in Europe"
+        "In the MX record",
+        "At _dmarc.example.com",
+        "In a TXT record at selector._domainkey.example.com",
+        "In the SPF record"
       ],
-      "correct": 1,
-      "explain": "CDN edge servers cache website content geographically. If the cache is not purged after a content update, visitors in different regions see different versions. The fix is to trigger a cache purge from the CDN control panel (Cloudflare, BunnyCDN, etc.) after every significant content update."
+      "correct": 2,
+      "explain": "DKIM keys live under a selector name in the _domainkey subdomain. The sending server signs with the private key; receivers fetch the public one.",
+      "id": "h2q12"
     },
     {
-      "id": "q23",
-      "sec": "Section H: Advanced troubleshooting",
+      "sec": "Section B: Email authentication and deliverability",
       "type": "mcq",
-      "text": "A client's WordPress site is infected with malware that is redirecting visitors to a gambling website. The client is panicking. What are your steps in order?",
+      "text": "A customer asks what DMARC p=none does.",
       "opts": [
-        "Restore from the most recent backup immediately without any other steps",
-        "1) Take the site offline to prevent further visitor harm, 2) notify the client, 3) identify and remove the malicious code using a malware scanner, 4) harden the installation (update WordPress, plugins, change passwords, remove unknown admin users), 5) restore or clean the site, 6) scan again before bringing it back online",
-        "Tell the client to delete their website and start again",
-        "Change the WordPress admin password and hope the malware stops"
+        "It asks receivers to take no action on failing mail but to send reports, so the domain can monitor before enforcing",
+        "It rejects all mail that fails SPF",
+        "It disables SPF and DKIM checks",
+        "It quarantines every message from the domain"
       ],
-      "correct": 1,
-      "explain": "Malware remediation has a specific sequence: isolate, identify, clean, harden, verify, restore. Taking it offline first prevents ongoing harm to visitors. Simply restoring from backup without removing the vulnerability means the site will be reinfected immediately."
+      "correct": 0,
+      "explain": "p=none is monitoring mode. Moving to quarantine and then reject comes after reports show legitimate mail passes.",
+      "id": "h2q13"
     },
     {
-      "id": "q24",
-      "sec": "Section I: Shift operations",
+      "sec": "Section B: Email authentication and deliverability",
       "type": "mcq",
-      "text": "During your shift you receive 8 support tickets simultaneously: 3 are \"website down\" reports, 2 are email configuration requests, 2 are billing queries, and 1 is a general enquiry. How do you triage?",
+      "text": "A customer's server IP appears on a spam blacklist. What should happen before requesting delisting?",
       "opts": [
-        "Work through them in the order they were received",
-        "Prioritise the 3 \"website down\" tickets first (highest business impact), then email configuration (blocks business communication), then billing queries (financial impact), then general enquiry: escalate if the website down tickets require senior intervention",
-        "Handle the easiest ones first to clear the queue quickly",
-        "Assign all tickets to the next shift"
+        "Request delisting immediately",
+        "Change the domain name",
+        "Find and stop the cause, such as a compromised mailbox or a script sending spam, so the listing does not simply return",
+        "Disable the customer's email for a month"
       ],
-      "correct": 1,
-      "explain": "Triage by business impact, not arrival order. A website down is the highest severity: it means a business is losing revenue and credibility every minute. Email configuration is second because it blocks communication. Billing queries are third. General enquiries have the least urgency."
+      "correct": 2,
+      "explain": "Delisting without fixing the cause leads to relisting, and repeated listings are harder to clear. Check the mail queue and recent logins first.",
+      "id": "h2q14"
     },
     {
-      "id": "q25",
-      "sec": "Section I: Shift operations",
+      "sec": "Section B: Email authentication and deliverability",
       "type": "mcq",
-      "text": "It is 3am on your night shift. The server monitoring system alerts you that a shared hosting server's RAM is at 92% and rising. You do not have permission to restart services unilaterally. There is no response from your senior on WhatsApp. What do you do?",
+      "text": "A bounce reads: '550 5.7.1 Message rejected due to DMARC policy'. What does it indicate?",
       "opts": [
-        "Restart the server immediately to prevent it crashing",
-        "Document the alert with full details and timestamp, attempt to reach the senior via phone call (not just WhatsApp), escalate to the next available contact in the escalation chain, and monitor the situation closely every 5 minutes: do not take unauthorised action on a live production server",
-        "Go to sleep and document it in the morning handover",
-        "Wait and see if it resolves itself"
+        "The recipient's mailbox is full",
+        "The message failed DMARC alignment at the receiving side, so SPF or DKIM for the sending domain needs checking",
+        "The sender typed the wrong address",
+        "The message was too large"
       ],
       "correct": 1,
-      "explain": "A live shared hosting server at 92% RAM is critical but does not yet require unauthorised action. Escalate aggressively through all available channels: phone call, not just WhatsApp. Document everything. If RAM hits 100% and the senior is still unreachable, most escalation policies allow for defined emergency actions: but only if documented in the escalation procedure."
+      "explain": "5.7.x codes are policy rejections. A DMARC rejection means neither SPF nor DKIM passed in alignment with the From domain.",
+      "id": "h2q15"
+    },
+    {
+      "sec": "Section B: Email authentication and deliverability",
+      "type": "mcq",
+      "text": "What does a PTR (reverse DNS) record for a mail server's IP help with?",
+      "opts": [
+        "It speeds up website loading",
+        "It replaces the need for SPF",
+        "It stores the DKIM key",
+        "Receivers check that the sending IP resolves back to a sensible hostname, and many reject or penalise mail when it does not"
+      ],
+      "correct": 3,
+      "explain": "Reverse DNS is a basic trust signal for mail servers. It is set by whoever controls the IP, usually the hosting provider.",
+      "id": "h2q16"
+    },
+    {
+      "sec": "Section B: Email authentication and deliverability",
+      "type": "mcq",
+      "text": "A customer on shared hosting sends a newsletter to 8,000 contacts from their cPanel mailbox and it fails partway. What is the most likely cause and advice?",
+      "opts": [
+        "Their mailbox password expired",
+        "Shared hosting enforces hourly sending limits; bulk mail should go through a dedicated email marketing service",
+        "The newsletter had too many images",
+        "Their DNS is misconfigured"
+      ],
+      "correct": 1,
+      "explain": "Per-hour sending caps protect shared IP reputation. Bulk and marketing mail belongs on a service built for it, with its own authentication.",
+      "id": "h2q17"
+    },
+    {
+      "sec": "Section B: Email authentication and deliverability",
+      "type": "tf",
+      "text": "A domain can publish two separate SPF records if it uses two email providers.",
+      "correct": "False",
+      "explain": "Only one SPF record is allowed. Multiple records cause a permanent error; the providers must be combined in one record.",
+      "id": "h2q18"
+    },
+    {
+      "sec": "Section B: Email authentication and deliverability",
+      "type": "tf",
+      "text": "DMARC can pass even if SPF fails, provided DKIM passes and is aligned with the From domain.",
+      "correct": "True",
+      "explain": "DMARC needs either SPF or DKIM to pass in alignment. A valid, aligned DKIM signature is enough.",
+      "id": "h2q19"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "mcq",
+      "text": "A customer's website shows errors and their email is bouncing at the same time. What should you check first?",
+      "opts": [
+        "Their SSL certificate",
+        "Their disk quota, because a full account can stop both the site writing files and mail being delivered",
+        "Their domain renewal date",
+        "Whether they have the latest WordPress theme"
+      ],
+      "correct": 1,
+      "explain": "One cause behind two symptoms is the efficient first check. A full quota affects site writes, sessions and mailbox delivery together.",
+      "id": "h2q20"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "mcq",
+      "text": "What file permissions are standard for website files and folders on a typical cPanel account?",
+      "opts": [
+        "777 for everything, to avoid permission errors",
+        "644 for files and 755 for directories",
+        "600 for files and 700 for directories",
+        "755 for files and 644 for directories"
+      ],
+      "correct": 1,
+      "explain": "644 and 755 let the web server read content without letting others write to it. 777 is a security risk and is blocked by many servers.",
+      "id": "h2q21"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "mcq",
+      "text": "A site returns a 500 Internal Server Error straight after the customer edited .htaccess. What do you do?",
+      "opts": [
+        "Reinstall the operating system",
+        "Renew the SSL certificate",
+        "Check the error log, then restore or correct the .htaccess change that introduced the fault",
+        "Delete all files in public_html"
+      ],
+      "correct": 2,
+      "explain": "A 500 after an .htaccess edit is almost always a syntax or unsupported directive. The error log names it; the fix is small.",
+      "id": "h2q22"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "mcq",
+      "text": "An account shows 'inode limit reached' although plenty of disk space remains. What does it mean?",
+      "opts": [
+        "The database is corrupted",
+        "The server's RAM is full",
+        "The domain has expired",
+        "The account has too many files, often cache files, old backups or a full mail folder, even if they are small"
+      ],
+      "correct": 3,
+      "explain": "Inodes count files and folders. Clearing cache directories and old mail usually resolves it.",
+      "id": "h2q23"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "mcq",
+      "text": "A server's load is very high and sites are slow. Which command gives the quickest view of what is consuming resources?",
+      "opts": [
+        "top (or htop), to see the processes using the most CPU and memory",
+        "ls -la",
+        "ping 8.8.8.8",
+        "cat /etc/hosts"
+      ],
+      "correct": 0,
+      "explain": "top shows live process usage, which points to the culprit: a runaway PHP process, a database query, or a backup.",
+      "id": "h2q24"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "mcq",
+      "text": "A customer needs a PHP script to run every night at 2am. Where is this set up in cPanel?",
+      "opts": [
+        "File Manager",
+        "Zone Editor",
+        "Email Routing",
+        "Cron Jobs"
+      ],
+      "correct": 3,
+      "explain": "Cron Jobs schedules commands at set times. Remember the server's time zone when choosing the schedule.",
+      "id": "h2q25"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "mcq",
+      "text": "Which method of logging in to a server over SSH is most secure?",
+      "opts": [
+        "Password login for root",
+        "A shared password known to the whole team",
+        "Key-based authentication, with password login disabled",
+        "Telnet"
+      ],
+      "correct": 2,
+      "explain": "Keys cannot be guessed by brute force. Password login, especially for root, is the main target of automated attacks.",
+      "id": "h2q26"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "mcq",
+      "text": "A customer asks you to 'just restore last night's backup' of their whole account. What should you check before doing it?",
+      "opts": [
+        "Nothing; restoring is always safe",
+        "Whether their SSL is valid",
+        "What has changed since the backup, such as new emails, orders or files, because a full restore will overwrite it",
+        "Whether they have paid for this month"
+      ],
+      "correct": 2,
+      "explain": "A full restore rolls everything back, including mail received and orders placed since. Often a selective restore of files or the database is what is needed.",
+      "id": "h2q27"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "tf",
+      "text": "Setting a folder's permissions to 777 is an acceptable quick fix for permission errors on a production website.",
+      "correct": "False",
+      "explain": "777 lets any user or process write to the folder, which is how malware gets in. The correct fix is the right owner and 644 or 755.",
+      "id": "h2q28"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "tf",
+      "text": "A full mailbox or account quota can cause incoming email to bounce.",
+      "correct": "True",
+      "explain": "When there is no space to store mail, delivery fails and senders receive bounces.",
+      "id": "h2q29"
+    },
+    {
+      "sec": "Section D: WordPress and SSL",
+      "type": "mcq",
+      "text": "A WordPress site shows a blank white page after a plugin update, and wp-admin is also blank. What is the fastest safe fix?",
+      "opts": [
+        "Reinstall WordPress from scratch",
+        "Restore the whole account from last week's backup",
+        "Rename the plugin's folder in wp-content/plugins using File Manager or SSH to deactivate it, then check the error log",
+        "Delete the database"
+      ],
+      "correct": 2,
+      "explain": "Renaming a plugin folder deactivates it without wp-admin. Logs first, elimination second, restore last, as the role description says.",
+      "id": "h2q30"
+    },
+    {
+      "sec": "Section D: WordPress and SSL",
+      "type": "mcq",
+      "text": "How do you see the actual PHP error behind a WordPress fault on a live site without showing errors to visitors?",
+      "opts": [
+        "Enable WP_DEBUG with WP_DEBUG_LOG in wp-config.php and WP_DEBUG_DISPLAY off, then read wp-content/debug.log",
+        "Turn on display_errors for the whole server",
+        "Ask the customer to describe the error",
+        "Reinstall the theme"
+      ],
+      "correct": 0,
+      "explain": "Logging to a file captures the error without displaying it publicly. Remember to turn debugging off afterwards.",
+      "id": "h2q31"
+    },
+    {
+      "sec": "Section D: WordPress and SSL",
+      "type": "mcq",
+      "text": "After installing SSL, a site shows a padlock warning on some pages. What is the usual cause?",
+      "opts": [
+        "The certificate is fake",
+        "The domain's MX record is wrong",
+        "The server clock is five minutes slow",
+        "Mixed content: images, scripts or stylesheets still loading over http:// instead of https://"
+      ],
+      "correct": 3,
+      "explain": "Browsers flag pages that load insecure resources. Updating the site URL and replacing hard-coded http links resolves it.",
+      "id": "h2q32"
+    },
+    {
+      "sec": "Section D: WordPress and SSL",
+      "type": "mcq",
+      "text": "An AutoSSL certificate fails to issue for a newly added domain. What is the most likely reason?",
+      "opts": [
+        "The customer has too many email accounts",
+        "The server needs a reboot",
+        "WordPress is out of date",
+        "The domain does not yet point to this server, so the certificate authority's validation cannot reach it"
+      ],
+      "correct": 3,
+      "explain": "Domain validation checks the domain resolves to the server requesting the certificate. Fix the DNS, wait for propagation, then re-run AutoSSL.",
+      "id": "h2q33"
+    },
+    {
+      "sec": "Section D: WordPress and SSL",
+      "type": "mcq",
+      "text": "How long are Let's Encrypt certificates valid, and what does that mean for support?",
+      "opts": [
+        "90 days, so renewal must be automated and a failed renewal becomes a ticket before expiry",
+        "Five years, so no action is needed",
+        "One day",
+        "They never expire"
+      ],
+      "correct": 0,
+      "explain": "Short lifetimes rely on automatic renewal. Monitoring renewals catches failures before visitors see warnings.",
+      "id": "h2q34"
+    },
+    {
+      "sec": "Section D: WordPress and SSL",
+      "type": "mcq",
+      "text": "A WordPress site was hacked and is redirecting visitors to a spam site. What is the right order of work?",
+      "opts": [
+        "Change the admin password and close the ticket",
+        "Delete the redirecting line and move on",
+        "Restore a backup without investigating",
+        "Contain it, identify how the attacker got in, remove the malicious code and replace core, plugins and themes from clean sources, then change all passwords and salts"
+      ],
+      "correct": 3,
+      "explain": "Removing the visible symptom leaves the backdoor. Without finding the entry point, usually an outdated plugin, the site is compromised again.",
+      "id": "h2q35"
+    },
+    {
+      "sec": "Section D: WordPress and SSL",
+      "type": "mcq",
+      "text": "A customer's WordPress admin is very slow while the public site is fine. Where do you look first?",
+      "opts": [
+        "The DNS TTL",
+        "The SSL certificate",
+        "Plugins running heavy admin tasks, and the database, for example with a query monitor or by disabling plugins one at a time",
+        "The domain's MX records"
+      ],
+      "correct": 2,
+      "explain": "Admin-only slowness points to plugin or database load rather than hosting-wide problems.",
+      "id": "h2q36"
+    },
+    {
+      "sec": "Section D: WordPress and SSL",
+      "type": "tf",
+      "text": "Deactivating all WordPress plugins is a reasonable first diagnostic step when a site breaks after an update.",
+      "correct": "True",
+      "explain": "It separates plugin faults from core or theme faults quickly. Reactivate one at a time to find the culprit.",
+      "id": "h2q37"
+    },
+    {
+      "sec": "Section D: WordPress and SSL",
+      "type": "tf",
+      "text": "A certificate issued only for example.com automatically covers www.example.com.",
+      "correct": "False",
+      "explain": "A certificate must list every hostname it protects. Issue it for both names, or use a wildcard where appropriate.",
+      "id": "h2q38"
+    },
+    {
+      "sec": "Section E: Customer support and maintenance",
+      "type": "mcq",
+      "text": "A ticket reads: 'my website is down, fix it now!!' What is the best first reply?",
+      "opts": [
+        "Acknowledge quickly, confirm the site you are checking, share what you can already see, and give a time for your next update",
+        "Ask them to calm down before you help",
+        "Close it and ask them to open a proper ticket",
+        "Wait until it is fixed before replying"
+      ],
+      "correct": 0,
+      "explain": "A fast, specific acknowledgement lowers the temperature and sets expectations, even before the fix.",
+      "id": "h2q39"
+    },
+    {
+      "sec": "Section E: Customer support and maintenance",
+      "type": "mcq",
+      "text": "You must reboot a shared server for security patches, affecting 60 customers. What is the right approach?",
+      "opts": [
+        "Reboot now; it only takes five minutes",
+        "Schedule it out of business hours, notify affected customers in advance with the window and expected impact, and post an update when it is complete",
+        "Reboot without notice at midnight",
+        "Wait until a customer complains about security"
+      ],
+      "correct": 1,
+      "explain": "Planned maintenance is communicated ahead, done in a quiet window, and closed off with confirmation. Surprises damage trust more than downtime does.",
+      "id": "h2q40"
+    },
+    {
+      "sec": "Section E: Customer support and maintenance",
+      "type": "mcq",
+      "text": "A non-technical customer asks why their email stopped after they changed their domain's nameservers. How do you explain it?",
+      "opts": [
+        "Tell them it is too technical to explain",
+        "Their email settings lived at the old DNS provider; moving the nameservers moved all records, so the email records need adding at the new provider",
+        "Say the email server is broken",
+        "Explain SPF alignment in detail"
+      ],
+      "correct": 1,
+      "explain": "Plain language, one cause, one fix. Technical accuracy without jargon is the skill.",
+      "id": "h2q41"
+    },
+    {
+      "sec": "Section E: Customer support and maintenance",
+      "type": "mcq",
+      "text": "You fixed an issue for a customer that you expect others will hit. What should you do after closing the ticket?",
+      "opts": [
+        "Nothing; the ticket is closed",
+        "Email the fix to the customer's friends",
+        "Write it up in the knowledge base, so the next person solves it in minutes",
+        "Keep it in your personal notes"
+      ],
+      "correct": 2,
+      "explain": "Documenting fixes is part of the job description: problems should be solved once.",
+      "id": "h2q42"
+    },
+    {
+      "sec": "Section E: Customer support and maintenance",
+      "type": "mcq",
+      "text": "A customer insists their problem is GoLive's fault, but your checks show their developer broke the site. How do you respond?",
+      "opts": [
+        "Tell them their developer is incompetent",
+        "Accept the blame to keep them happy",
+        "Share what you found factually and without blame, offer the fix or the steps, and let the evidence speak",
+        "Stop replying"
+      ],
+      "correct": 2,
+      "explain": "Facts without blame resolve disputes. Accepting false blame creates expectations; blaming their developer creates enemies.",
+      "id": "h2q43"
+    },
+    {
+      "sec": "Section E: Customer support and maintenance",
+      "type": "mcq",
+      "text": "Four tickets arrive: one site fully down, one email slow, one request for a new mailbox, and one question about pricing. What order do you take?",
+      "opts": [
+        "Site down, then slow email, then the new mailbox, then route the pricing question to sales",
+        "In the order they arrived",
+        "Pricing first, as it could be a sale",
+        "New mailbox first, as it is quickest"
+      ],
+      "correct": 0,
+      "explain": "Prioritise by impact. Pricing questions belong with sales, not in the support queue.",
+      "id": "h2q44"
+    },
+    {
+      "sec": "Section E: Customer support and maintenance",
+      "type": "tf",
+      "text": "Telling a customer an issue is fixed before you have confirmed it is fixed is acceptable if you are confident.",
+      "correct": "False",
+      "explain": "Confirm, then report. A premature 'fixed' that turns out wrong costs more trust than a short delay.",
+      "id": "h2q45"
+    },
+    {
+      "sec": "Section E: Customer support and maintenance",
+      "type": "tf",
+      "text": "Every support action, including phone calls, should be recorded against the ticket.",
+      "correct": "True",
+      "explain": "Records protect the customer and the company and let colleagues pick up where you left off.",
+      "id": "h2q46"
+    },
+    {
+      "sec": "Section F: Security and judgement",
+      "type": "mcq",
+      "text": "A caller says they are a customer's new IT person and asks you to reset the cPanel password and send it to a Gmail address. What do you do?",
+      "opts": [
+        "Refuse to act on the call; verify through the account holder's registered contact details, and send access only to them",
+        "Reset it; they know the domain name",
+        "Reset it if they sound professional",
+        "Send the old password instead"
+      ],
+      "correct": 0,
+      "explain": "Social engineering is the commonest route into accounts. Verification must use contact details already on record, not ones the caller supplies.",
+      "id": "h2q47"
+    },
+    {
+      "sec": "Section F: Security and judgement",
+      "type": "mcq",
+      "text": "While fixing a site you find a PHP file in wp-content/uploads containing obfuscated code with eval(base64_decode(...)). What does it indicate and what do you do?",
+      "opts": [
+        "A likely web shell, meaning the site is compromised; escalate as a security incident rather than just deleting the file",
+        "A normal WordPress cache file",
+        "A licence file from a premium plugin",
+        "A harmless leftover to ignore"
+      ],
+      "correct": 0,
+      "explain": "PHP in uploads with obfuscated eval is a classic backdoor. It signals a compromise that needs investigation, not a quick delete.",
+      "id": "h2q48"
+    },
+    {
+      "sec": "Section F: Security and judgement",
+      "type": "mcq",
+      "text": "A customer asks you to add their developer as a full administrator on their hosting account permanently. What is best practice?",
+      "opts": [
+        "Share the account holder's own login",
+        "Grant root access to the server",
+        "Refuse all developer access",
+        "Confirm with the account holder, grant only the access the developer needs, and agree when it will be removed"
+      ],
+      "correct": 3,
+      "explain": "Least privilege and time-limited access reduce risk. Shared logins remove accountability.",
+      "id": "h2q49"
+    },
+    {
+      "sec": "Section F: Security and judgement",
+      "type": "mcq",
+      "text": "You accidentally delete a customer's folder while troubleshooting. What do you do?",
+      "opts": [
+        "Say nothing and hope they do not notice",
+        "Blame the customer's plugin",
+        "Tell your lead immediately, restore from backup if possible, and inform the customer honestly",
+        "Restore silently and close the ticket"
+      ],
+      "correct": 2,
+      "explain": "Early honesty contains the damage. Hiding it turns a mistake into a trust failure.",
+      "id": "h2q50"
+    },
+    {
+      "sec": "Section F: Security and judgement",
+      "type": "mcq",
+      "text": "A customer asks for another customer's website files 'because they used to work together'. What do you do?",
+      "opts": [
+        "Send them; they know each other",
+        "Send a partial copy",
+        "Decline; hosting data belongs to the account holder and can only be released to them or on their written authority",
+        "Ask the other customer later"
+      ],
+      "correct": 2,
+      "explain": "Customer data is confidential under the NDPA and GoLive's terms. Only the account holder can authorise access.",
+      "id": "h2q51"
+    },
+    {
+      "sec": "Section F: Security and judgement",
+      "type": "tf",
+      "text": "It is acceptable to keep customer passwords in a notes file on your laptop for convenience.",
+      "correct": "False",
+      "explain": "Credentials belong in the company's approved password manager. A lost laptop would expose every customer listed.",
+      "id": "h2q52"
+    },
+    {
+      "sec": "Section F: Security and judgement",
+      "type": "tf",
+      "text": "If a customer's site is hacked, changing passwords after removing the malicious code is still necessary.",
+      "correct": "True",
+      "explain": "Attackers may have captured credentials. Rotating passwords and security keys closes that route.",
+      "id": "h2q53"
+    },
+    {
+      "sec": "Section A: DNS and domains",
+      "type": "mcq",
+      "text": "A customer's domain expired yesterday and their site and email are down. What do you tell them first?",
+      "opts": [
+        "Wait a week and it will come back",
+        "Buy a new domain name",
+        "Renew the domain right away; services return once the registry and DNS update, and any grace period is short",
+        "Move hosting provider"
+      ],
+      "correct": 2,
+      "explain": "Expired domains stop resolving. Most registries allow a short grace period, after which recovery becomes expensive or impossible.",
+      "id": "h2q54"
+    },
+    {
+      "sec": "Section C: cPanel, Linux and server performance",
+      "type": "mcq",
+      "text": "A customer asks why their site is slow only between 9am and 10am each day. What is a likely cause to check?",
+      "opts": [
+        "Their SSL certificate",
+        "A scheduled task such as a backup or cron job running at that time, competing for resources",
+        "Their MX records",
+        "Their domain registrar"
+      ],
+      "correct": 1,
+      "explain": "Time-bound slowness points to something scheduled. Check cron jobs and backup schedules.",
+      "id": "h2q55"
+    },
+    {
+      "sec": "Section D: WordPress and SSL",
+      "type": "mcq",
+      "text": "A customer's site loads over http but shows 'too many redirects' after SSL is enabled. What is a common cause?",
+      "opts": [
+        "The certificate is from the wrong country",
+        "The DNS TTL is too low",
+        "Conflicting redirect rules, for example in .htaccess and in WordPress settings, sending the browser in a loop",
+        "The mailbox is full"
+      ],
+      "correct": 2,
+      "explain": "Redirect loops come from two layers both forcing a redirect. Remove the duplicate rule.",
+      "id": "h2q56"
+    },
+    {
+      "sec": "Section G: Written answers",
+      "type": "text",
+      "text": "A customer emails: 'Our emails to clients have been going to spam for two days and we are losing business. What is going on?' Your checks show their SPF record lists their old host, not GoLive. Write your reply.",
+      "sub": "Explain the cause and the fix in plain language a non-technical business owner will understand, say when it will be resolved, and keep it professional. Aim for five to eight sentences.",
+      "placeholder": "Dear Mrs Adebayo, thank you for letting us know...",
+      "id": "h2q57"
+    },
+    {
+      "sec": "Section G: Written answers",
+      "type": "text",
+      "text": "You are about to perform emergency maintenance on a server hosting 40 customer websites, which will cause about 20 minutes of downtime tonight at 11pm. Write the notice to affected customers.",
+      "sub": "Include what is happening, when, the expected impact, and how they will know it is complete. Keep it calm and clear. Aim for five to eight sentences.",
+      "placeholder": "Dear valued customer, we are writing to let you know...",
+      "id": "h2q58"
     }
   ],
   "Sales & Support Associate": [
@@ -1756,9 +2948,9 @@ const QUESTIONS: Record<string, BankQuestion[]> = {
 }
 
 export const BANKS: Record<string, RoleBank> = {
-  'Operations Coordinator':           { minutes: 30, draw: null, version: 'ops-v1',     questions: QUESTIONS['Operations Coordinator'] },
-  'Social Media & Community Manager': { minutes: 30, draw: null, version: 'social-v1',  questions: QUESTIONS['Social Media & Community Manager'] },
-  'Hosting Support Technician':       { minutes: 30, draw: null, version: 'hosting-v1', questions: QUESTIONS['Hosting Support Technician'] },
+  'Operations Coordinator':           { minutes: 35, draw: 25,   version: 'ops-v2',     questions: QUESTIONS['Operations Coordinator'] },
+  'Social Media & Community Manager': { minutes: 35, draw: 25,   version: 'social-v2',  questions: QUESTIONS['Social Media & Community Manager'] },
+  'Hosting Support Technician':       { minutes: 35, draw: 25,   version: 'hosting-v2', questions: QUESTIONS['Hosting Support Technician'] },
   'Sales & Support Associate':        { minutes: 35, draw: 25,   version: 'sales-v2',   questions: QUESTIONS['Sales & Support Associate'] },
 }
 
