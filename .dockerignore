@@ -1,0 +1,12 @@
+.git
+.github
+node_modules
+.next
+recordings
+applications-cv
+onboarding-docs
+employee-docs
+issued-docs
+*.log
+.env
+.env.local
