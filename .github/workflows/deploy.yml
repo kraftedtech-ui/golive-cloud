@@ -407,17 +407,21 @@ jobs:
           # every build so this category of failure can't recur.
           find app -type f \( -name "*.ts" -o -name "*.tsx" \) -empty -print -delete
 
-          export NODE_ENV=production
-          npm run build
           echo "=== Fixing ownership ==="
           find /www/wwwroot/golive-cloud -not -name ".user.ini" -exec chown www:www {} + 2>/dev/null || true
-          echo "=== Restarting server ==="
-          kill $(ps aux | grep "server.js" | grep -v grep | awk '{print $2}') 2>/dev/null || true
-          sleep 3
-          su -s /bin/bash www -c "pm2 restart golive-cloud --update-env"
-          sleep 3
-          kill $(ps aux | grep "server.js" | grep root | awk '{print $2}') 2>/dev/null || true
-          su -s /bin/bash www -c "pm2 save"
+          echo "=== Building and restarting the container ==="
+          cd /opt/golive-portal
+          docker compose build app
+          docker compose up -d app
+          echo "=== Waiting for health ==="
+          for i in $(seq 1 30); do
+            s=$(docker inspect -f '{{.State.Health.Status}}' golive-portal-app 2>/dev/null || echo starting)
+            [ "$s" = "healthy" ] && break
+            sleep 5
+          done
+          docker inspect -f 'app health: {{.State.Health.Status}}' golive-portal-app
+          curl -s -o /dev/null -w "portal: %{http_code}\n" http://127.0.0.1:3000/
+          docker image prune -f >/dev/null 2>&1 || true
           echo "=== Deployed at $(date) ==="
           SCRIPT
           chmod +x /tmp/deploy.sh

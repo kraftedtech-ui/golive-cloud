@@ -1,19 +1,16 @@
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-# next-auth wants nodemailer 7 while the project pins 6; the host's node_modules
-# were installed the same way, so this keeps the container's dependency tree
-# identical to the one production has been running on.
 RUN npm ci --legacy-peer-deps
 
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Public values are inlined into the browser bundle at build time, so these must
-# be the real ones. Everything below is a placeholder that satisfies module-level
-# checks while Next collects page data; none is a real secret, and none reaches
-# the final image, which takes its values from the environment at runtime.
+# Public values are inlined into the browser bundle at build time, so these
+# must be the real ones. Everything else below is a placeholder that satisfies
+# module-level checks while Next collects page data; none is a real secret and
+# none reaches the final image, which takes its values from the environment.
 ARG NEXT_PUBLIC_WA_NUMBER=""
 ARG NEXT_PUBLIC_SITE_URL="https://cloud.golivecompany.com"
 ENV NEXT_PUBLIC_WA_NUMBER=$NEXT_PUBLIC_WA_NUMBER \
@@ -38,9 +35,6 @@ RUN npm run build && npm prune --omit=dev --legacy-peer-deps
 FROM node:22-bookworm-slim AS run
 WORKDIR /app
 # Chromium for PDF generation, plus the fonts it needs to render documents.
-# The host used a Puppeteer-downloaded Chrome under the project directory;
-# inside the container that path does not exist, so the compose file also
-# overrides PUPPETEER_EXECUTABLE_PATH to win over .env.local.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       chromium fonts-liberation fonts-dejavu-core ca-certificates \
     && rm -rf /var/lib/apt/lists/*
