@@ -126,6 +126,9 @@ export interface IPartnerApplication extends Document {
     test?: boolean
     sentAt: Date
     schedule: { line: string; basis: string; referral: string; sales: string }[]
+    /** Commission schedule version the agreement was issued with (absent on TEST agreements sent before any version). */
+    scheduleVersion?: number
+    scheduleEffectiveAt?: Date
     partnerSignedAt?: Date
     partnerSignedName?: string
     partnerIp?: string
@@ -249,6 +252,8 @@ const PartnerApplicationSchema = new Schema<IPartnerApplication>(
       test: Boolean,
       sentAt: Date,
       schedule: [{ line: String, basis: String, referral: String, sales: String, _id: false }],
+      scheduleVersion: Number,
+      scheduleEffectiveAt: Date,
       partnerSignedAt: Date,
       partnerSignedName: String,
       partnerIp: String,

@@ -36,7 +36,7 @@ type Full = Omit<Row, "applicant" | "namedAccounts"> & {
   }[]
   extraFinalAttempts?: number
   assessmentPassedAt?: string
-  agreement?: { version: string; test?: boolean; sentAt: string; partnerSignedAt?: string; partnerSignedName?: string; partnerIp?: string; mdSignedAt?: string; mdSignedName?: string }
+  agreement?: { version: string; test?: boolean; sentAt: string; scheduleVersion?: number; partnerSignedAt?: string; partnerSignedName?: string; partnerIp?: string; mdSignedAt?: string; mdSignedName?: string }
   certificate?: { number: string; title: string; issuedAt: string; expiresAt: string; test?: boolean; revokedAt?: string; revokedBy?: string; revokeReason?: string }
 }
 type AMode = { allowed: boolean; test: boolean; reason?: string }
@@ -101,6 +101,7 @@ export default function PartnersPanel() {
   const [copied, setCopied] = useState(false)
   const [tstate, setTstate] = useState<TState | null>(null)
   const [amode, setAmode] = useState<AMode | null>(null)
+  const [curVer, setCurVer] = useState<number | null>(null)
 
   async function load() {
     setLoading(true)
@@ -135,7 +136,7 @@ export default function PartnersPanel() {
     try {
       const r = await fetch(`/api/partners/${id}`)
       const d = await r.json()
-      if (d.application) { adopt(d.application); setTstate(d.training || null); setAmode(d.agreementMode || null) }
+      if (d.application) { adopt(d.application); setTstate(d.training || null); setAmode(d.agreementMode || null); setCurVer(d.currentScheduleVersion ?? null) }
     } catch { setMsg({ ok: false, text: "Could not load the application." }) }
   }
 
@@ -155,6 +156,7 @@ export default function PartnersPanel() {
       adopt(d.application)
       if (d.training) setTstate(d.training)
       if (d.agreementMode) setAmode(d.agreementMode)
+      if (d.currentScheduleVersion !== undefined) setCurVer(d.currentScheduleVersion)
       setMsg({ ok: true, text: success })
     } catch { setMsg({ ok: false, text: "Network error." }) } finally { setBusy(false) }
   }
@@ -357,7 +359,7 @@ export default function PartnersPanel() {
                                 <span className="text-[#616161]">Agreement: </span>
                                 {!ag ? "Not sent yet." : <>
                                   {ag.test && <span className="mr-1.5 rounded bg-red-50 px-1.5 py-0.5 text-xs font-bold text-[#c50f1f]">TEST</span>}
-                                  {ag.version}, sent {fmtDT(ag.sentAt)}.
+                                  {ag.version}{ag.scheduleVersion ? `, commission schedule version ${ag.scheduleVersion}` : ""}, sent {fmtDT(ag.sentAt)}.
                                   {ag.partnerSignedAt ? ` Signed by the partner as \u201c${ag.partnerSignedName}\u201d ${fmtDT(ag.partnerSignedAt)}${ag.partnerIp ? ` (IP ${ag.partnerIp})` : ""}.` : " Awaiting the partner\u2019s signature."}
                                   {ag.mdSignedAt ? ` Countersigned by ${ag.mdSignedName} ${fmtDT(ag.mdSignedAt)}.` : ""}
                                 </>}
@@ -372,6 +374,11 @@ export default function PartnersPanel() {
                                 </p>
                               )}
                             </div>
+                            {ag && !ag.partnerSignedAt && curVer && ag.scheduleVersion !== curVer && (
+                              <p className="mt-2 rounded-[4px] bg-amber-50 p-2 text-xs font-semibold text-amber-800">
+                                This agreement carries {ag.scheduleVersion ? `commission schedule version ${ag.scheduleVersion}` : "no published schedule"}, but version {curVer} is now in force. Resend it before the partner signs, so they sign the current rates.
+                              </p>
+                            )}
                             {!ag?.mdSignedAt && amode && !amode.allowed && (
                               <p className="mt-2 rounded-[4px] bg-amber-50 p-2 text-xs text-amber-800">{amode.reason}</p>
                             )}

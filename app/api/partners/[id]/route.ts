@@ -8,6 +8,7 @@ import { STAGE_LABELS } from '@/lib/partnerConfig'
 import { closeExpired, trainingState, sendTrainingInvite } from '@/lib/partnerTrainingFlow'
 import { sendAgreement, countersign, sendExecutedEmail } from '@/lib/partnerAgreementFlow'
 import { agreementMode } from '@/lib/partnerAgreement'
+import { currentSchedule } from '@/lib/commissionSchedule'
 import { MD_NAME } from '@/lib/offerConfig'
 
 export const dynamic = 'force-dynamic'
@@ -28,7 +29,8 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
   const app = await load(id)
   if (!app) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   if (closeExpired(app)) await app.save()
-  return NextResponse.json({ application: app.toObject(), training: trainingState(app), agreementMode: agreementMode(app.applicant.email) })
+  const cur = await currentSchedule()
+  return NextResponse.json({ application: app.toObject(), training: trainingState(app), agreementMode: agreementMode(app.applicant.email, !!cur), currentScheduleVersion: cur?.version ?? null })
 }
 
 /**
@@ -180,5 +182,6 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   }
   await app.save()
-  return NextResponse.json({ application: app.toObject(), training: trainingState(app), agreementMode: agreementMode(app.applicant.email) })
+  const cur = await currentSchedule()
+  return NextResponse.json({ application: app.toObject(), training: trainingState(app), agreementMode: agreementMode(app.applicant.email, !!cur), currentScheduleVersion: cur?.version ?? null })
 }

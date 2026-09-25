@@ -5,25 +5,24 @@
  * appointed to. Rendered as HTML for the signing page and the PDF, like the
  * offer letter (lib/offerLetter.ts), with the same digital signature blocks.
  *
- * ---------------------------------------------------------------------------
- * BEFORE SENDING TO REAL PARTNERS
- * 1. Fill in COMMISSION_SCHEDULE with the confirmed rates.
- * 2. Set RATES_CONFIRMED = true.
- * 3. Have Elthon Partners review the clauses below.
- * Until RATES_CONFIRMED is true, an agreement can only be sent to an email
- * address listed in the PARTNER_AGREEMENT_TEST_EMAILS environment variable
- * (comma-separated). Those are marked TEST, are not binding, and mint test
- * numbers (GL-PTR-T..., GL-CERT-TEST-...) that never use up a real one.
- * ---------------------------------------------------------------------------
+ * Rates are not in this file. They live in the versioned commission schedule
+ * (portal: Partner Network > Commission schedule), and each agreement records
+ * the version it was sent with. STARTER_SCHEDULE below only seeds the first
+ * draft of that schedule.
+ *
+ * Until a schedule is published, an agreement can only be sent to an email
+ * address in PARTNER_AGREEMENT_TEST_EMAILS (comma-separated). Those are marked
+ * TEST, are not binding, and mint test numbers (GL-PTR-T..., GL-CERT-TEST-...).
+ *
+ * Have Elthon Partners review the clauses before the first real agreement.
  */
 
 import { MD_NAME, MD_TITLE, COMPANY, COMPANY_RC, fmtDate, fmtDateTime } from './offerConfig'
 
-export const AGREEMENT_VERSION = 'PSA-2026-v1'
-export const RATES_CONFIRMED = false
+export const AGREEMENT_VERSION = 'PSA-2026-v2'
 
-/** Rates are strings so they can say exactly what applies, for example "10% of first-year value". */
-export const COMMISSION_SCHEDULE: { line: string; basis: string; referral: string; sales: string }[] = [
+/** Seeds the first draft of the commission schedule. Rates are strings, so bands can be written out in full. */
+export const STARTER_SCHEDULE: { line: string; basis: string; referral: string; sales: string }[] = [
   { line: 'Microsoft 365 and cloud subscriptions', basis: 'First-year subscription value', referral: '[rate]', sales: '[rate]' },
   { line: 'Microsoft 365 and cloud subscriptions', basis: 'Renewals, years 2 and 3, while the account is retained', referral: '[rate]', sales: '[rate]' },
   { line: 'Odoo licences', basis: 'First-year licence value', referral: '[rate]', sales: '[rate]' },
@@ -39,10 +38,10 @@ export function testEmails(): string[] {
 }
 
 /** Whether an agreement may be sent to this applicant now, and if so whether it is a test. */
-export function agreementMode(email: string): { allowed: boolean; test: boolean; reason?: string } {
-  if (RATES_CONFIRMED) return { allowed: true, test: false }
+export function agreementMode(email: string, schedulePublished: boolean): { allowed: boolean; test: boolean; reason?: string } {
   if (testEmails().includes(String(email || '').toLowerCase())) return { allowed: true, test: true }
-  return { allowed: false, test: false, reason: 'The commission rates are not confirmed yet. Fill in COMMISSION_SCHEDULE in lib/partnerAgreement.ts and set RATES_CONFIRMED to true, or add this applicant\u2019s email to PARTNER_AGREEMENT_TEST_EMAILS to send a test agreement.' }
+  if (schedulePublished) return { allowed: true, test: false }
+  return { allowed: false, test: false, reason: 'No commission schedule has been published yet. Publish one under Partner Network > Commission schedule, or add this applicant\u2019s email to PARTNER_AGREEMENT_TEST_EMAILS to send a test agreement.' }
 }
 
 export const CERT_TITLE = { referral: 'GoLive Accredited Referral Partner', sales: 'GoLive Accredited Sales Partner' } as const
@@ -54,6 +53,8 @@ export interface AgreementView {
   test?: boolean
   sentAt?: Date | string | null
   schedule: { line: string; basis: string; referral: string; sales: string }[]
+  scheduleVersion?: number | null
+  scheduleEffectiveAt?: Date | string | null
   partner: { name: string; email: string; phone?: string; businessName?: string; cacNumber?: string; tin?: string; applyingAs?: string; address?: string }
   partnerSignedAt?: Date | string | null
   partnerSignedName?: string | null
@@ -135,18 +136,19 @@ export function buildAgreementHtml(a: AgreementView): string {
   <h2>4. Deal registration</h2>
   <ol class="cl">
     <li>The Partner will register each prospect with the Company, through the Company&rsquo;s portal or as the Company otherwise directs in writing, before approaching it. Commission is payable only on registered prospects.</li>
-    <li>The first valid registration holds a prospect for 90 days, extended by activity recorded in the portal. Existing Company customers, and prospects already in the pipeline of a Company employee, may not be registered. The Company&rsquo;s records are conclusive as to registration.</li>
+    <li>A registration is valid for 90 days from its approval by the Company. It is extended to 60 days after each of the following, when recorded by the Company: a meeting with the prospect attended by the Company; a quotation or proposal issued by the Company; or the prospect&rsquo;s written confirmation of interest to the Company. No registration remains valid more than 180 days after its approval unless the Company extends it in writing. Activity recorded by the Partner alone does not extend a registration.</li>
+    <li>Existing Company customers, and prospects already in the pipeline of a Company employee, may not be registered. The first valid registration of a prospect takes precedence. The Company&rsquo;s records are conclusive as to registration.</li>
   </ol>
 
   <h2>5. Commission</h2>
   <ol class="cl">
-    <li>For each sale to a registered prospect, the Company will pay commission at the rates in the Schedule below.</li>
+    <li>For each sale to a registered prospect, the Company will pay commission at the rates in the Company&rsquo;s published commission schedule, as set out in clause 5.5. The schedule in force when this Agreement was issued is reproduced below.</li>
     <li>Commission is earned only on cash received by the Company, net of VAT and third-party pass-through costs. It becomes payable within 30 days of the client&rsquo;s payment clearing, less withholding tax deducted at the rate prescribed by law. The Partner must provide a Tax Identification Number before any payment is made.</li>
     <li>Commission already paid is recoverable by the Company, by deduction or repayment, if within 90 days of payment the client cancels, obtains a refund or defaults.</li>
     <li>No commission is payable on any sale obtained in breach of this Agreement. Overstating a client&rsquo;s requirements to increase the value of a sale, including the number of users, is a breach that makes the related commission recoverable in full.</li>
-    <li>The Company may change the Schedule on 30 days&rsquo; written notice. Changes do not affect commission on sales already registered.</li>
+    <li>The Company may change the Schedule at any time, with effect from its publication in the Company&rsquo;s portal, and will notify the Partner of each change by email and in the portal. Commission on a sale&rsquo;s first year is paid at the rates in force on the date its prospect was registered, provided the registration was valid when the sale closed. Renewal commission is paid at the rates in force on the date of each renewal. A lapsed registration carries no rate, and any later registration of the same prospect carries the rates in force at that later date.</li>
   </ol>
-  <p><strong>Schedule: commission rates for a ${label}</strong></p>
+  <p><strong>Schedule: commission rates for a ${label}${a.scheduleVersion ? `, version ${a.scheduleVersion}${a.scheduleEffectiveAt ? `, effective ${fmtDate(a.scheduleEffectiveAt)}` : ''}` : ''}</strong></p>
   <table class="sch"><thead><tr><th>Line of business</th><th>Basis</th><th>Rate</th></tr></thead><tbody>${rows}</tbody></table>
 
   <h2>6. Anti-bribery and business integrity</h2>

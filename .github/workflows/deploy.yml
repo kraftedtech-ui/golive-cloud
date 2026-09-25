@@ -332,6 +332,15 @@ jobs:
           git show "origin/main:app/verify/[cert]/page.tsx" > "app/verify/[cert]/page.tsx"
           git show origin/main:components/partners/AgreementSignForm.tsx > components/partners/AgreementSignForm.tsx
           git show origin/main:components/partners/VerifyLookup.tsx > components/partners/VerifyLookup.tsx
+          # Partner Network: versioned commission schedule, published in the
+          # portal, effective on publication, partners emailed each change.
+          git show origin/main:models/CommissionSchedule.ts > models/CommissionSchedule.ts
+          git show origin/main:lib/commissionSchedule.ts > lib/commissionSchedule.ts
+          mkdir -p app/api/partner-commission/publish app/portal/partners/commission
+          git show origin/main:app/api/partner-commission/route.ts > app/api/partner-commission/route.ts
+          git show origin/main:app/api/partner-commission/publish/route.ts > app/api/partner-commission/publish/route.ts
+          git show origin/main:app/portal/partners/commission/page.tsx > app/portal/partners/commission/page.tsx
+          git show origin/main:components/dashboard/CommissionSchedulePanel.tsx > components/dashboard/CommissionSchedulePanel.tsx
 
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts

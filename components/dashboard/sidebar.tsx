@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import {
   Home, Cloud, ArrowLeftRight, KanbanSquare, DollarSign, ClipboardList, FileText, Tags,
   ListChecks, Bell, BookOpen, ClipboardCheck, UserRound, BriefcaseBusiness, Users,
-  AlertTriangle, ShieldCheck, GraduationCap, Award, ExternalLink, Handshake,
+  AlertTriangle, ShieldCheck, GraduationCap, Award, ExternalLink, Handshake, Percent,
   ChevronDown, type LucideIcon,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -66,6 +66,7 @@ const sections: NavSection[] = [
     heading: "Partner Network",
     items: [
       { label: "Partner applications", icon: Handshake, key: "partners", adminOnly: true, href: "/portal/partners" },
+      { label: "Commission schedule", icon: Percent, key: "partner_commission", adminOnly: true, href: "/portal/partners/commission" },
     ],
   },
   {

@@ -7,7 +7,8 @@
 
 import { Resend } from 'resend'
 import type { IPartnerApplication } from '@/models/PartnerApplication'
-import { AGREEMENT_VERSION, COMMISSION_SCHEDULE, CERT_TITLE, agreementMode, type AgreementView } from '@/lib/partnerAgreement'
+import { AGREEMENT_VERSION, STARTER_SCHEDULE, CERT_TITLE, agreementMode, type AgreementView } from '@/lib/partnerAgreement'
+import { currentSchedule } from '@/lib/commissionSchedule'
 import { nextPartnerNumber, nextCertificateNumber, CERT_VALID_MONTHS, verifyUrl, linkedInAddUrl } from '@/lib/partnerCertificate'
 import { signPartnerToken } from '@/lib/partnerToken'
 import { PARTNER_EMAIL, STAGE_LABELS } from '@/lib/partnerConfig'
@@ -24,7 +25,9 @@ export function agreementView(app: IPartnerApplication): AgreementView {
     version: app.agreement?.version || AGREEMENT_VERSION,
     test: !!app.agreement?.test,
     sentAt: app.agreement?.sentAt,
-    schedule: app.agreement?.schedule?.length ? app.agreement.schedule : COMMISSION_SCHEDULE,
+    schedule: app.agreement?.schedule?.length ? app.agreement.schedule : STARTER_SCHEDULE,
+    scheduleVersion: app.agreement?.scheduleVersion,
+    scheduleEffectiveAt: app.agreement?.scheduleEffectiveAt,
     partner: {
       name: app.applicant.name, email: app.applicant.email, phone: app.applicant.phone,
       businessName: app.applicant.businessName, cacNumber: app.applicant.cacNumber, tin: app.applicant.tin, applyingAs: app.applicant.applyingAs,
@@ -75,12 +78,17 @@ const button = (href: string, label: string, alt = false) =>
 export async function sendAgreement(app: IPartnerApplication, by: string, now = new Date()): Promise<Send & { status?: number }> {
   if (!app.assessmentPassedAt) return { ok: false, status: 409, error: 'The partner assessment has not been passed yet.' }
   if (app.agreement?.mdSignedAt) return { ok: false, status: 409, error: 'The agreement is already fully executed.' }
-  const mode = agreementMode(app.applicant.email)
+  const current = await currentSchedule()
+  const mode = agreementMode(app.applicant.email, !!current)
   if (!mode.allowed) return { ok: false, status: 409, error: mode.reason }
 
-  // A resend before the partner signs refreshes the terms to the current schedule.
+  // A resend before the partner signs refreshes the terms to the current schedule version.
   if (!app.agreement?.partnerSignedAt) {
-    app.agreement = { version: AGREEMENT_VERSION, test: mode.test, sentAt: now, schedule: COMMISSION_SCHEDULE.map((r) => ({ ...r })) }
+    const rows = current ? current.rows.map((r) => ({ line: r.line, basis: r.basis, referral: r.referral, sales: r.sales })) : STARTER_SCHEDULE.map((r) => ({ ...r }))
+    app.agreement = {
+      version: AGREEMENT_VERSION, test: mode.test, sentAt: now, schedule: rows,
+      scheduleVersion: current?.version, scheduleEffectiveAt: current?.effectiveAt,
+    }
     app.markModified('agreement')
   }
   const expires = new Date(now.getTime() + AGREEMENT_LINK_DAYS * DAY)
@@ -93,7 +101,7 @@ export async function sendAgreement(app: IPartnerApplication, by: string, now = 
     <p>${button(url, 'Review and sign the agreement')}</p>
     <p style="font-size:13px;color:#555">This link is personal to you and works until ${esc(fmtDate(expires))}. Questions about any clause can be sent to ${PARTNER_EMAIL} before you sign.</p>
   `))
-  if (r.ok) app.timeline.push({ at: now, by, action: `${mode.test ? 'TEST agreement' : 'Agreement'} sent (${AGREEMENT_VERSION})` })
+  if (r.ok) app.timeline.push({ at: now, by, action: `${mode.test ? 'TEST agreement' : 'Agreement'} sent (${AGREEMENT_VERSION}${current ? `, commission schedule version ${current.version}` : ', no schedule published'})` })
   return r
 }
 
