@@ -67,6 +67,20 @@ export async function POST(req: NextRequest) {
 
     const total = await PricingCatalog.countDocuments({ distributor, active: true })
 
+    // Partner commission: a new price list may change GoLive's Microsoft
+    // margins, so recalculate the automatic commission lines. Any change
+    // becomes a draft for the MD to review; nothing is published here, and a
+    // failure never affects the import itself.
+    let commission: { changed: boolean; draftUpdated: boolean; message: string } | { error: string } | null = null
+    try {
+      const { regenerate } = await import('@/lib/commissionRules')
+      const r = await regenerate(`Pricing catalogue import ${batch}`, auth.email || auth.name || 'admin')
+      commission = { changed: r.changed, draftUpdated: r.draftUpdated, message: r.message }
+    } catch (e) {
+      console.error('[pricing-catalog] commission recalculation failed:', e)
+      commission = { error: 'Commission rates could not be recalculated automatically. Use Recalculate on the Commission schedule page.' }
+    }
+
     return NextResponse.json({
       success: true,
       batch,
@@ -77,6 +91,7 @@ export async function POST(req: NextRequest) {
       activeTotal: total,
       sheetCounts,
       warnings,
+      commission,
     })
   } catch (err) {
     console.error('POST /api/pricing-catalog/import failed:', err)

@@ -7,7 +7,10 @@
 
 import { Resend } from 'resend'
 import type { IPartnerApplication } from '@/models/PartnerApplication'
-import { AGREEMENT_VERSION, STARTER_SCHEDULE, CERT_TITLE, agreementMode, type AgreementView } from '@/lib/partnerAgreement'
+import { AGREEMENT_VERSION, CERT_TITLE, agreementMode, type AgreementView } from '@/lib/partnerAgreement'
+import { LINES } from '@/lib/commissionRules'
+
+const UNPUBLISHED = () => LINES.map((l) => ({ line: l.line, basis: l.basis, referral: '[rate]', sales: '[rate]' }))
 import { currentSchedule } from '@/lib/commissionSchedule'
 import { nextPartnerNumber, nextCertificateNumber, CERT_VALID_MONTHS, verifyUrl, linkedInAddUrl } from '@/lib/partnerCertificate'
 import { signPartnerToken } from '@/lib/partnerToken'
@@ -25,7 +28,7 @@ export function agreementView(app: IPartnerApplication): AgreementView {
     version: app.agreement?.version || AGREEMENT_VERSION,
     test: !!app.agreement?.test,
     sentAt: app.agreement?.sentAt,
-    schedule: app.agreement?.schedule?.length ? app.agreement.schedule : STARTER_SCHEDULE,
+    schedule: app.agreement?.schedule?.length ? app.agreement.schedule : UNPUBLISHED(),
     scheduleVersion: app.agreement?.scheduleVersion,
     scheduleEffectiveAt: app.agreement?.scheduleEffectiveAt,
     partner: {
@@ -84,7 +87,7 @@ export async function sendAgreement(app: IPartnerApplication, by: string, now = 
 
   // A resend before the partner signs refreshes the terms to the current schedule version.
   if (!app.agreement?.partnerSignedAt) {
-    const rows = current ? current.rows.map((r) => ({ line: r.line, basis: r.basis, referral: r.referral, sales: r.sales })) : STARTER_SCHEDULE.map((r) => ({ ...r }))
+    const rows = current ? current.rows.map((r) => ({ line: r.line, basis: r.basis, referral: r.referral, sales: r.sales })) : UNPUBLISHED()
     app.agreement = {
       version: AGREEMENT_VERSION, test: mode.test, sentAt: now, schedule: rows,
       scheduleVersion: current?.version, scheduleEffectiveAt: current?.effectiveAt,

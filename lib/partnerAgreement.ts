@@ -7,8 +7,8 @@
  *
  * Rates are not in this file. They live in the versioned commission schedule
  * (portal: Partner Network > Commission schedule), and each agreement records
- * the version it was sent with. STARTER_SCHEDULE below only seeds the first
- * draft of that schedule.
+ * the version it was sent with. The line list itself is defined in
+ * lib/commissionRules.ts (LINES).
  *
  * Until a schedule is published, an agreement can only be sent to an email
  * address in PARTNER_AGREEMENT_TEST_EMAILS (comma-separated). Those are marked
@@ -21,17 +21,6 @@ import { MD_NAME, MD_TITLE, COMPANY, COMPANY_RC, fmtDate, fmtDateTime } from './
 import { type BrandedDoc, brandedWebHtml, clause, heading, esc, rateCell } from './brandedDocument'
 
 export const AGREEMENT_VERSION = 'PSA-2026-v2'
-
-/** Seeds the first draft of the commission schedule. Rates are strings, so bands can be written out in full. */
-export const STARTER_SCHEDULE: { line: string; basis: string; referral: string; sales: string }[] = [
-  { line: 'Microsoft 365 and cloud subscriptions', basis: 'First-year subscription value', referral: '[rate]', sales: '[rate]' },
-  { line: 'Microsoft 365 and cloud subscriptions', basis: 'Renewals, years 2 and 3, while the account is retained', referral: '[rate]', sales: '[rate]' },
-  { line: 'Odoo licences', basis: 'First-year licence value', referral: '[rate]', sales: '[rate]' },
-  { line: 'Implementation, custom software and project services', basis: 'Fees received for the project', referral: '[rate]', sales: '[rate]' },
-  { line: 'Managed IT and support contracts', basis: 'First-year contract value', referral: '[rate]', sales: '[rate]' },
-  { line: 'Web hosting, domains and websites', basis: 'First-year value', referral: '[rate]', sales: '[rate]' },
-  { line: 'Digital Archive and document management', basis: 'Build and first-year licence value', referral: '[rate]', sales: '[rate]' },
-]
 
 export function testEmails(): string[] {
   return String(process.env.PARTNER_AGREEMENT_TEST_EMAILS || '')

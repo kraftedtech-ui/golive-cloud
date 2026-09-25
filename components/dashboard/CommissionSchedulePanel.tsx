@@ -1,11 +1,19 @@
 "use client"
 import { useEffect, useState } from "react"
-import { Plus, Trash2, Send, RefreshCw, History, AlertTriangle } from "lucide-react"
+import { Plus, Trash2, Send, RefreshCw, History, AlertTriangle, Calculator, Lock } from "lucide-react"
 
 type Row = { line: string; basis: string; referral: string; sales: string }
 type Change = { kind: "added" | "removed" | "changed"; line: string; basis: string; field?: "referral" | "sales"; from?: string; to?: string }
 type Version = { _id: string; version?: number; rows: Row[]; summary?: string; changes: Change[]; effectiveAt?: string; publishedBy?: string; notified?: { sent: number; failed: number } }
-type State = { current: Version | null; draft: Version | null; draftChanges: Change[]; draftProblems: string[]; history: Version[] }
+type Explain = { line: string; basis: string; auto: boolean; source: string; margin: number | null; sales: string; referral: string }
+type Settings = { salesShare: number; referralShare: number; renewalFactor: number; odooLevel: "none" | "ready" | "silver" | "gold"; updatedAt?: string; updatedBy?: string }
+type Margins = { batch: string | null; families: Record<string, { min: number | null; products: number; lowest?: string }> }
+type State = {
+  current: Version | null; draft: Version | null; draftChanges: Change[]; draftProblems: string[]; history: Version[]
+  settings: Settings; margins: Margins; explain: Explain[]; autoKeys: string[]; guardrails: string[]
+}
+const rk = (r: { line: string; basis: string }) => `${r.line.trim().toLowerCase()}|${r.basis.trim().toLowerCase()}`
+const pct = (x: number | null) => (x === null ? "\u2014" : `${Math.round(x * 1000) / 10}%`)
 
 const fmtDT = (d?: string) =>
   d ? new Date(d).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }) + " WAT" : "\u2014"
@@ -47,9 +55,15 @@ export default function CommissionSchedulePanel() {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; text: string; list?: string[] } | null>(null)
   const [openV, setOpenV] = useState<number | null>(null)
+  const [sf, setSf] = useState({ sales: "25", referral: "12.5", renewal: "50", odoo: "none" as Settings["odooLevel"] })
+  const [sfDirty, setSfDirty] = useState(false)
 
   function adopt(s: State) {
     setSt(s)
+    {
+      setSf({ sales: String(Math.round(s.settings.salesShare * 1000) / 10), referral: String(Math.round(s.settings.referralShare * 1000) / 10), renewal: String(Math.round(s.settings.renewalFactor * 1000) / 10), odoo: s.settings.odooLevel })
+      setSfDirty(false)
+    }
     setRows(s.draft ? s.draft.rows.map((r) => ({ ...r })) : [])
     setSummary(s.draft?.summary || "")
     setDirty(false)
@@ -72,6 +86,16 @@ export default function CommissionSchedulePanel() {
     const d = await call("PUT", "/api/partner-commission", { rows, summary })
     if (d) { adopt(d); setMsg({ ok: true, text: "Draft saved. Check the changes below before publishing." }) }
   }
+  async function saveSettings() {
+    const n = (v: string) => parseFloat(v) / 100
+    const d = await call("PUT", "/api/partner-commission/settings", { salesShare: n(sf.sales), referralShare: n(sf.referral), renewalFactor: n(sf.renewal), odooLevel: sf.odoo })
+    if (d) { await load(); setMsg({ ok: true, text: `Settings saved. ${d.message}` }) }
+  }
+  async function recalc() {
+    const d = await call("POST", "/api/partner-commission/recalculate")
+    if (d) { await load(); setMsg({ ok: true, text: d.message }) }
+  }
+
   async function publish() {
     if (!st?.draft) return
     const next = (st.current?.version || 0) + 1
@@ -115,6 +139,67 @@ export default function CommissionSchedulePanel() {
       )}
 
       <div className="rounded-lg border border-[#e0e0e0] bg-white p-5">
+        <h3 className="mb-1 flex items-center gap-1.5 text-base font-semibold text-[#242424]"><Calculator className="size-4" /> Automatic rates</h3>
+        <p className="mb-3 text-sm text-[#424242]">
+          Microsoft and Odoo rates are worked out from your actual margins: the partner&rsquo;s share of the lowest margin in each line, rounded down to the nearest 0.25%.
+          Each monthly 4Sight import in the Pricing Catalogue recalculates them. Any change becomes a draft and you are emailed; nothing is published without you.
+        </p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {([
+            ["sales", "Sales Partner share of margin (%)"],
+            ["referral", "Referral Partner share of margin (%)"],
+            ["renewal", "Renewal rate, as % of first-year rate"],
+          ] as const).map(([k, label]) => (
+            <label key={k} className="text-xs font-semibold text-[#424242]">{label}
+              <input type="number" min="0" max="100" step="0.5" className={`${input} mt-1`} value={sf[k]} onChange={(e) => { setSf({ ...sf, [k]: e.target.value }); setSfDirty(true) }} />
+            </label>
+          ))}
+          <label className="text-xs font-semibold text-[#424242]">Odoo partnership level
+            <select className={`${input} mt-1`} value={sf.odoo} onChange={(e) => { setSf({ ...sf, odoo: e.target.value as Settings["odooLevel"] }); setSfDirty(true) }}>
+              <option value="none">Not an Odoo partner</option>
+              <option value="ready">Ready (10% licences, 50% Odoo.sh)</option>
+              <option value="silver">Silver (15% licences, 50% Odoo.sh)</option>
+              <option value="gold">Gold (20% licences, 50% Odoo.sh)</option>
+            </select>
+          </label>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" className={sfDirty ? primary : btn} disabled={busy || !sfDirty} onClick={saveSettings}>Save settings and recalculate</button>
+          <button type="button" className={btn} disabled={busy} onClick={recalc}><RefreshCw className="size-4" /> Recalculate now</button>
+          <span className="self-center text-xs text-[#616161]">
+            Price list in use: {st.margins.batch ? <strong>{st.margins.batch}</strong> : <span className="font-semibold text-amber-700">none imported yet</span>}
+            {st.settings.updatedBy ? ` \u00b7 settings last changed by ${st.settings.updatedBy}` : ""}
+          </span>
+        </div>
+        {st.guardrails.length > 0 && (
+          <div className="mt-3 rounded-[4px] border border-red-200 bg-red-50 p-3 text-sm text-[#c50f1f]">
+            <p className="mb-1 flex items-center gap-1.5 font-semibold"><AlertTriangle className="size-4" /> Published rates above what your current margin supports</p>
+            <ul className="list-disc space-y-0.5 pl-5">{st.guardrails.map((g, i) => <li key={i}>{g}</li>)}</ul>
+          </div>
+        )}
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[760px] text-left text-sm">
+            <thead className="text-xs text-[#616161]">
+              <tr><th className="py-1.5 pr-3 font-semibold">Line</th><th className="pr-3 font-semibold">Basis</th><th className="pr-3 font-semibold">Where the rate comes from</th><th className="pr-3 font-semibold">Your margin</th><th className="pr-3 font-semibold">Sales</th><th className="font-semibold">Referral</th></tr>
+            </thead>
+            <tbody>
+              {st.explain.map((e, i) => (
+                <tr key={i} className="border-t border-[#f0f0f0] align-top">
+                  <td className="py-1.5 pr-3 font-semibold text-[#242424]">{e.line}</td>
+                  <td className="pr-3 text-[#424242]">{e.basis}</td>
+                  <td className="pr-3 text-[#424242]">{e.auto ? e.source : <span className="text-[#616161]">Set by you in the draft</span>}</td>
+                  <td className="pr-3">{e.auto ? pct(e.margin) : "\u2014"}</td>
+                  <td className="pr-3">{e.sales}</td>
+                  <td>{e.referral}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-xs text-[#616161]">Your margins are shown here only. Partners see the resulting rates, never the margin behind them.</p>
+      </div>
+
+      <div className="rounded-lg border border-[#e0e0e0] bg-white p-5">
         {!st.draft ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-[#424242]">{st.current ? "To change the rates, start a new version. It begins as a copy of the current one." : "Start the first version from the standard product lines, then fill in each rate."}</p>
@@ -132,7 +217,15 @@ export default function CommissionSchedulePanel() {
                   <tr><th className="pb-1.5 pr-2 font-semibold">Line of business</th><th className="pr-2 font-semibold">Basis</th><th className="pr-2 font-semibold">Referral Partner rate</th><th className="pr-2 font-semibold">Sales Partner rate</th><th /></tr>
                 </thead>
                 <tbody>
-                  {rows.map((r, i) => (
+                  {rows.map((r, i) => st.autoKeys.includes(rk(r)) ? (
+                    <tr key={i} className="align-top bg-[#fafafa]">
+                      <td className="py-1.5 pr-2 font-semibold text-[#242424]">{r.line}</td>
+                      <td className="py-1.5 pr-2 text-[#424242]">{r.basis}</td>
+                      <td className="py-1.5 pr-2">{r.referral}</td>
+                      <td className="py-1.5 pr-2">{r.sales}</td>
+                      <td className="py-1.5"><span className="inline-flex items-center gap-1 text-xs text-[#616161]" title="Worked out from your margins and settings. Change the settings above to change it."><Lock className="size-3.5" /> Automatic</span></td>
+                    </tr>
+                  ) : (
                     <tr key={i} className="align-top">
                       <td className="py-1 pr-2"><input className={input} value={r.line} onChange={(e) => setCell(i, "line", e.target.value)} aria-label={`Line ${i + 1}`} /></td>
                       <td className="py-1 pr-2"><input className={input} value={r.basis} onChange={(e) => setCell(i, "basis", e.target.value)} aria-label={`Basis ${i + 1}`} /></td>
