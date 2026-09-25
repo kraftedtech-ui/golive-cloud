@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Copy, ExternalLink, ShieldCheck, Check, X, RotateCcw } from "lucide-react"
 import { STAGE_LABELS, STAGE_ORDER, CATEGORY_INFO, DECLARATIONS, ACKNOWLEDGEMENTS } from "@/lib/partnerConfig"
+import { MODULES, ASSESSMENT_RULES } from "@/lib/partnerTraining"
 
 type Conflict = { kind: "customer" | "lead" | "partner"; match: string; owner?: string } | null
 type Account = {
@@ -27,6 +28,19 @@ type Full = Omit<Row, "applicant" | "namedAccounts"> & {
   emailVerifiedAt?: string
   notes?: string
   timeline: { at: string; by: string; action: string; note?: string }[]
+  training?: { invitedAt?: string; lastInviteAt?: string; modules?: { no: number; completedAt: string }[] }
+  attempts?: {
+    kind: "integrity" | "final"; number: number; startedAt: string; submittedAt?: string; abandoned?: boolean
+    pct?: number; passed?: boolean; late?: boolean
+    integrity?: { tabSwitches: number; focusLoss: number; pasteTries: number; copyTries: number; seconds: number }
+  }[]
+  extraFinalAttempts?: number
+  assessmentPassedAt?: string
+}
+type TState = {
+  required: number[]; completed: Record<string, string>
+  integrity: { passed: boolean; attempts: number }
+  final: { passed: boolean; attempts: number; allowed: number; canBegin: boolean; reason?: string; availableFrom?: string }
 }
 
 const STAGE_TONE: Record<string, string> = {
@@ -82,6 +96,7 @@ export default function PartnersPanel() {
   const [stageNote, setStageNote] = useState("")
   const [notes, setNotes] = useState("")
   const [copied, setCopied] = useState(false)
+  const [tstate, setTstate] = useState<TState | null>(null)
 
   async function load() {
     setLoading(true)
@@ -116,7 +131,7 @@ export default function PartnersPanel() {
     try {
       const r = await fetch(`/api/partners/${id}`)
       const d = await r.json()
-      if (d.application) adopt(d.application)
+      if (d.application) { adopt(d.application); setTstate(d.training || null) }
     } catch { setMsg({ ok: false, text: "Could not load the application." }) }
   }
 
@@ -134,6 +149,7 @@ export default function PartnersPanel() {
       }
       if (!r.ok) { setMsg({ ok: false, text: d.error || "That did not save." }); return }
       adopt(d.application)
+      if (d.training) setTstate(d.training)
       setMsg({ ok: true, text: success })
     } catch { setMsg({ ok: false, text: "Network error." }) } finally { setBusy(false) }
   }
@@ -256,9 +272,72 @@ export default function PartnersPanel() {
                             className="h-8 rounded-[4px] bg-[#0f8fb0] px-4 text-sm font-semibold text-white hover:bg-[#0b7e9b] disabled:opacity-50">Move</button>
                         </div>
                         <p className="mt-2 text-xs text-[#616161]">
-                          Active status and the GL-PTR partner number are set when you countersign the partner agreement, which arrives with the agreement stage.
+                          Moving an applicant to Training emails them their personal training link. Passing the partner assessment moves them to Agreement automatically. Active status and the GL-PTR number are set when you countersign the partner agreement (Stage 3).
                         </p>
                       </Section>
+
+                      {(detail.training?.invitedAt || ["training", "assessment", "agreement", "active"].includes(detail.status)) && (
+                        <Section title="Training and assessment">
+                          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-[#424242]">
+                            <span>{detail.training?.invitedAt ? `Training link first sent ${fmtDT(detail.training.invitedAt)}${detail.training.lastInviteAt && detail.training.lastInviteAt !== detail.training.invitedAt ? `, last sent ${fmtDT(detail.training.lastInviteAt)}` : ""}.` : "Training link not sent yet."}</span>
+                            <button type="button" disabled={busy} onClick={() => act({ action: "sendTraining" }, `Training link emailed to ${detail.applicant.email}.`)}
+                              className="inline-flex h-7 items-center rounded-[4px] border border-[#d1d1d1] bg-white px-2.5 text-xs font-semibold text-[#242424] hover:bg-[#f5f5f5] disabled:opacity-50">
+                              {detail.training?.invitedAt ? "Resend training link" : "Send training link"}
+                            </button>
+                          </div>
+                          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                            {MODULES.filter((m) => !tstate || tstate.required.includes(m.no)).map((m) => {
+                              const done = detail.training?.modules?.find((x) => x.no === m.no)
+                              return (
+                                <div key={m.no} className={`rounded-[4px] border p-2.5 text-xs ${done ? "border-green-200 bg-green-50" : "border-[#e0e0e0] bg-white"}`}>
+                                  <p className="font-semibold text-[#242424]">Module {m.no}: {m.title}</p>
+                                  <p className={done ? "text-green-700" : "text-[#616161]"}>{done ? `Completed ${fmtDT(done.completedAt)}` : "Not completed"}</p>
+                                </div>
+                              )
+                            })}
+                          </div>
+                          {(detail.attempts || []).length > 0 && (
+                            <div className="mt-3 overflow-x-auto">
+                              <table className="w-full text-left text-xs">
+                                <thead className="text-[#616161]">
+                                  <tr><th className="py-1.5 pr-3 font-semibold">Assessment</th><th className="pr-3 font-semibold">Attempt</th><th className="pr-3 font-semibold">Submitted</th><th className="pr-3 font-semibold">Score</th><th className="pr-3 font-semibold">Result</th><th className="font-semibold">Integrity log</th></tr>
+                                </thead>
+                                <tbody>
+                                  {(detail.attempts || []).map((a, i) => (
+                                    <tr key={i} className="border-t border-[#f0f0f0] text-[#242424]">
+                                      <td className="py-1.5 pr-3">{ASSESSMENT_RULES[a.kind].title}</td>
+                                      <td className="pr-3">{a.number}</td>
+                                      <td className="pr-3">{a.submittedAt ? fmtDT(a.submittedAt) : `In progress since ${fmtDT(a.startedAt)}`}</td>
+                                      <td className="pr-3">{a.submittedAt ? `${a.pct ?? 0}%` : "\u2014"}</td>
+                                      <td className="pr-3">
+                                        {!a.submittedAt ? "\u2014" : a.abandoned ? <span className="font-semibold text-[#c50f1f]">Time ran out</span>
+                                          : a.passed ? <span className="font-semibold text-green-700">Passed</span>
+                                          : <span className="font-semibold text-[#c50f1f]">Not passed{a.late ? " (late)" : ""}</span>}
+                                      </td>
+                                      <td className={`${a.integrity && (a.integrity.tabSwitches + a.integrity.focusLoss + a.integrity.pasteTries + a.integrity.copyTries) > 3 ? "font-semibold text-amber-700" : "text-[#424242]"}`}>
+                                        {a.integrity ? `${a.integrity.tabSwitches} tab, ${a.integrity.focusLoss} focus, ${a.integrity.pasteTries + a.integrity.copyTries} copy/paste, ${Math.round(a.integrity.seconds / 60)} min` : "\u2014"}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                          {tstate && !tstate.final.passed && tstate.final.attempts > 0 && (
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#424242]">
+                              <span>
+                                Partner assessment: {tstate.final.attempts} of {tstate.final.allowed} attempts used.
+                                {tstate.final.availableFrom ? ` Next attempt opens ${fmt(tstate.final.availableFrom)}.` : tstate.final.canBegin ? " Next attempt available now." : ""}
+                              </span>
+                              <button type="button" disabled={busy}
+                                onClick={() => { const n = window.prompt("Reason for granting an extra attempt (recorded on the timeline):", ""); if (n !== null) act({ action: "grantAttempt", note: n }, "Extra attempt granted; available now.") }}
+                                className="inline-flex h-7 items-center rounded-[4px] border border-[#d1d1d1] bg-white px-2.5 font-semibold text-[#242424] hover:bg-[#f5f5f5] disabled:opacity-50">
+                                Grant an extra attempt now
+                              </button>
+                            </div>
+                          )}
+                        </Section>
+                      )}
 
                       <div className="grid gap-3 lg:grid-cols-2">
                         <Section title="Applicant">

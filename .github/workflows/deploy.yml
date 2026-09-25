@@ -304,6 +304,20 @@ jobs:
           git show origin/main:components/partners/Shell.tsx > components/partners/Shell.tsx
           git show origin/main:components/partners/PartnerApplyForm.tsx > components/partners/PartnerApplyForm.tsx
           git show origin/main:components/dashboard/PartnersPanel.tsx > components/dashboard/PartnersPanel.tsx
+          # Partner Network, stage 2: training modules, integrity check and
+          # partner assessment, reached by a signed personal link (no account).
+          git show origin/main:lib/partnerToken.ts > lib/partnerToken.ts
+          git show origin/main:lib/partnerTraining.ts > lib/partnerTraining.ts
+          git show origin/main:lib/partnerAssessmentBank.ts > lib/partnerAssessmentBank.ts
+          git show origin/main:lib/partnerTrainingFlow.ts > lib/partnerTrainingFlow.ts
+          mkdir -p app/api/partner-training/module app/api/partner-training/begin app/api/partner-training/submit "app/partner-training/[token]"
+          git show origin/main:app/api/partner-training/_load.ts > app/api/partner-training/_load.ts
+          git show origin/main:app/api/partner-training/route.ts > app/api/partner-training/route.ts
+          git show origin/main:app/api/partner-training/module/route.ts > app/api/partner-training/module/route.ts
+          git show origin/main:app/api/partner-training/begin/route.ts > app/api/partner-training/begin/route.ts
+          git show origin/main:app/api/partner-training/submit/route.ts > app/api/partner-training/submit/route.ts
+          git show "origin/main:app/partner-training/[token]/page.tsx" > "app/partner-training/[token]/page.tsx"
+          git show origin/main:components/partners/TrainingClient.tsx > components/partners/TrainingClient.tsx
 
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts

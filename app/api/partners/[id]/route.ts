@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/apiAuth'
 import PartnerApplication, { PARTNER_STAGES, type PartnerStage } from '@/models/PartnerApplication'
 import { findConflicts } from '@/lib/partners'
 import { STAGE_LABELS } from '@/lib/partnerConfig'
+import { closeExpired, trainingState, sendTrainingInvite } from '@/lib/partnerTrainingFlow'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +24,8 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
   const { id } = await params
   const app = await load(id)
   if (!app) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  return NextResponse.json({ application: app.toObject() })
+  if (closeExpired(app)) await app.save()
+  return NextResponse.json({ application: app.toObject(), training: trainingState(app) })
 }
 
 /**
@@ -33,6 +35,9 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
  *        force: true overrides a customer or pipeline match (never another partner's registration)
  *   { action: 'notes', notes }                 private MD notes
  *   { action: 'recheck' }                      re-run the conflict check on every account
+ *   { action: 'sendTraining' }                 email (or re-email) the personal training link
+ *   { action: 'grantAttempt', note }           one more partner assessment attempt, without the 7-day wait
+ * Moving an applicant to the Training stage sends the training link automatically.
  */
 export async function PATCH(req: NextRequest, { params }: Ctx) {
   const auth = await requireAdmin()
@@ -58,6 +63,25 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       const from = app.status
       app.status = status
       app.timeline.push({ at: now, by, action: `Stage: ${STAGE_LABELS[from] || from} to ${STAGE_LABELS[status] || status}`, note })
+      if (status === 'training' && !app.training?.invitedAt) {
+        const sent = await sendTrainingInvite(app, now)
+        app.timeline.push({ at: now, by: 'system', action: sent.ok ? `Training link emailed to ${app.applicant.email}` : 'Training link email FAILED', note: sent.ok ? undefined : sent.error })
+      }
+      break
+    }
+    case 'sendTraining': {
+      if (!['training', 'assessment', 'agreement', 'active'].includes(app.status)) {
+        return NextResponse.json({ error: 'Move the applicant to the Training stage first.' }, { status: 409 })
+      }
+      const sent = await sendTrainingInvite(app, now)
+      if (!sent.ok) return NextResponse.json({ error: `The email could not be sent: ${sent.error}` }, { status: 502 })
+      app.timeline.push({ at: now, by, action: `Training link emailed to ${app.applicant.email}` })
+      break
+    }
+    case 'grantAttempt': {
+      app.extraFinalAttempts = (app.extraFinalAttempts || 0) + 1
+      app.finalWaitWaivedAt = now
+      app.timeline.push({ at: now, by, action: 'Extra partner assessment attempt granted, without the 7-day wait', note })
       break
     }
     case 'account': {
@@ -106,5 +130,5 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   }
   await app.save()
-  return NextResponse.json({ application: app.toObject() })
+  return NextResponse.json({ application: app.toObject(), training: trainingState(app) })
 }

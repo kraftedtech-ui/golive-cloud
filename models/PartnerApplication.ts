@@ -40,6 +40,24 @@ export interface ITimelineEntry {
   note?: string
 }
 
+export interface IAssessmentAttempt {
+  kind: 'integrity' | 'final'
+  number: number
+  /** The exact paper issued (lib/assessmentPaper Paper): question ids, option order, deadline. */
+  paper: { version: string; items: { id: string; order?: number[] }[]; issuedAt: string; deadline: string }
+  startedAt: Date
+  submittedAt?: Date
+  /** True when closed without a submission (deadline passed). */
+  abandoned?: boolean
+  got?: number
+  max?: number
+  pct?: number
+  passed?: boolean
+  late?: boolean
+  integrity?: { tabSwitches: number; focusLoss: number; pasteTries: number; copyTries: number; seconds: number }
+  transcript?: object[]
+}
+
 export interface IPartnerApplication extends Document {
   ref: string
   status: PartnerStage
@@ -91,6 +109,17 @@ export interface IPartnerApplication extends Document {
   }
   signature: { name: string; signedAt: Date; ip?: string; userAgent?: string }
   emailVerifiedAt?: Date
+  training?: {
+    invitedAt?: Date
+    lastInviteAt?: Date
+    modules: { no: number; completedAt: Date; ip?: string }[]
+  }
+  attempts: IAssessmentAttempt[]
+  /** Final assessment attempts granted by the MD beyond the standard two. */
+  extraFinalAttempts?: number
+  /** Set when the MD grants an attempt, so it can be taken without the seven-day wait. */
+  finalWaitWaivedAt?: Date
+  assessmentPassedAt?: Date
   /** GL-PTR-NNN, minted at countersignature of the partner agreement (later stage). */
   partnerNumber?: string
   notes?: string
@@ -168,6 +197,30 @@ const PartnerApplicationSchema = new Schema<IPartnerApplication>(
     },
     signature: { name: String, signedAt: Date, ip: String, userAgent: String },
     emailVerifiedAt: Date,
+    training: {
+      invitedAt: Date,
+      lastInviteAt: Date,
+      modules: [{ no: Number, completedAt: Date, ip: String, _id: false }],
+    },
+    attempts: [{
+      kind: { type: String, enum: ['integrity', 'final'] },
+      number: Number,
+      paper: Schema.Types.Mixed,
+      startedAt: Date,
+      submittedAt: Date,
+      abandoned: Boolean,
+      got: Number,
+      max: Number,
+      pct: Number,
+      passed: Boolean,
+      late: Boolean,
+      integrity: { tabSwitches: Number, focusLoss: Number, pasteTries: Number, copyTries: Number, seconds: Number },
+      transcript: [Schema.Types.Mixed],
+      _id: false,
+    }],
+    extraFinalAttempts: { type: Number, default: 0 },
+    finalWaitWaivedAt: Date,
+    assessmentPassedAt: Date,
     partnerNumber: { type: String, sparse: true, unique: true },
     notes: String,
     timeline: [{ at: Date, by: String, action: String, note: String, _id: false }],
