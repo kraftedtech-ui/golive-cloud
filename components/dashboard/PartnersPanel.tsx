@@ -1,0 +1,410 @@
+"use client"
+import { useEffect, useMemo, useState } from "react"
+import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Copy, ExternalLink, ShieldCheck, Check, X, RotateCcw } from "lucide-react"
+import { STAGE_LABELS, STAGE_ORDER, CATEGORY_INFO, DECLARATIONS, ACKNOWLEDGEMENTS } from "@/lib/partnerConfig"
+
+type Conflict = { kind: "customer" | "lead" | "partner"; match: string; owner?: string } | null
+type Account = {
+  _id: string; organisation: string; sector?: string; contactName?: string; contactRole?: string
+  requirement?: string; timing?: string; conflict?: Conflict
+  decision?: "pending" | "registered" | "refused"; decisionNote?: string; decidedAt?: string; decidedBy?: string
+}
+type Row = {
+  _id: string; ref: string; status: string; category: "referral" | "sales"
+  applicant: { name: string; email: string; phone: string; city?: string }
+  namedAccounts: { decision?: string; conflict?: Conflict }[]
+  declarations?: Record<string, boolean | string>
+  partnerNumber?: string; createdAt: string
+}
+type Full = Omit<Row, "applicant" | "namedAccounts"> & {
+  applicant: Record<string, string>
+  background: { occupation?: string; yearsB2B?: string; sectors?: string; productsSold?: string; largestDeal?: string; referees?: { name: string; position?: string; phone?: string }[] }
+  namedAccounts: Account[]
+  solutions: string[]
+  engagement: Record<string, string>
+  acknowledgements: Record<string, boolean>
+  signature: { name: string; signedAt: string; ip?: string; userAgent?: string }
+  emailVerifiedAt?: string
+  notes?: string
+  timeline: { at: string; by: string; action: string; note?: string }[]
+}
+
+const STAGE_TONE: Record<string, string> = {
+  applied: "bg-blue-50 text-blue-700 border-blue-200",
+  screening: "bg-sky-50 text-sky-700 border-sky-200",
+  interview: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  training: "bg-violet-50 text-violet-700 border-violet-200",
+  assessment: "bg-amber-50 text-amber-700 border-amber-200",
+  agreement: "bg-orange-50 text-orange-700 border-orange-200",
+  active: "bg-green-50 text-green-700 border-green-200",
+  declined: "bg-gray-100 text-gray-600 border-gray-300",
+  withdrawn: "bg-gray-100 text-gray-600 border-gray-300",
+}
+const KIND_LABEL = { customer: "Existing customer", lead: "In sales pipeline", partner: "Registered to another partner" }
+const JOINT: Record<string, string> = { none: "Not needed", corporate: "Corporate meetings", technical: "Technical meetings", both: "Corporate and technical" }
+
+const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "\u2014")
+const fmtDT = (d?: string) =>
+  d ? new Date(d).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }) + " WAT" : "\u2014"
+const yesCount = (d?: Record<string, boolean | string>) => DECLARATIONS.filter((x) => d?.[x.key] === true).length
+
+function Badge({ status }: { status: string }) {
+  return <span className={`inline-flex h-6 items-center rounded-full border px-2.5 text-xs font-semibold ${STAGE_TONE[status] || STAGE_TONE.applied}`}>{STAGE_LABELS[status] || status}</span>
+}
+
+function KV({ k, v }: { k: string; v?: string | null }) {
+  return (
+    <div className="grid grid-cols-[170px_1fr] gap-3 py-1.5 text-sm">
+      <span className="text-[#616161]">{k}</span>
+      <span className="whitespace-pre-wrap break-words text-[#242424]">{v && String(v).trim() ? v : "\u2014"}</span>
+    </div>
+  )
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-lg border border-[#e0e0e0] bg-white p-4">
+      <h4 className="mb-2 text-sm font-semibold text-[#242424]">{title}</h4>
+      {children}
+    </section>
+  )
+}
+
+export default function PartnersPanel() {
+  const [rows, setRows] = useState<Row[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<string>("open")
+  const [open, setOpen] = useState<string | null>(null)
+  const [detail, setDetail] = useState<Full | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [nextStage, setNextStage] = useState("")
+  const [stageNote, setStageNote] = useState("")
+  const [notes, setNotes] = useState("")
+  const [copied, setCopied] = useState(false)
+
+  async function load() {
+    setLoading(true)
+    try {
+      const r = await fetch("/api/partners")
+      const d = await r.json()
+      setRows(d.applications || [])
+    } catch { setRows([]) } finally { setLoading(false) }
+  }
+  useEffect(() => { load() }, [])
+
+  const counts = useMemo(() => {
+    const c: Record<string, number> = {}
+    rows.forEach((r) => { c[r.status] = (c[r.status] || 0) + 1 })
+    return c
+  }, [rows])
+  const visible = rows.filter((r) =>
+    filter === "all" ? true : filter === "open" ? !["declined", "withdrawn", "active"].includes(r.status) : r.status === filter)
+
+  function adopt(app: Full) {
+    setDetail(app)
+    setNotes(app.notes || "")
+    const idx = STAGE_ORDER.indexOf(app.status as (typeof STAGE_ORDER)[number])
+    setNextStage(idx >= 0 && idx < STAGE_ORDER.length - 2 ? STAGE_ORDER[idx + 1] : "")
+    setStageNote("")
+    setRows((prev) => prev.map((r) => (r._id === app._id ? { ...r, status: app.status, namedAccounts: app.namedAccounts, partnerNumber: app.partnerNumber } : r)))
+  }
+
+  async function toggle(id: string) {
+    if (open === id) { setOpen(null); setDetail(null); return }
+    setOpen(id); setDetail(null); setMsg(null)
+    try {
+      const r = await fetch(`/api/partners/${id}`)
+      const d = await r.json()
+      if (d.application) adopt(d.application)
+    } catch { setMsg({ ok: false, text: "Could not load the application." }) }
+  }
+
+  async function act(body: Record<string, unknown>, success: string) {
+    if (!detail) return
+    setBusy(true); setMsg(null)
+    try {
+      let r = await fetch(`/api/partners/${detail._id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      let d = await r.json()
+      if (r.status === 409 && d.needsConfirm) {
+        const ok = window.confirm(`${d.error}\n\nCustomers and an employee's pipeline normally take precedence over a partner. Register it to this partner anyway? The override is recorded on the timeline.`)
+        if (!ok) { setMsg({ ok: false, text: "Not registered." }); return }
+        r = await fetch(`/api/partners/${detail._id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, force: true }) })
+        d = await r.json()
+      }
+      if (!r.ok) { setMsg({ ok: false, text: d.error || "That did not save." }); return }
+      adopt(d.application)
+      setMsg({ ok: true, text: success })
+    } catch { setMsg({ ok: false, text: "Network error." }) } finally { setBusy(false) }
+  }
+
+  function decide(acc: Account, decision: "registered" | "refused" | "pending") {
+    let note = ""
+    if (decision === "refused") {
+      const n = window.prompt(`Reason for refusing ${acc.organisation} (shown on the record):`, acc.conflict ? KIND_LABEL[acc.conflict.kind] : "")
+      if (n === null) return
+      note = n
+    }
+    act({ action: "account", accountId: acc._id, decision, note },
+      decision === "registered" ? `${acc.organisation} registered to this applicant.` : decision === "refused" ? `${acc.organisation} refused.` : `${acc.organisation} reset to pending.`)
+  }
+
+  const applyUrl = "https://cloud.golivecompany.com/partners/apply"
+  async function copyLink() {
+    try { await navigator.clipboard.writeText(applyUrl); setCopied(true); setTimeout(() => setCopied(false), 1800) } catch { /* clipboard blocked */ }
+  }
+
+  const filters: [string, string][] = [
+    ["open", "In progress"], ["all", "All"], ...STAGE_ORDER.map((s) => [s, STAGE_LABELS[s]] as [string, string]),
+    ["declined", "Declined"], ["withdrawn", "Withdrawn"],
+  ]
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 rounded-lg border border-[#e0e0e0] bg-white p-5">
+        <div>
+          <h2 className="text-xl font-semibold text-[#242424]">Partner applications</h2>
+          <p className="mt-1 max-w-[70ch] text-sm text-[#616161]">
+            GoLive Partner Network applications from the public form. Review each applicant, decide their named accounts,
+            and move them through accreditation. Every action is recorded on the applicant&rsquo;s timeline.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={copyLink} className="inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#d1d1d1] bg-white px-3 text-sm font-semibold text-[#242424] hover:bg-[#f5f5f5]">
+            {copied ? <Check className="size-4 text-green-700" /> : <Copy className="size-4" />} {copied ? "Copied" : "Copy application link"}
+          </button>
+          <a href="/partners" target="_blank" rel="noopener noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#d1d1d1] bg-white px-3 text-sm font-semibold text-[#242424] hover:bg-[#f5f5f5]">
+            <ExternalLink className="size-4" /> Public page
+          </a>
+          <button type="button" onClick={load} className="inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#d1d1d1] bg-white px-3 text-sm font-semibold text-[#242424] hover:bg-[#f5f5f5]">
+            <RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Filter by stage">
+        {filters.map(([k, label]) => {
+          const n = k === "all" ? rows.length : k === "open" ? rows.filter((r) => !["declined", "withdrawn", "active"].includes(r.status)).length : counts[k] || 0
+          return (
+            <button key={k} type="button" role="tab" aria-selected={filter === k} onClick={() => setFilter(k)}
+              className={`h-8 rounded-full border px-3 text-[13px] font-semibold ${filter === k ? "border-[#0b7e9b] bg-[#e8f7fb] text-[#0b7e9b]" : "border-[#e0e0e0] bg-white text-[#424242] hover:bg-[#f5f5f5]"}`}>
+              {label} <span className="font-normal text-[#616161]">{n}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      <div className="overflow-hidden rounded-lg border border-[#e0e0e0] bg-white">
+        <div className="hidden grid-cols-[150px_minmax(0,1.6fr)_130px_130px_120px_110px_28px] gap-3 border-b border-[#e0e0e0] px-4 py-2.5 text-xs font-semibold text-[#616161] md:grid">
+          <span>Reference</span><span>Applicant</span><span>Category</span><span>Stage</span><span>Accounts</span><span>Applied</span><span />
+        </div>
+        {loading && <p className="px-4 py-6 text-sm text-[#616161]">Loading applications…</p>}
+        {!loading && visible.length === 0 && (
+          <p className="px-4 py-6 text-sm text-[#616161]">
+            No applications here yet. Share the application link ({applyUrl}) with prospective partners.
+          </p>
+        )}
+        {visible.map((r) => {
+          const conflicts = r.namedAccounts.filter((a) => a.conflict).length
+          const yes = yesCount(r.declarations)
+          const isOpen = open === r._id
+          return (
+            <div key={r._id} className="border-b border-[#f0f0f0] last:border-b-0">
+              <button type="button" onClick={() => toggle(r._id)} aria-expanded={isOpen}
+                className="grid w-full grid-cols-1 gap-1 px-4 py-3 text-left hover:bg-[#fafafa] md:grid-cols-[150px_minmax(0,1.6fr)_130px_130px_120px_110px_28px] md:items-center md:gap-3">
+                <span className="font-mono text-xs text-[#424242]">{r.ref}{r.partnerNumber && <><br />{r.partnerNumber}</>}</span>
+                <span className="min-w-0">
+                  <span className="block truncate font-semibold text-[#242424]">{r.applicant.name}</span>
+                  <span className="block truncate text-xs text-[#616161]">{r.applicant.email}{r.applicant.city ? ` \u00b7 ${r.applicant.city}` : ""}</span>
+                </span>
+                <span className="text-sm text-[#424242]">{CATEGORY_INFO[r.category]?.label}</span>
+                <span><Badge status={r.status} /></span>
+                <span className="text-sm text-[#424242]">
+                  {r.namedAccounts.length}
+                  {conflicts > 0 && <span className="ml-1.5 font-semibold text-[#c50f1f]">{conflicts} conflict{conflicts === 1 ? "" : "s"}</span>}
+                  {yes > 0 && <span className="ml-1.5 inline-flex items-center gap-0.5 text-xs font-semibold text-amber-700"><AlertTriangle className="size-3" />{yes}</span>}
+                </span>
+                <span className="text-sm text-[#424242]">{fmt(r.createdAt)}</span>
+                <span className="hidden text-[#616161] md:block">{isOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}</span>
+              </button>
+
+              {isOpen && (
+                <div className="space-y-3 bg-[#fafafa] px-4 pb-5 pt-2">
+                  {!detail && <p className="text-sm text-[#616161]">Loading…</p>}
+                  {detail && detail._id === r._id && (
+                    <>
+                      {msg && (
+                        <div className={`rounded-[4px] px-3 py-2 text-sm font-semibold ${msg.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-[#c50f1f]"}`} role="status">{msg.text}</div>
+                      )}
+
+                      <Section title="Accreditation stage">
+                        <div className="flex flex-wrap items-end gap-2">
+                          <div className="mr-2"><span className="block text-xs text-[#616161]">Current</span><Badge status={detail.status} /></div>
+                          <label className="flex flex-col text-xs font-semibold text-[#424242]">Move to
+                            <select value={nextStage} onChange={(e) => setNextStage(e.target.value)} className="mt-1 h-8 rounded-[4px] border border-[#d1d1d1] bg-white px-2 text-sm font-normal">
+                              <option value="">Choose a stage</option>
+                              {STAGE_ORDER.filter((s) => s !== "active" && s !== detail.status).map((s) => <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
+                              <option value="declined">Declined</option>
+                              <option value="withdrawn">Withdrawn</option>
+                            </select>
+                          </label>
+                          <label className="flex min-w-[240px] flex-1 flex-col text-xs font-semibold text-[#424242]">Note for the timeline (optional)
+                            <input value={stageNote} onChange={(e) => setStageNote(e.target.value)} className="mt-1 h-8 rounded-[4px] border border-[#d1d1d1] bg-white px-2 text-sm font-normal" />
+                          </label>
+                          <button type="button" disabled={busy || !nextStage}
+                            onClick={() => act({ action: "stage", status: nextStage, note: stageNote }, `Moved to ${STAGE_LABELS[nextStage]}.`)}
+                            className="h-8 rounded-[4px] bg-[#0f8fb0] px-4 text-sm font-semibold text-white hover:bg-[#0b7e9b] disabled:opacity-50">Move</button>
+                        </div>
+                        <p className="mt-2 text-xs text-[#616161]">
+                          Active status and the GL-PTR partner number are set when you countersign the partner agreement, which arrives with the agreement stage.
+                        </p>
+                      </Section>
+
+                      <div className="grid gap-3 lg:grid-cols-2">
+                        <Section title="Applicant">
+                          <KV k="Category" v={CATEGORY_INFO[detail.category]?.label} />
+                          <KV k="Name" v={detail.applicant.name} />
+                          <KV k="Preferred name" v={detail.applicant.preferredName} />
+                          <KV k="Email" v={`${detail.applicant.email}${detail.emailVerifiedAt ? " (verified)" : ""}`} />
+                          <KV k="Mobile" v={detail.applicant.phone} />
+                          <KV k="LinkedIn" v={detail.applicant.linkedin} />
+                          <KV k="Location" v={[detail.applicant.city, detail.applicant.state].filter(Boolean).join(", ")} />
+                          <KV k="Applying as" v={detail.applicant.applyingAs === "business" ? `Business: ${detail.applicant.businessName || ""}` : "Individual"} />
+                          {detail.applicant.applyingAs === "business" && <KV k="CAC number" v={detail.applicant.cacNumber} />}
+                          <KV k="TIN" v={detail.applicant.tin || "Not given (required before any commission is paid)"} />
+                        </Section>
+                        <Section title="Background">
+                          <KV k="Occupation" v={detail.background.occupation} />
+                          <KV k="B2B selling" v={detail.background.yearsB2B} />
+                          <KV k="Sectors" v={detail.background.sectors} />
+                          <KV k="Sold before" v={detail.background.productsSold} />
+                          <KV k="Largest deal" v={detail.background.largestDeal} />
+                          {(detail.background.referees || []).map((rf, i) => (
+                            <KV key={i} k={`Referee ${i + 1}`} v={[rf.name, rf.position, rf.phone].filter(Boolean).join(", ")} />
+                          ))}
+                        </Section>
+                      </div>
+
+                      <Section title={`Named accounts (${detail.namedAccounts.length})`}>
+                        {detail.namedAccounts.length === 0 && <p className="text-sm text-[#616161]">None listed.</p>}
+                        <div className="space-y-2">
+                          {detail.namedAccounts.map((a) => (
+                            <div key={a._id} className={`rounded-[4px] border p-3 ${a.conflict ? "border-red-200 bg-red-50/40" : "border-[#e0e0e0] bg-white"}`}>
+                              <div className="flex flex-wrap items-start justify-between gap-2">
+                                <div className="min-w-0">
+                                  <p className="font-semibold text-[#242424]">{a.organisation}{a.sector && <span className="font-normal text-[#616161]"> · {a.sector}</span>}</p>
+                                  <p className="text-xs text-[#424242]">
+                                    {[a.contactName && `${a.contactName}${a.contactRole ? ` (${a.contactRole})` : ""}`, a.requirement, a.timing].filter(Boolean).join(" \u00b7 ") || "No further detail"}
+                                  </p>
+                                  {a.conflict && (
+                                    <p className="mt-1 text-xs font-semibold text-[#c50f1f]">
+                                      {KIND_LABEL[a.conflict.kind]}: {a.conflict.match}{a.conflict.owner ? ` (${a.conflict.owner})` : ""}
+                                    </p>
+                                  )}
+                                  {a.decision && a.decision !== "pending" && (
+                                    <p className="mt-1 text-xs text-[#616161]">
+                                      {a.decision === "registered" ? "Registered" : "Refused"} {fmtDT(a.decidedAt)} by {a.decidedBy}{a.decisionNote ? `: ${a.decisionNote}` : ""}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="flex shrink-0 items-center gap-1.5">
+                                  {a.decision === "pending" || !a.decision ? (
+                                    <>
+                                      <button type="button" disabled={busy} onClick={() => decide(a, "registered")}
+                                        className="inline-flex h-7 items-center gap-1 rounded-[4px] border border-green-300 bg-white px-2.5 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50">
+                                        <Check className="size-3.5" /> Register
+                                      </button>
+                                      <button type="button" disabled={busy} onClick={() => decide(a, "refused")}
+                                        className="inline-flex h-7 items-center gap-1 rounded-[4px] border border-red-300 bg-white px-2.5 text-xs font-semibold text-[#c50f1f] hover:bg-red-50 disabled:opacity-50">
+                                        <X className="size-3.5" /> Refuse
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className={`inline-flex h-6 items-center rounded-full border px-2 text-xs font-semibold ${a.decision === "registered" ? "border-green-200 bg-green-50 text-green-700" : "border-gray-300 bg-gray-100 text-gray-600"}`}>
+                                        {a.decision === "registered" ? "Registered" : "Refused"}
+                                      </span>
+                                      <button type="button" disabled={busy} onClick={() => decide(a, "pending")} title="Reset to pending"
+                                        className="inline-flex size-7 items-center justify-center rounded-[4px] text-[#616161] hover:bg-[#f0f0f0] disabled:opacity-50">
+                                        <RotateCcw className="size-3.5" />
+                                      </button>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {detail.namedAccounts.length > 0 && (
+                          <button type="button" disabled={busy} onClick={() => act({ action: "recheck" }, "Conflict check re-run against current customers, pipeline and registrations.")}
+                            className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#d1d1d1] bg-white px-3 text-sm font-semibold text-[#242424] hover:bg-[#f5f5f5] disabled:opacity-50">
+                            <RefreshCw className="size-4" /> Re-run conflict check
+                          </button>
+                        )}
+                        <p className="mt-2 text-xs text-[#616161]">
+                          Customers and accounts in an employee&rsquo;s pipeline take precedence over a partner&rsquo;s claim. Registration is re-checked at the moment you register.
+                        </p>
+                      </Section>
+
+                      <div className="grid gap-3 lg:grid-cols-2">
+                        <Section title="Solutions and engagement">
+                          <ul className="mb-2 list-disc pl-5 text-sm text-[#242424]">{detail.solutions.map((s) => <li key={s}>{s}</li>)}</ul>
+                          <KV k="Joint meetings" v={JOINT[detail.engagement.jointMeetings] || detail.engagement.jointMeetings} />
+                          <KV k="Hours per week" v={detail.engagement.hoursPerWeek} />
+                          <KV k="First introduction" v={detail.engagement.firstIntroduction} />
+                          <KV k="First closed sale" v={detail.engagement.firstSale} />
+                          <KV k="Support needed" v={detail.engagement.supportNeeded} />
+                        </Section>
+                        <Section title="Declarations">
+                          {DECLARATIONS.map((d) => {
+                            const yes = (detail.declarations as Record<string, unknown> | undefined)?.[d.key] === true
+                            return (
+                              <div key={d.key} className="flex items-start justify-between gap-3 border-b border-[#f0f0f0] py-1.5 text-sm last:border-b-0">
+                                <span className="text-[#424242]">{d.text}</span>
+                                <span className={`shrink-0 font-semibold ${yes ? "text-amber-700" : "text-[#616161]"}`}>{yes ? "Yes" : "No"}</span>
+                              </div>
+                            )
+                          })}
+                          {typeof detail.declarations?.particulars === "string" && detail.declarations.particulars.trim() && (
+                            <p className="mt-2 whitespace-pre-wrap rounded-[4px] bg-amber-50 p-2 text-sm text-[#242424]">{String(detail.declarations.particulars)}</p>
+                          )}
+                        </Section>
+                      </div>
+
+                      <div className="grid gap-3 lg:grid-cols-2">
+                        <Section title="Signature record">
+                          <p className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-green-700"><ShieldCheck className="size-4" /> All {ACKNOWLEDGEMENTS.length} acknowledgements confirmed</p>
+                          <KV k="Signed as" v={detail.signature?.name} />
+                          <KV k="Signed at" v={fmtDT(detail.signature?.signedAt)} />
+                          <KV k="Email verified" v={fmtDT(detail.emailVerifiedAt)} />
+                          <KV k="IP address" v={detail.signature?.ip} />
+                        </Section>
+                        <Section title="Managing Director notes (private)">
+                          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={6}
+                            className="w-full rounded-[4px] border border-[#d1d1d1] bg-white p-2 text-sm" placeholder="Interview notes, referee checks, follow-ups" />
+                          <button type="button" disabled={busy} onClick={() => act({ action: "notes", notes }, "Notes saved.")}
+                            className="mt-2 h-8 rounded-[4px] bg-[#0f8fb0] px-4 text-sm font-semibold text-white hover:bg-[#0b7e9b] disabled:opacity-50">Save notes</button>
+                        </Section>
+                      </div>
+
+                      <Section title="Timeline">
+                        <ol className="space-y-1.5">
+                          {[...detail.timeline].reverse().map((t, i) => (
+                            <li key={i} className="grid grid-cols-[170px_1fr] gap-3 text-sm">
+                              <span className="text-[#616161]">{fmtDT(t.at)}</span>
+                              <span className="text-[#242424]">{t.action} <span className="text-[#616161]">· {t.by}</span>{t.note && <span className="block text-[#424242]">{t.note}</span>}</span>
+                            </li>
+                          ))}
+                        </ol>
+                      </Section>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

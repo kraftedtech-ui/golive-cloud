@@ -287,6 +287,24 @@ jobs:
           git show origin/main:app/portal/people/positions/page.tsx > app/portal/people/positions/page.tsx
           git show origin/main:components/dashboard/PositionsEditor.tsx > components/dashboard/PositionsEditor.tsx
 
+          # GoLive Partner Network, stage 1: public page and application form,
+          # PartnerApplication records, conflict check on named accounts, and
+          # the admin review panel at /portal/partners.
+          git show origin/main:models/PartnerApplication.ts > models/PartnerApplication.ts
+          git show origin/main:lib/partnerConfig.ts > lib/partnerConfig.ts
+          git show origin/main:lib/partners.ts > lib/partners.ts
+          mkdir -p app/api/partners app/api/partners/apply "app/api/partners/[id]" app/partners/apply app/portal/partners components/partners
+          git show origin/main:app/api/partners/route.ts > app/api/partners/route.ts
+          git show origin/main:app/api/partners/apply/route.ts > app/api/partners/apply/route.ts
+          git show "origin/main:app/api/partners/[id]/route.ts" > "app/api/partners/[id]/route.ts"
+          git show origin/main:app/partners/page.tsx > app/partners/page.tsx
+          git show origin/main:app/partners/apply/page.tsx > app/partners/apply/page.tsx
+          git show origin/main:app/portal/partners/page.tsx > app/portal/partners/page.tsx
+          git show origin/main:components/partners/styles.ts > components/partners/styles.ts
+          git show origin/main:components/partners/Shell.tsx > components/partners/Shell.tsx
+          git show origin/main:components/partners/PartnerApplyForm.tsx > components/partners/PartnerApplyForm.tsx
+          git show origin/main:components/dashboard/PartnersPanel.tsx > components/dashboard/PartnersPanel.tsx
+
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts
 

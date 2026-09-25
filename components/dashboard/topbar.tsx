@@ -18,6 +18,7 @@ const PAGE_LABELS: Record<string, { section: string; title: string }> = {
   "hr-assessments":  { section: "People",         title: "Candidate assessments" },
   "hr-people":       { section: "People",         title: "Employees" },
   positions:         { section: "People",         title: "Positions" },
+  partners:          { section: "Partner Network", title: "Partner applications" },
   customers:         { section: "Administration", title: "Customer accounts" },
   "payment-risk":    { section: "Administration", title: "Payment and suspension risk" },
   pricing:           { section: "Administration", title: "Pricing catalogue" },
