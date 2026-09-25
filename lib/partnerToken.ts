@@ -14,6 +14,35 @@ const hmac = (payload: string) => crypto.createHmac('sha256', SECRET).update(pay
 
 export const TRAINING_LINK_DAYS = 30
 
+/**
+ * Kinds: ptrain (training and assessment), pagree (sign the agreement),
+ * pdoc (download the executed agreement and certificate).
+ */
+export type PartnerTokenKind = 'ptrain' | 'pagree' | 'pdoc'
+
+export function signPartnerToken(kind: PartnerTokenKind, ref: string, expires: Date): string {
+  const payload = `${kind}|${ref}|${expires.getTime()}`
+  return `${b64u(Buffer.from(payload))}.${b64u(hmac(payload))}`
+}
+
+export function verifyPartnerToken(kind: PartnerTokenKind, token: string): { ref: string } | null {
+  try {
+    if (!SECRET) return null
+    const [p, sig] = String(token || '').split('.')
+    if (!p || !sig) return null
+    const payload = fromB64u(p).toString('utf8')
+    const expected = hmac(payload)
+    const given = fromB64u(sig)
+    if (expected.length !== given.length || !crypto.timingSafeEqual(expected, given)) return null
+    const [k, ref, expMs] = payload.split('|')
+    if (k !== kind || !ref) return null
+    if (!expMs || Date.now() > Number(expMs)) return null
+    return { ref }
+  } catch {
+    return null
+  }
+}
+
 export function signTrainingToken(ref: string, expires: Date): string {
   const payload = `ptrain|${ref}|${expires.getTime()}`
   return `${b64u(Buffer.from(payload))}.${b64u(hmac(payload))}`

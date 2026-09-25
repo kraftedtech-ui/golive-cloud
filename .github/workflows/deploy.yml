@@ -318,6 +318,20 @@ jobs:
           git show origin/main:app/api/partner-training/submit/route.ts > app/api/partner-training/submit/route.ts
           git show "origin/main:app/partner-training/[token]/page.tsx" > "app/partner-training/[token]/page.tsx"
           git show origin/main:components/partners/TrainingClient.tsx > components/partners/TrainingClient.tsx
+          # Partner Network, stage 3: agreement signed online, countersignature
+          # minting GL-PTR and GL-CERT numbers, certificate PDF, public /verify.
+          git show origin/main:lib/partnerAgreement.ts > lib/partnerAgreement.ts
+          git show origin/main:lib/partnerCertificate.ts > lib/partnerCertificate.ts
+          git show origin/main:lib/partnerAgreementFlow.ts > lib/partnerAgreementFlow.ts
+          mkdir -p "app/partner-agreement/[token]" app/api/partner-agreement/sign app/api/partner-agreement/pdf app/api/partner-certificate/pdf "app/verify/[cert]"
+          git show "origin/main:app/partner-agreement/[token]/page.tsx" > "app/partner-agreement/[token]/page.tsx"
+          git show origin/main:app/api/partner-agreement/sign/route.ts > app/api/partner-agreement/sign/route.ts
+          git show origin/main:app/api/partner-agreement/pdf/route.ts > app/api/partner-agreement/pdf/route.ts
+          git show origin/main:app/api/partner-certificate/pdf/route.ts > app/api/partner-certificate/pdf/route.ts
+          git show origin/main:app/verify/page.tsx > app/verify/page.tsx
+          git show "origin/main:app/verify/[cert]/page.tsx" > "app/verify/[cert]/page.tsx"
+          git show origin/main:components/partners/AgreementSignForm.tsx > components/partners/AgreementSignForm.tsx
+          git show origin/main:components/partners/VerifyLookup.tsx > components/partners/VerifyLookup.tsx
 
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts

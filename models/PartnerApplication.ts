@@ -120,7 +120,30 @@ export interface IPartnerApplication extends Document {
   /** Set when the MD grants an attempt, so it can be taken without the seven-day wait. */
   finalWaitWaivedAt?: Date
   assessmentPassedAt?: Date
-  /** GL-PTR-NNN, minted at countersignature of the partner agreement (later stage). */
+  agreement?: {
+    version: string
+    /** Test agreements are not binding and mint test numbers; see lib/partnerAgreement. */
+    test?: boolean
+    sentAt: Date
+    schedule: { line: string; basis: string; referral: string; sales: string }[]
+    partnerSignedAt?: Date
+    partnerSignedName?: string
+    partnerIp?: string
+    partnerUserAgent?: string
+    mdSignedAt?: Date
+    mdSignedName?: string
+  }
+  certificate?: {
+    number: string
+    title: string
+    issuedAt: Date
+    expiresAt: Date
+    test?: boolean
+    revokedAt?: Date
+    revokedBy?: string
+    revokeReason?: string
+  }
+  /** GL-PTR-NNN, minted at countersignature of the partner agreement. */
   partnerNumber?: string
   notes?: string
   timeline: ITimelineEntry[]
@@ -221,6 +244,28 @@ const PartnerApplicationSchema = new Schema<IPartnerApplication>(
     extraFinalAttempts: { type: Number, default: 0 },
     finalWaitWaivedAt: Date,
     assessmentPassedAt: Date,
+    agreement: {
+      version: String,
+      test: Boolean,
+      sentAt: Date,
+      schedule: [{ line: String, basis: String, referral: String, sales: String, _id: false }],
+      partnerSignedAt: Date,
+      partnerSignedName: String,
+      partnerIp: String,
+      partnerUserAgent: String,
+      mdSignedAt: Date,
+      mdSignedName: String,
+    },
+    certificate: {
+      number: { type: String, index: true },
+      title: String,
+      issuedAt: Date,
+      expiresAt: Date,
+      test: Boolean,
+      revokedAt: Date,
+      revokedBy: String,
+      revokeReason: String,
+    },
     partnerNumber: { type: String, sparse: true, unique: true },
     notes: String,
     timeline: [{ at: Date, by: String, action: String, note: String, _id: false }],

@@ -36,7 +36,10 @@ type Full = Omit<Row, "applicant" | "namedAccounts"> & {
   }[]
   extraFinalAttempts?: number
   assessmentPassedAt?: string
+  agreement?: { version: string; test?: boolean; sentAt: string; partnerSignedAt?: string; partnerSignedName?: string; partnerIp?: string; mdSignedAt?: string; mdSignedName?: string }
+  certificate?: { number: string; title: string; issuedAt: string; expiresAt: string; test?: boolean; revokedAt?: string; revokedBy?: string; revokeReason?: string }
 }
+type AMode = { allowed: boolean; test: boolean; reason?: string }
 type TState = {
   required: number[]; completed: Record<string, string>
   integrity: { passed: boolean; attempts: number }
@@ -97,6 +100,7 @@ export default function PartnersPanel() {
   const [notes, setNotes] = useState("")
   const [copied, setCopied] = useState(false)
   const [tstate, setTstate] = useState<TState | null>(null)
+  const [amode, setAmode] = useState<AMode | null>(null)
 
   async function load() {
     setLoading(true)
@@ -131,7 +135,7 @@ export default function PartnersPanel() {
     try {
       const r = await fetch(`/api/partners/${id}`)
       const d = await r.json()
-      if (d.application) { adopt(d.application); setTstate(d.training || null) }
+      if (d.application) { adopt(d.application); setTstate(d.training || null); setAmode(d.agreementMode || null) }
     } catch { setMsg({ ok: false, text: "Could not load the application." }) }
   }
 
@@ -150,6 +154,7 @@ export default function PartnersPanel() {
       if (!r.ok) { setMsg({ ok: false, text: d.error || "That did not save." }); return }
       adopt(d.application)
       if (d.training) setTstate(d.training)
+      if (d.agreementMode) setAmode(d.agreementMode)
       setMsg({ ok: true, text: success })
     } catch { setMsg({ ok: false, text: "Network error." }) } finally { setBusy(false) }
   }
@@ -272,7 +277,7 @@ export default function PartnersPanel() {
                             className="h-8 rounded-[4px] bg-[#0f8fb0] px-4 text-sm font-semibold text-white hover:bg-[#0b7e9b] disabled:opacity-50">Move</button>
                         </div>
                         <p className="mt-2 text-xs text-[#616161]">
-                          Moving an applicant to Training emails them their personal training link. Passing the partner assessment moves them to Agreement automatically. Active status and the GL-PTR number are set when you countersign the partner agreement (Stage 3).
+                          Moving an applicant to Training emails them their personal training link. Passing the partner assessment moves them to Agreement automatically. Active status, the GL-PTR number and the certificate are issued when you countersign the partner agreement.
                         </p>
                       </Section>
 
@@ -338,6 +343,72 @@ export default function PartnersPanel() {
                           )}
                         </Section>
                       )}
+
+                      {(detail.assessmentPassedAt || detail.agreement?.sentAt || detail.certificate?.number) && (() => {
+                        const ag = detail.agreement
+                        const c = detail.certificate
+                        const expired = c && !c.revokedAt && new Date(c.expiresAt).getTime() < Date.now()
+                        const btn = "inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#d1d1d1] bg-white px-3 text-sm font-semibold text-[#242424] hover:bg-[#f5f5f5] disabled:opacity-50"
+                        const primary = "inline-flex h-8 items-center gap-1.5 rounded-[4px] bg-[#0f8fb0] px-4 text-sm font-semibold text-white hover:bg-[#0b7e9b] disabled:opacity-50"
+                        return (
+                          <Section title="Agreement and certificate">
+                            <div className="space-y-1.5 text-sm text-[#242424]">
+                              <p>
+                                <span className="text-[#616161]">Agreement: </span>
+                                {!ag ? "Not sent yet." : <>
+                                  {ag.test && <span className="mr-1.5 rounded bg-red-50 px-1.5 py-0.5 text-xs font-bold text-[#c50f1f]">TEST</span>}
+                                  {ag.version}, sent {fmtDT(ag.sentAt)}.
+                                  {ag.partnerSignedAt ? ` Signed by the partner as \u201c${ag.partnerSignedName}\u201d ${fmtDT(ag.partnerSignedAt)}${ag.partnerIp ? ` (IP ${ag.partnerIp})` : ""}.` : " Awaiting the partner\u2019s signature."}
+                                  {ag.mdSignedAt ? ` Countersigned by ${ag.mdSignedName} ${fmtDT(ag.mdSignedAt)}.` : ""}
+                                </>}
+                              </p>
+                              {detail.partnerNumber && <p><span className="text-[#616161]">Partner number: </span><strong className="font-mono">{detail.partnerNumber}</strong></p>}
+                              {c && (
+                                <p>
+                                  <span className="text-[#616161]">Certificate: </span><strong className="font-mono">{c.number}</strong>, {c.title}, issued {fmt(c.issuedAt)}, valid until {fmt(c.expiresAt)}.{" "}
+                                  {c.revokedAt ? <span className="font-semibold text-[#c50f1f]">Revoked {fmtDT(c.revokedAt)}: {c.revokeReason}</span>
+                                    : expired ? <span className="font-semibold text-[#c50f1f]">Expired.</span>
+                                    : <span className="font-semibold text-green-700">Valid.</span>}
+                                </p>
+                              )}
+                            </div>
+                            {!ag?.mdSignedAt && amode && !amode.allowed && (
+                              <p className="mt-2 rounded-[4px] bg-amber-50 p-2 text-xs text-amber-800">{amode.reason}</p>
+                            )}
+                            {!ag?.mdSignedAt && amode?.test && (
+                              <p className="mt-2 rounded-[4px] bg-red-50 p-2 text-xs font-semibold text-[#c50f1f]">Rates not yet confirmed: this applicant is on the test list, so they receive a TEST agreement and test numbers.</p>
+                            )}
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <a className={btn} href={`/api/partner-agreement/pdf?id=${detail._id}`}>{ag?.mdSignedAt ? "Signed agreement (PDF)" : "Preview agreement (PDF)"}</a>
+                              {!ag?.partnerSignedAt && (
+                                <button type="button" className={ag ? btn : primary} disabled={busy || !detail.assessmentPassedAt || !amode?.allowed}
+                                  onClick={() => act({ action: "sendAgreement" }, `Agreement emailed to ${detail.applicant.email}.`)}>
+                                  {ag ? "Resend agreement" : "Send agreement to sign"}
+                                </button>
+                              )}
+                              {ag?.partnerSignedAt && !ag.mdSignedAt && (
+                                <button type="button" className={primary} disabled={busy}
+                                  onClick={() => { if (window.confirm(`Countersign ${detail.applicant.name}'s agreement?\n\nThis executes it, issues their partner number and certificate, makes them an Active partner, and emails them both documents.`)) act({ action: "countersign" }, "Countersigned. Partner number and certificate issued and emailed.") }}>
+                                  Countersign and issue certificate
+                                </button>
+                              )}
+                              {c && (
+                                <>
+                                  <a className={btn} href={`/api/partner-certificate/pdf?id=${detail._id}`}>Certificate (PDF)</a>
+                                  <a className={btn} href={`/verify/${encodeURIComponent(c.number)}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="size-4" /> Verification page</a>
+                                  {!c.revokedAt && <button type="button" className={btn} disabled={busy} onClick={() => act({ action: "resendDocuments" }, "Documents re-sent.")}>Resend documents</button>}
+                                  {!c.revokedAt && (
+                                    <button type="button" className={`${btn} border-red-300 text-[#c50f1f] hover:bg-red-50`} disabled={busy}
+                                      onClick={() => { const n = window.prompt("Reason for revoking this certificate (kept on the record, never shown publicly):", ""); if (n) act({ action: "revokeCertificate", note: n }, "Certificate revoked. The verification page now shows it as revoked.") }}>
+                                      Revoke certificate
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </div>
+                          </Section>
+                        )
+                      })()}
 
                       <div className="grid gap-3 lg:grid-cols-2">
                         <Section title="Applicant">
