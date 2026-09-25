@@ -4,8 +4,8 @@ import { authOptions } from '@/lib/auth'
 import { connectDB } from '@/lib/mongodb'
 import Application from '@/models/Application'
 import { verifyOfferToken } from '@/lib/offerToken'
-import { buildOfferHtml } from '@/lib/offerLetter'
-import { renderPdfFromHtml, archiveHeaderTemplate } from '@/lib/renderPdf'
+import { buildOfferDoc } from '@/lib/offerLetter'
+import { renderBrandedPdf } from '@/lib/brandedDocument'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'The offer is not yet fully executed.' }, { status: 409 })
   }
 
-  const html = buildOfferHtml({
+  const doc = buildOfferDoc({
     ref: app.ref, name: app.name, email: app.email, role: app.role,
     jobCode: app.offer.jobCode, salary: app.offer.salary, startDate: app.offer.startDate,
     deadline: app.offer.deadline, sentAt: app.offer.sentAt,
@@ -54,10 +54,7 @@ export async function GET(req: NextRequest) {
   })
 
   try {
-    const pdf = await renderPdfFromHtml(
-      `<div style="padding:0 2mm">${html}</div>`,
-      archiveHeaderTemplate('GoLive Digital Solutions \u2014 Offer of Employment', app.ref)
-    )
+    const pdf = await renderBrandedPdf(doc)
     const safeName = String(app.name).replace(/[^a-z0-9]+/gi, '_').replace(/^_|_$/g, '')
     return new NextResponse(new Uint8Array(pdf), {
       status: 200,

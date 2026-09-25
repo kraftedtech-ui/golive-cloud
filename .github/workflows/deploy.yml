@@ -341,6 +341,12 @@ jobs:
           git show origin/main:app/api/partner-commission/publish/route.ts > app/api/partner-commission/publish/route.ts
           git show origin/main:app/portal/partners/commission/page.tsx > app/portal/partners/commission/page.tsx
           git show origin/main:components/dashboard/CommissionSchedulePanel.tsx > components/dashboard/CommissionSchedulePanel.tsx
+          # Branded document template for every document signed in the portal
+          # (partner agreements, offer letters): renderer and cover artwork.
+          git show origin/main:lib/brandedDocument.ts > lib/brandedDocument.ts
+          mkdir -p public/brand
+          git cat-file blob origin/main:public/brand/doc-cover.jpg > public/brand/doc-cover.jpg
+          git cat-file blob origin/main:public/brand/doc-back.jpg > public/brand/doc-back.jpg
 
           mkdir -p app/api/save-recording
           git show origin/main:app/api/save-recording/route.ts > app/api/save-recording/route.ts

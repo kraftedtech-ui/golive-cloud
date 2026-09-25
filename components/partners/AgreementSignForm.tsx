@@ -37,6 +37,9 @@ export default function AgreementSignForm({ token, partnerName, signedAt, execut
   return (
     <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--stroke2)' }}>
       <h2 style={{ fontSize: 20 }}>Sign the agreement</h2>
+      <p className="gp-muted" style={{ margin: '-6px 0 14px' }}>
+        <a href={`/api/partner-agreement/pdf?sign=${encodeURIComponent(token)}`}>Download this agreement as a PDF</a> to read or keep a copy before signing.
+      </p>
       <label className="gp-check" style={{ marginBottom: 14 }}>
         <input type="checkbox" checked={read} onChange={(e) => setRead(e.target.checked)} />
         <span>I have read the whole agreement, including the commission schedule, and I agree to be bound by it.</span>
