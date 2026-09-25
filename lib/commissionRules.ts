@@ -3,14 +3,18 @@
  * actual margins. SERVER ONLY.
  *
  * Every line is one of three kinds:
- *   auto (Microsoft)  rate = partner share x lowest margin among the line's
- *                     active products in the latest 4Sight price list
+ *   auto (Microsoft)  rate = partner share x the line's typical margin: the
+ *                     margin at least 80% of its products earn, in the latest
+ *                     4Sight price list (margins rounded to the nearest 0.5%,
+ *                     since 4Sight's prices carry rounding noise). Products
+ *                     below it are not ignored: agreement clause 5.2 limits
+ *                     commission on them to the same share of the margin
+ *                     actually earned, as it does for discounted sales.
  *   auto (Odoo)       rate = partner share x GoLive's Odoo commission at its
  *                     current partnership level (not available until joined)
  *   manual            GoLive's own services: rates set by the MD in the editor
  *
- * Rates are rounded DOWN to the nearest 0.25 percentage points, so a partner
- * can never receive more than the chosen share on any product in the line.
+ * Rates are rounded DOWN to the nearest 0.25 percentage points.
  * Renewal rates are the first-year rate x renewalFactor.
  *
  * A change in any input (monthly price list import, Odoo level, shares)
@@ -81,12 +85,39 @@ export const LINES: LineDef[] = [
 
 export const AUTO_KEYS = new Set(LINES.filter((l) => l.source.kind !== 'manual').map((l) => rowKey(l)))
 
-export type Margins = {
-  batch: string | null
-  families: Record<Family, { min: number | null; products: number; lowest?: string }>
+export type FamilyMargin = {
+  /** The margin at least COVERAGE of the line's (non-zero) products earn. The rate is based on this. */
+  basis: number | null
+  min: number | null
+  products: number
+  lowest?: string
+  /** Products earning less than the basis: commission on them is limited under clause 5.2. */
+  below: { title: string; margin: number }[]
+  /** Products earning nothing: covered by the no-commission line. */
+  zero: string[]
+}
+export type Margins = { batch: string | null; families: Record<Family, FamilyMargin> }
+
+/** Share of a line's products whose margin the rate must be supported by. */
+export const COVERAGE = 0.8
+export const nominal = (m: number) => Math.round(m * 200) / 200
+
+/** Pure: the basis margin and exceptions for one line, from each product's lowest margin. */
+export function familyMargin(products: { title: string; margin: number }[]): FamilyMargin {
+  const byTitle = new Map<string, number>()
+  for (const p of products) byTitle.set(p.title, Math.min(byTitle.get(p.title) ?? Infinity, nominal(p.margin)))
+  const all = [...byTitle.entries()].map(([title, margin]) => ({ title, margin }))
+  const zero = all.filter((p) => p.margin <= 0).map((p) => p.title).sort()
+  const paid = all.filter((p) => p.margin > 0).sort((a, b) => a.margin - b.margin)
+  if (!paid.length) return { basis: null, min: null, products: 0, below: [], zero }
+  const basis = paid[Math.floor((1 - COVERAGE) * (paid.length - 1))].margin
+  return {
+    basis, min: paid[0].margin, products: paid.length, lowest: paid[0].title,
+    below: paid.filter((p) => p.margin < basis), zero,
+  }
 }
 export type Settings = Pick<ICommissionSettings, 'salesShare' | 'referralShare' | 'renewalFactor' | 'odooLevel'>
-export type Explain = { line: string; basis: string; auto: boolean; source: string; margin: number | null; sales: string; referral: string }
+export type Explain = { line: string; basis: string; auto: boolean; source: string; margin: number | null; sales: string; referral: string; below?: { title: string; margin: number }[] }
 
 export function formatPct(x: number): string {
   const v = Math.round(x * 10000) / 100
@@ -111,6 +142,7 @@ export function buildRows(settings: Settings, margins: Margins, existing: ISched
   for (const l of LINES) {
     const s = l.source
     let sales = '[rate]', referral = '[rate]', margin: number | null = null, source = ''
+    let explainBelow: { title: string; margin: number }[] | undefined
     if (s.kind === 'manual') {
       const p = prior.get(rowKey(l))
       sales = p?.sales || s.sales; referral = p?.referral || s.referral
@@ -128,19 +160,21 @@ export function buildRows(settings: Settings, margins: Margins, existing: ISched
         source = `Odoo ${ODOO_LEVEL_LABEL[settings.odooLevel]}: ${s.what === 'licence' ? 'licence' : 'Odoo.sh hosting'} commission`
       }
     } else {
-      const mins = s.families.map((f) => margins.families[f]?.min).filter((x): x is number => typeof x === 'number')
-      if (mins.length === s.families.length && mins.length) {
-        margin = Math.min(...mins)
+      const fams = s.families.map((f) => margins.families[f]).filter((x): x is FamilyMargin => !!x && typeof x.basis === 'number')
+      if (fams.length === s.families.length && fams.length) {
+        margin = Math.min(...fams.map((x) => x.basis as number))
         const f = l.renewal ? settings.renewalFactor : 1
         sales = rateFor(margin, settings.salesShare, f); referral = rateFor(margin, settings.referralShare, f)
-        const low = s.families.map((f) => margins.families[f]).filter((x) => x?.min === margin)[0]
-        source = `4Sight price list${margins.batch ? ` ${margins.batch}` : ''}: lowest margin${low?.lowest ? `, set by ${low.lowest}` : ''}`
+        const products = fams.reduce((n, x) => n + x.products, 0)
+        const below = fams.flatMap((x) => x.below).filter((b) => b.margin < (margin as number))
+        source = `4Sight price list${margins.batch ? ` ${margins.batch}` : ''}: ${products - below.length} of ${products} products earn ${formatPct(margin)} or more${below.length ? `; ${below.length} below it limited by clause 5.2` : ''}`
+        explainBelow = below
       } else {
         source = 'No 4Sight price list imported yet'
       }
     }
     rows.push({ line: l.line, basis: l.basis, referral, sales })
-    explain.push({ line: l.line, basis: l.basis, auto: s.kind !== 'manual', source, margin, sales, referral })
+    explain.push({ line: l.line, basis: l.basis, auto: s.kind !== 'manual', source, margin, sales, referral, below: explainBelow })
   }
   const standard = new Set(LINES.map((l) => rowKey(l)))
   for (const r of existing) if (!standard.has(rowKey(r))) rows.push({ ...r })
@@ -170,18 +204,15 @@ export async function getSettings(): Promise<ICommissionSettings> {
   return (await CommissionSettings.findOne({ key: 'partner' })) || (await CommissionSettings.create({ key: 'partner' }))
 }
 
-/** Lowest non-zero margin per family among active corporate products from 4Sight. */
+/** Basis margin and exceptions per Microsoft line, from active corporate products in the latest 4Sight list. */
 export async function computeMargins(): Promise<Margins> {
   const batchRow = (await PricingCatalog.findOne({ distributor: DISTRIBUTOR, active: true }).sort({ importBatch: -1 }).select('importBatch').lean()) as { importBatch?: string } | null
   const families = {} as Margins['families']
   for (const [k, f] of Object.entries(FAMILIES) as [Family, (typeof FAMILIES)[Family]][]) {
-    const q: Record<string, unknown> = { distributor: DISTRIBUTOR, active: true, customerType: 'corporate', retailUSD: { $gt: 0 }, marginPercent: { $gt: 0.0001 }, skuTitle: { $regex: f.pattern, $options: 'i' } }
+    const q: Record<string, unknown> = { distributor: DISTRIBUTOR, active: true, customerType: 'corporate', retailUSD: { $gt: 0 }, skuTitle: { $regex: f.pattern, $options: 'i' } }
     if (f.exclude) q.$and = [{ skuTitle: { $not: new RegExp(f.exclude, 'i') } }]
-    const [lowest, products] = await Promise.all([
-      PricingCatalog.findOne(q).sort({ marginPercent: 1 }).select('skuTitle marginPercent').lean() as Promise<{ skuTitle: string; marginPercent: number } | null>,
-      PricingCatalog.countDocuments(q),
-    ])
-    families[k] = { min: lowest ? lowest.marginPercent : null, products, lowest: lowest?.skuTitle }
+    const rows = (await PricingCatalog.find(q).select('skuTitle marginPercent').lean()) as unknown as { skuTitle: string; marginPercent: number }[]
+    families[k] = familyMargin(rows.map((r) => ({ title: r.skuTitle, margin: r.marginPercent })))
   }
   return { batch: batchRow?.importBatch || null, families }
 }

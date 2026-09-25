@@ -5,9 +5,9 @@ import { Plus, Trash2, Send, RefreshCw, History, AlertTriangle, Calculator, Lock
 type Row = { line: string; basis: string; referral: string; sales: string }
 type Change = { kind: "added" | "removed" | "changed"; line: string; basis: string; field?: "referral" | "sales"; from?: string; to?: string }
 type Version = { _id: string; version?: number; rows: Row[]; summary?: string; changes: Change[]; effectiveAt?: string; publishedBy?: string; notified?: { sent: number; failed: number } }
-type Explain = { line: string; basis: string; auto: boolean; source: string; margin: number | null; sales: string; referral: string }
+type Explain = { line: string; basis: string; auto: boolean; source: string; margin: number | null; sales: string; referral: string; below?: { title: string; margin: number }[] }
 type Settings = { salesShare: number; referralShare: number; renewalFactor: number; odooLevel: "none" | "ready" | "silver" | "gold"; updatedAt?: string; updatedBy?: string }
-type Margins = { batch: string | null; families: Record<string, { min: number | null; products: number; lowest?: string }> }
+type Margins = { batch: string | null; families: Record<string, { basis: number | null; min: number | null; products: number; lowest?: string; below: { title: string; margin: number }[]; zero: string[] }> }
 type State = {
   current: Version | null; draft: Version | null; draftChanges: Change[]; draftProblems: string[]; history: Version[]
   settings: Settings; margins: Margins; explain: Explain[]; autoKeys: string[]; guardrails: string[]
@@ -141,7 +141,8 @@ export default function CommissionSchedulePanel() {
       <div className="rounded-lg border border-[#e0e0e0] bg-white p-5">
         <h3 className="mb-1 flex items-center gap-1.5 text-base font-semibold text-[#242424]"><Calculator className="size-4" /> Automatic rates</h3>
         <p className="mb-3 text-sm text-[#424242]">
-          Microsoft and Odoo rates are worked out from your actual margins: the partner&rsquo;s share of the lowest margin in each line, rounded down to the nearest 0.25%.
+          Microsoft and Odoo rates are worked out from your actual margins: the partner&rsquo;s share of the margin at least 80% of the line&rsquo;s products earn, rounded down to the nearest 0.25%.
+          Products earning less are listed below each table; agreement clause 5.2 limits commission on them, and on any discounted sale, to the same share of the margin you actually earn.
           Each monthly 4Sight import in the Pricing Catalogue recalculates them. Any change becomes a draft and you are emailed; nothing is published without you.
         </p>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -196,6 +197,22 @@ export default function CommissionSchedulePanel() {
             </tbody>
           </table>
         </div>
+        {st.explain.some((e) => e.below && e.below.length > 0) && (
+          <div className="mt-3 space-y-1.5">
+            {st.explain.filter((e) => e.below && e.below.length > 0 && !/^Renewals/.test(e.basis)).map((e, i) => (
+              <details key={i} className="rounded-[4px] border border-[#e0e0e0] px-3 py-2 text-sm">
+                <summary className="cursor-pointer text-[#242424]"><strong>{e.line}</strong>: {e.below!.length} product{e.below!.length === 1 ? "" : "s"} below {pct(e.margin)}, commission limited by clause 5.2</summary>
+                <ul className="mt-1.5 list-disc pl-5 text-[#424242]">{e.below!.map((b, j) => <li key={j}>{b.title} <span className="text-[#616161]">({pct(b.margin)})</span></li>)}</ul>
+              </details>
+            ))}
+            {Object.values(st.margins.families).some((f) => f.zero.length > 0) && (
+              <details className="rounded-[4px] border border-[#e0e0e0] px-3 py-2 text-sm">
+                <summary className="cursor-pointer text-[#242424]"><strong>No margin</strong>: {Object.values(st.margins.families).reduce((n, f) => n + f.zero.length, 0)} products, no commission</summary>
+                <ul className="mt-1.5 list-disc pl-5 text-[#424242]">{Object.values(st.margins.families).flatMap((f) => f.zero).map((t, j) => <li key={j}>{t}</li>)}</ul>
+              </details>
+            )}
+          </div>
+        )}
         <p className="mt-2 text-xs text-[#616161]">Your margins are shown here only. Partners see the resulting rates, never the margin behind them.</p>
       </div>
 

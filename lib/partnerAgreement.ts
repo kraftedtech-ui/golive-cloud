@@ -20,7 +20,7 @@
 import { MD_NAME, MD_TITLE, COMPANY, COMPANY_RC, fmtDate, fmtDateTime } from './offerConfig'
 import { type BrandedDoc, brandedWebHtml, clause, heading, esc, rateCell } from './brandedDocument'
 
-export const AGREEMENT_VERSION = 'PSA-2026-v2'
+export const AGREEMENT_VERSION = 'PSA-2026-v3'
 
 export function testEmails(): string[] {
   return String(process.env.PARTNER_AGREEMENT_TEST_EMAILS || '')
@@ -125,7 +125,7 @@ export function buildAgreementDoc(a: AgreementView): BrandedDoc {
         html: [
           heading('5', 'Commission'),
           clause('5.1', 'For each sale to a registered prospect, the Company will pay commission at the rates in the Company&rsquo;s published commission schedule, as set out in clause 5.5. The schedule in force when this Agreement was issued is reproduced below.'),
-          clause('5.2', 'Commission is earned only on cash received by the Company, net of VAT and third-party pass-through costs. It becomes payable within 30 days of the client&rsquo;s payment clearing, less withholding tax deducted at the rate prescribed by law. The Partner must provide a Tax Identification Number before any payment is made.'),
+          clause('5.2', 'Commission is calculated on the amounts actually received by the Company from the client for the relevant line of business, excluding VAT and any item the Company resells at cost without margin. Each rate in the Schedule reflects the margin the Company usually earns on that line. Where the Company earns less on a particular sale, because the product carries a lower margin or because the Company agreed a price below its published list price, commission on that sale is limited to the same proportion of the margin the Company actually earns as the Schedule rate represents of its usual margin on that line. Commission becomes payable within 30 days of the client&rsquo;s payment clearing, less withholding tax deducted at the rate prescribed by law. The Partner must provide a Tax Identification Number before any payment is made.'),
           clause('5.3', 'Commission already paid is recoverable by the Company, by deduction or repayment, if within 90 days of payment the client cancels, obtains a refund or defaults.'),
           clause('5.4', 'No commission is payable on any sale obtained in breach of this Agreement. Overstating a client&rsquo;s requirements to increase the value of a sale, including the number of users, is a breach that makes the related commission recoverable in full.'),
           clause('5.5', 'The Company may change the Schedule at any time, with effect from its publication in the Company&rsquo;s portal, and will notify the Partner of each change by email and in the portal. Commission on a sale&rsquo;s first year is paid at the rates in force on the date its prospect was registered, provided the registration was valid when the sale closed. Renewal commission is paid at the rates in force on the date of each renewal. A lapsed registration carries no rate, and any later registration of the same prospect carries the rates in force at that later date.'),
