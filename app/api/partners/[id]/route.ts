@@ -207,10 +207,16 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
     return NextResponse.json({ error: `Type the reference ${app.ref} exactly to confirm deletion.` }, { status: 400 })
   }
   const { default: DealRegistration } = await import('@/models/DealRegistration')
-  const won = await DealRegistration.countDocuments({ partnerApplication: app._id, status: 'won' })
-  if (won) return NextResponse.json({ error: `This partner has ${won} won deal${won === 1 ? '' : 's'}; commission may be owed, so the record cannot be deleted. Withdraw it instead.` }, { status: 409 })
+  const { default: PartnerCommission } = await import('@/models/PartnerCommission')
+  const { default: WhmcsInvoiceEvent } = await import('@/models/WhmcsInvoiceEvent')
+  // Money actually paid to the partner is a real payout: that record must stay.
+  const paid = await PartnerCommission.countDocuments({ partnerApplication: app._id, status: 'paid' })
+  if (paid) return NextResponse.json({ error: `Commission has been paid to this partner (${paid} line${paid === 1 ? '' : 's'}), so the record cannot be deleted. Withdraw it instead.` }, { status: 409 })
+  const dealIds = (await DealRegistration.find({ partnerApplication: app._id }).select('_id').lean()).map((d) => d._id)
+  const lines = await PartnerCommission.deleteMany({ partnerApplication: app._id })
+  const events = await WhmcsInvoiceEvent.deleteMany({ deal: { $in: dealIds } })
   const deals = await DealRegistration.deleteMany({ partnerApplication: app._id })
   await app.deleteOne()
-  console.warn(`[partners] ${auth.email || auth.name} deleted ${app.ref} (${app.applicant.name}, ${app.partnerNumber || 'no partner number'}, ${app.certificate?.number || 'no certificate'}) and ${deals.deletedCount} deal registration(s)`)
-  return NextResponse.json({ ok: true, deletedDeals: deals.deletedCount })
+  console.warn(`[partners] ${auth.email || auth.name} deleted ${app.ref} (${app.applicant.name}, ${app.partnerNumber || 'no partner number'}, ${app.certificate?.number || 'no certificate'}), ${deals.deletedCount} deal registration(s), ${lines.deletedCount} unpaid commission line(s), ${events.deletedCount} billing event(s)`)
+  return NextResponse.json({ ok: true, deletedDeals: deals.deletedCount, deletedCommission: lines.deletedCount })
 }

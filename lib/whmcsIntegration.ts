@@ -51,9 +51,18 @@ export function verifyWhmcsSignature(raw: string, timestamp: string | null, sign
   return a.length === b.length && crypto.timingSafeEqual(a, b)
 }
 
-/** Pure: which items earn commission, and their total. Domain items never do. */
+/**
+ * Pure: which items earn commission, and their total. Domain items never do.
+ * WHMCS types items from domain orders DomainRegister/DomainTransfer/Domain...,
+ * but lines typed by hand on an invoice have no type, so the word "domain" in
+ * the description also excludes an item. Hosting lines name the domain they
+ * serve (e.g. "GoLive Advanced - acme.com.ng") without the word "domain".
+ */
+export const isDomainItem = (i: { type?: string; description?: string }) =>
+  /^domain/i.test(i.type || '') || /\bdomains?\b/i.test(i.description || '')
+
 export function commissionableItems(items: WhmcsPayload['items']) {
-  const counted = items.filter((i) => !/^domain/i.test(i.type || '') && Number(i.amount) > 0)
+  const counted = items.filter((i) => !isDomainItem(i) && Number(i.amount) > 0)
   const excluded = items.filter((i) => !counted.includes(i))
   return { counted, excluded, amount: Math.round(counted.reduce((s, i) => s + Number(i.amount), 0) * 100) / 100 }
 }

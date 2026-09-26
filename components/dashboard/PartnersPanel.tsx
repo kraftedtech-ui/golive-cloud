@@ -545,7 +545,7 @@ export default function PartnersPanel() {
                       </div>
 
                       <Section title="Delete record">
-                        <p className="mb-2 text-xs text-[#616161]">For test records only. Permanently removes this application and its deal registrations, and frees its partner and certificate numbers. Refused if any deal has been won; withdraw a real partner instead.</p>
+                        <p className="mb-2 text-xs text-[#616161]">For test records only. Permanently removes this application and its deal registrations, and frees its partner and certificate numbers. Unpaid commission lines go with it; refused once any commission has been paid to the partner. Withdraw a real partner instead.</p>
                         <button type="button" disabled={busy}
                           className="inline-flex h-8 items-center rounded-[4px] border border-red-300 bg-white px-3 text-sm font-semibold text-[#c50f1f] hover:bg-red-50 disabled:opacity-50"
                           onClick={async () => {
