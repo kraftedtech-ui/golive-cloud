@@ -12,7 +12,7 @@ type Eval = { ok: boolean; error?: string; rateText?: string; band?: string; rat
 
 const naira = (n: number) => `\u20a6${n.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const pct = (p: number) => `${Number((p * 100).toFixed(3))}%`
-const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "\u2014")
+const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }) : "\u2014")
 const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" })
 const input = "h-8 w-full rounded-[4px] border border-[#d1d1d1] bg-white px-2 text-sm"
 const btn = "inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#d1d1d1] bg-white px-3 text-sm font-semibold text-[#242424] hover:bg-[#f5f5f5] disabled:opacity-50"

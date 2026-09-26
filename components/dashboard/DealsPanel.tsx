@@ -21,7 +21,7 @@ const TONE: Record<string, string> = {
 }
 const MS: Record<string, string> = { meeting: "Meeting attended by GoLive", quotation: "GoLive quotation or proposal", written_confirmation: "Prospect's written confirmation to GoLive" }
 const KIND: Record<string, string> = { customer: "Existing customer", lead: "In sales pipeline", partner: "Another partner" }
-const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "\u2014")
+const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Africa/Lagos" }) : "\u2014")
 const fmtDT = (d?: string) => (d ? new Date(d).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }) + " WAT" : "\u2014")
 const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" })
 const btn = "inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#d1d1d1] bg-white px-3 text-sm font-semibold text-[#242424] hover:bg-[#f5f5f5] disabled:opacity-50"

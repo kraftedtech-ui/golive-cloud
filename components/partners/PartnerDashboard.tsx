@@ -24,7 +24,7 @@ type Data = {
   }[]
 }
 
-const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '')
+const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Africa/Lagos' }) : '')
 const naira = (n?: number) => (typeof n === 'number' ? `\u20a6${n.toLocaleString('en-NG')}` : '')
 const TONE: Record<string, string> = { pending: '#8a5100', active: '#0e700e', lapsed: '#c50f1f', refused: '#c50f1f', won: '#0b7e9b', lost: '#616161', released: '#616161' }
 const EMPTY = { organisation: '', sector: '', contactName: '', contactRole: '', contactEmail: '', contactPhone: '', lineOfBusiness: '', requirement: '', expectedClose: '', estimatedValue: '' }
