@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import { connectDB } from '@/lib/mongodb'
-import { requireAdmin } from '@/lib/apiAuth'
+import { requireAdmin, requireRole, forbiddenAction } from '@/lib/apiAuth'
 import DealRegistration from '@/models/DealRegistration'
 import PartnerCommission from '@/models/PartnerCommission'
 import { versionRows, evaluatePayment, recordPartnerPayment, type PaymentInput } from '@/lib/partnerCommissionLedger'
@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'
  * current version). GET with no deal: every line, newest first.
  */
 export async function GET(req: NextRequest) {
-  const auth = await requireAdmin()
+  const auth = await requireRole(['admin', 'operations'])
   if (auth instanceof NextResponse) return auth
   await connectDB()
   const dealId = req.nextUrl.searchParams.get('deal')
@@ -34,11 +34,12 @@ export async function GET(req: NextRequest) {
 
 /** Admin: preview ({ preview: true }) or record a payment received. */
 export async function POST(req: NextRequest) {
-  const auth = await requireAdmin()
+  const auth = await requireRole(['admin', 'operations'])
   if (auth instanceof NextResponse) return auth
   let body: PaymentInput & { preview?: boolean }
   try { body = await req.json() } catch { return NextResponse.json({ error: 'Bad request' }, { status: 400 }) }
   if (!mongoose.isValidObjectId(body.dealId)) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (!body.preview && auth.role !== 'admin') return forbiddenAction('record a commission payment')
   await connectDB()
   if (body.preview) {
     const e = await evaluatePayment(body)

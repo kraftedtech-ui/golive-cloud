@@ -1,4 +1,5 @@
 "use client"
+import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Banknote } from "lucide-react"
 
@@ -24,6 +25,8 @@ const STATUS: Record<string, string> = { accrued: "Accrued", paid: "Paid", clawe
  * server (lib/partnerCommissionLedger), so the preview is exactly what gets recorded.
  */
 export default function DealCommission({ dealId, lineOfBusiness, validAtClose, whmcsClientId, whmcsLine, onChanged }: { dealId: string; lineOfBusiness?: string; validAtClose?: boolean; whmcsClientId?: number; whmcsLine?: string; onChanged?: () => void }) {
+  const { data: session } = useSession()
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "admin"
   const [entries, setEntries] = useState<Entry[]>([])
   const [opts, setOpts] = useState<{ firstYear: { version: number; rows: Row[] } | null; renewal: { version: number; rows: Row[] } | null; category: string } | null>(null)
   const [f, setF] = useState({ kind: validAtClose ? "first_year" : "renewal", rowIndex: -1, receivedAt: today(), amount: "", contractValue: "", invoiceReference: "", actualMargin: "", usualMargin: "", wht: "5", note: "" })
@@ -107,7 +110,7 @@ export default function DealCommission({ dealId, lineOfBusiness, validAtClose, w
   return (
     <div className="rounded-lg border border-[#e0e0e0] bg-white p-3">
       <p className="mb-2 flex items-center gap-1.5 font-semibold"><Banknote className="size-4" /> Payments received and commission</p>
-      <div className="mb-3 rounded-[4px] border border-[#e0e0e0] p-2.5">
+      {isAdmin && <div className="mb-3 rounded-[4px] border border-[#e0e0e0] p-2.5">
         <p className="mb-1.5 text-xs font-semibold text-[#424242]">GoLive Naija billing (automatic)</p>
         <div className="flex flex-wrap items-end gap-2">
           <label className="text-xs text-[#424242]">WHMCS client ID<input className={`${input} mt-1 w-36`} inputMode="numeric" placeholder="e.g. 1234" value={wh.clientId} onChange={(e) => setWh({ ...wh, clientId: e.target.value.replace(/\D/g, "") })} /></label>
@@ -120,7 +123,7 @@ export default function DealCommission({ dealId, lineOfBusiness, validAtClose, w
           {whmcsClientId ? <button type="button" className={btn} disabled={busy} onClick={() => linkWhmcs(true)}>Remove link</button> : null}
         </div>
         <p className="mt-1 text-xs text-[#616161]">{whmcsClientId ? `Linked to client ${whmcsClientId}: each paid invoice records commission automatically (domain items excluded).` : "The client ID is the number after userid= in the client's profile address in the WHMCS admin area."}</p>
-      </div>
+      </div>}
 
       {invoices.length > 0 && (
         <label className="mb-2 block text-xs font-semibold text-[#424242]">Fill from a portal invoice
@@ -160,7 +163,7 @@ export default function DealCommission({ dealId, lineOfBusiness, validAtClose, w
       <p className="mt-1.5 text-xs text-[#616161]">Withholding tax defaults to 5%; confirm the correct rate for this partner with your accountant. Enter your actual margin only when it is below the line&rsquo;s usual margin (a discount or low-margin product); clause 5.2 then limits the commission.</p>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <button type="button" className={btn} disabled={busy || f.rowIndex < 0 || !f.amount} onClick={preview}>Preview commission</button>
-        <button type="button" className={primary} disabled={busy || !ev?.ok} onClick={record}>Record payment</button>
+        {isAdmin ? <button type="button" className={primary} disabled={busy || !ev?.ok} onClick={record}>Record payment</button> : <span className="text-xs text-[#616161]">Preview only: the administrator records payments.</span>}
       </div>
       {ev && (
         <div className={`mt-2 rounded-[4px] p-2 text-sm ${ev.ok ? "bg-[#f3f8f9]" : "bg-red-50 text-[#c50f1f]"}`}>
@@ -184,8 +187,8 @@ export default function DealCommission({ dealId, lineOfBusiness, validAtClose, w
                 <td className="pr-2">{naira(e.net)}</td>
                 <td className="pr-2">{STATUS[e.status]}{e.status === "accrued" ? <div className="text-[#616161]">due {fmt(e.dueAt)}</div> : e.status === "paid" ? <div className="text-[#616161]">{fmt(e.paidAt)} · {e.paymentReference}</div> : <div className="text-[#616161]">{e.clawbackReason}</div>}</td>
                 <td className="whitespace-nowrap">
-                  {e.status === "accrued" && <button type="button" className={`${btn} h-7 text-xs`} disabled={busy} onClick={() => { const ref = window.prompt("Payment reference (bank transfer or voucher):", ""); if (ref) act(e._id, { action: "paid", reference: ref, paidAt: today() }, `${e.ref} marked paid.`) }}>Mark paid</button>}
-                  {e.status !== "clawed_back" && new Date(e.clawbackUntil).getTime() > Date.now() && <button type="button" className={`${btn} ml-1 h-7 text-xs`} disabled={busy} onClick={() => { const r = window.prompt("Reason: cancellation, refund or default within 90 days of payment:", ""); if (r) act(e._id, { action: "clawback", reason: r }, `${e.ref} clawed back.`) }}>Claw back</button>}
+                  {isAdmin && e.status === "accrued" && <button type="button" className={`${btn} h-7 text-xs`} disabled={busy} onClick={() => { const ref = window.prompt("Payment reference (bank transfer or voucher):", ""); if (ref) act(e._id, { action: "paid", reference: ref, paidAt: today() }, `${e.ref} marked paid.`) }}>Mark paid</button>}
+                  {isAdmin && e.status !== "clawed_back" && new Date(e.clawbackUntil).getTime() > Date.now() && <button type="button" className={`${btn} ml-1 h-7 text-xs`} disabled={busy} onClick={() => { const r = window.prompt("Reason: cancellation, refund or default within 90 days of payment:", ""); if (r) act(e._id, { action: "clawback", reason: r }, `${e.ref} clawed back.`) }}>Claw back</button>}
                 </td>
               </tr>
             ))}</tbody>

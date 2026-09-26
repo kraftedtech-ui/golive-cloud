@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import { connectDB } from '@/lib/mongodb'
-import { requireAdmin } from '@/lib/apiAuth'
+import { requireAdmin, requireRole, forbiddenAction } from '@/lib/apiAuth'
+import { OPS_PARTNER_ACTIONS, OPS_STAGES } from '@/lib/roles'
 import PartnerApplication, { PARTNER_STAGES, type PartnerStage } from '@/models/PartnerApplication'
 import { findConflicts } from '@/lib/partners'
 import { STAGE_LABELS } from '@/lib/partnerConfig'
@@ -24,7 +25,7 @@ async function load(id: string) {
 
 /** Admin: the full application. */
 export async function GET(_req: NextRequest, { params }: Ctx) {
-  const auth = await requireAdmin()
+  const auth = await requireRole(['admin', 'operations'])
   if (auth instanceof NextResponse) return auth
   const { id } = await params
   const app = await load(id)
@@ -50,7 +51,7 @@ export async function GET(_req: NextRequest, { params }: Ctx) {
  * Moving an applicant to the Training stage sends the training link automatically.
  */
 export async function PATCH(req: NextRequest, { params }: Ctx) {
-  const auth = await requireAdmin()
+  const auth = await requireRole(['admin', 'operations'])
   if (auth instanceof NextResponse) return auth
   const { id } = await params
   const app = await load(id)
@@ -62,6 +63,12 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const note = String(body.note || '').trim().slice(0, 1000) || undefined
   const now = new Date()
 
+  // Operations manages partners but never signs, approves or decides (lib/roles.ts).
+  if (auth.role !== 'admin') {
+    const act = String(body.action || '')
+    if (!(OPS_PARTNER_ACTIONS as readonly string[]).includes(act)) return forbiddenAction('take this action on a partner application')
+    if (act === 'stage' && !(OPS_STAGES as readonly string[]).includes(String(body.status || ''))) return forbiddenAction('move an applicant to that stage')
+  }
   switch (body.action) {
     case 'stage': {
       const status = String(body.status || '') as PartnerStage

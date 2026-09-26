@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { canManagePartners } from '@/lib/roles'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { Topbar } from '@/components/dashboard/topbar'
 import PartnersPanel from '@/components/dashboard/PartnersPanel'
@@ -14,7 +15,7 @@ export const dynamic = 'force-dynamic'
 export default async function PortalPartnersPage() {
   const session = await getServerSession(authOptions)
   if (!session?.user) redirect('/portal/login')
-  if ((session.user as { role?: string }).role !== 'admin') redirect('/portal')
+  if (!canManagePartners((session.user as { role?: string }).role)) redirect('/portal')
 
   return (
     <div data-theme="portal" className="min-h-screen bg-background">

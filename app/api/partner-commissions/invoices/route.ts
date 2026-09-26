@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import { connectDB } from '@/lib/mongodb'
-import { requireAdmin } from '@/lib/apiAuth'
+import { requireAdmin, requireRole, forbiddenAction } from '@/lib/apiAuth'
 import DealRegistration from '@/models/DealRegistration'
 import PartnerCommission from '@/models/PartnerCommission'
 import { SalesDocument } from '@/models/SalesDocument'
@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic'
  * margin comes from the gross profit snapshotted on the invoice at acceptance.
  */
 export async function GET(req: NextRequest) {
-  const auth = await requireAdmin()
+  const auth = await requireRole(['admin', 'operations'])
   if (auth instanceof NextResponse) return auth
   const id = req.nextUrl.searchParams.get('deal') || ''
   if (!mongoose.isValidObjectId(id)) return NextResponse.json({ error: 'Not found' }, { status: 404 })

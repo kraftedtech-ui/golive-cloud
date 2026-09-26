@@ -8,6 +8,7 @@ import {
   AlertTriangle, ShieldCheck, GraduationCap, Award, ExternalLink, Handshake, Percent,
   ChevronDown, type LucideIcon,
 } from "lucide-react"
+import { SUPPORT_HIDDEN_MENU } from "@/lib/roles"
 import { cn } from "@/lib/utils"
 
 /**
@@ -24,7 +25,7 @@ import { cn } from "@/lib/utils"
  *   so panel items link back to /portal#key, which the portal opens directly.
  */
 
-type NavItem = { label: string; icon: LucideIcon; key: string; adminOnly?: boolean; href?: string }
+type NavItem = { label: string; icon: LucideIcon; key: string; adminOnly?: boolean; roles?: string[]; href?: string }
 type NavSection = { heading: string | null; items: NavItem[] }
 
 const sections: NavSection[] = [
@@ -65,9 +66,9 @@ const sections: NavSection[] = [
   {
     heading: "Partner Network",
     items: [
-      { label: "Partner applications", icon: Handshake, key: "partners", adminOnly: true, href: "/portal/partners" },
-      { label: "Deal registrations", icon: ClipboardCheck, key: "partner_deals", adminOnly: true, href: "/portal/partners/deals" },
-      { label: "Commission schedule", icon: Percent, key: "partner_commission", adminOnly: true, href: "/portal/partners/commission" },
+      { label: "Partner applications", icon: Handshake, key: "partners", roles: ["admin", "operations"], href: "/portal/partners" },
+      { label: "Deal registrations", icon: ClipboardCheck, key: "partner_deals", roles: ["admin", "operations"], href: "/portal/partners/deals" },
+      { label: "Commission schedule", icon: Percent, key: "partner_commission", roles: ["admin", "operations"], href: "/portal/partners/commission" },
     ],
   },
   {
@@ -118,7 +119,7 @@ export function Sidebar({ active, onNavigate }: { active: string; onNavigate?: (
   }
 
   const visible = sections
-    .map((s) => ({ ...s, items: s.items.filter((i) => !i.adminOnly || role === "admin") }))
+    .map((s) => ({ ...s, items: s.items.filter((i) => (!i.adminOnly || role === "admin") && (!i.roles || i.roles.includes(role)) && !(role === "support" && (SUPPORT_HIDDEN_MENU as readonly string[]).includes(i.key))) }))
     .filter((s) => s.items.length > 0)
 
   const Item = ({ item }: { item: NavItem }) => {

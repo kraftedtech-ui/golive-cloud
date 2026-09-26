@@ -1,4 +1,5 @@
 "use client"
+import { useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { Plus, Trash2, Send, RefreshCw, History, AlertTriangle, Calculator, Lock } from "lucide-react"
 
@@ -48,6 +49,8 @@ function RatesTable({ rows }: { rows: Row[] }) {
 }
 
 export default function CommissionSchedulePanel() {
+  const { data: session } = useSession()
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "admin"
   const [st, setSt] = useState<State | null>(null)
   const [rows, setRows] = useState<Row[]>([])
   const [summary, setSummary] = useState("")
@@ -164,7 +167,7 @@ export default function CommissionSchedulePanel() {
             </select>
           </label>
         </div>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className={`mt-3 flex flex-wrap gap-2 ${isAdmin ? "" : "hidden"}`}>
           <button type="button" className={sfDirty ? primary : btn} disabled={busy || !sfDirty} onClick={saveSettings}>Save settings and recalculate</button>
           <button type="button" className={btn} disabled={busy} onClick={recalc}><RefreshCw className="size-4" /> Recalculate now</button>
           <span className="self-center text-xs text-[#616161]">
@@ -216,7 +219,7 @@ export default function CommissionSchedulePanel() {
         <p className="mt-2 text-xs text-[#616161]">Your margins are shown here only. Partners see the resulting rates, never the margin behind them.</p>
       </div>
 
-      <div className="rounded-lg border border-[#e0e0e0] bg-white p-5">
+      {isAdmin && <div className="rounded-lg border border-[#e0e0e0] bg-white p-5">
         {!st.draft ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-[#424242]">{st.current ? "To change the rates, start a new version. It begins as a copy of the current one." : "Start the first version from the standard product lines, then fill in each rate."}</p>
@@ -283,7 +286,7 @@ export default function CommissionSchedulePanel() {
             </div>
           </>
         )}
-      </div>
+      </div>}
 
       {st.current && (
         <div className="rounded-lg border border-[#e0e0e0] bg-white p-5">

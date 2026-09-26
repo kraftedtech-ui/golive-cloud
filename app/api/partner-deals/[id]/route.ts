@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import { connectDB } from '@/lib/mongodb'
-import { requireAdmin } from '@/lib/apiAuth'
+import { requireAdmin, requireRole, forbiddenAction } from '@/lib/apiAuth'
+import { OPS_DEAL_ACTIONS } from '@/lib/roles'
 import DealRegistration, { MILESTONE_KINDS, type MilestoneKind } from '@/models/DealRegistration'
 import { computeValidity, dealConflict, refreshLapse, notifyDecision, notifyMilestone, MILESTONE_LABEL } from '@/lib/dealRegistration'
 import { currentSchedule } from '@/lib/commissionSchedule'
@@ -20,7 +21,7 @@ type Ctx = { params: Promise<{ id: string }> }
  *   linkWhmcs { clientId, line? }   GoLive Naija billing client; clientId null removes the link
  */
 export async function PATCH(req: NextRequest, { params }: Ctx) {
-  const auth = await requireAdmin()
+  const auth = await requireRole(['admin', 'operations'])
   if (auth instanceof NextResponse) return auth
   const { id } = await params
   if (!mongoose.isValidObjectId(id)) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -34,6 +35,9 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const now = new Date()
   refreshLapse(d, now)
 
+  if (auth.role !== 'admin' && !(OPS_DEAL_ACTIONS as readonly string[]).includes(String(body.action || ''))) {
+    return forbiddenAction('approve, refuse, extend, close or link a deal registration')
+  }
   switch (body.action) {
     case 'approve': {
       if (d.status !== 'pending') return NextResponse.json({ error: 'Only a registration awaiting approval can be approved.' }, { status: 409 })

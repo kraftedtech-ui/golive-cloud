@@ -9,7 +9,7 @@
  * this map is what keeps the portal agreeing with the contract.
  */
 
-export type PortalRole = 'admin' | 'sales' | 'viewer'
+export type PortalRole = 'admin' | 'operations' | 'sales' | 'support' | 'viewer'
 
 export interface RoleAccess {
   portalRole: PortalRole
@@ -19,19 +19,19 @@ export interface RoleAccess {
 
 export const ROLE_ACCESS: Record<string, RoleAccess> = {
   'Operations Coordinator': {
-    portalRole: 'viewer',
+    portalRole: 'operations',
     commissionEligible: false,
-    note: 'Administration and coordination. Read-only portal visibility; registers and filing live in Microsoft 365.',
+    note: 'Operations: customer onboarding, payment follow-up and partner management, without signing or approving (SOP 2).',
   },
   'Social Media & Community Manager': {
-    portalRole: 'viewer',
+    portalRole: 'sales',
     commissionEligible: false,
-    note: 'Marketing role; no commercial record access required.',
+    note: 'Logs social media enquiries as leads (SOP 4); no commission.',
   },
   'Hosting Support Technician': {
-    portalRole: 'viewer',
+    portalRole: 'support',
     commissionEligible: false,
-    note: 'Support role; hosting systems are separate from the portal.',
+    note: 'Support: deployments, transfer requests, customer accounts (read), knowledge base (SOP 5). WHMCS is separate.',
   },
   'Full Stack Engineer': {
     portalRole: 'viewer',

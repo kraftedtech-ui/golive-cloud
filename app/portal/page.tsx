@@ -2333,6 +2333,8 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
                 <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Role *</label>
                 <select className={inp} value={form.role} onChange={e => setForm(f => ({...f, role: e.target.value}))}>
                   <option value="sales">Sales — leads, pipeline, proposals</option>
+                  <option value="operations">Operations — sales access plus partner management, no signing</option>
+                  <option value="support">Support — deployments, transfers, customer accounts (read), knowledge base</option>
                   <option value="admin">Admin — full access including team management</option>
                   <option value="viewer">Viewer — read-only</option>
                 </select>
@@ -2361,7 +2363,7 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-[#0d2233]">Role</label>
                 <select className={inp} value={editForm.role} onChange={e => setEditForm(f => ({...f, role: e.target.value}))}>
-                  <option value="sales">Sales</option><option value="admin">Admin</option><option value="viewer">Viewer</option>
+                  <option value="sales">Sales</option><option value="operations">Operations</option><option value="support">Support</option><option value="admin">Admin</option><option value="viewer">Viewer</option>
                 </select>
               </div>
               <div>

@@ -1,6 +1,8 @@
 "use client"
+import { useSession } from "next-auth/react"
 import { useEffect, useMemo, useState } from "react"
 import { RefreshCw, ChevronDown, ChevronUp, AlertTriangle, Copy, ExternalLink, ShieldCheck, Check, X, RotateCcw } from "lucide-react"
+import { OPS_STAGES } from "@/lib/roles"
 import { STAGE_LABELS, STAGE_ORDER, CATEGORY_INFO, DECLARATIONS, ACKNOWLEDGEMENTS } from "@/lib/partnerConfig"
 import { MODULES, ASSESSMENT_RULES } from "@/lib/partnerTraining"
 
@@ -88,6 +90,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function PartnersPanel() {
+  const { data: session } = useSession()
+  // Operations manages partners but never signs or decides (lib/roles.ts); the server enforces the same.
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "admin"
   const [rows, setRows] = useState<Row[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>("open")
@@ -266,9 +271,9 @@ export default function PartnersPanel() {
                           <label className="flex flex-col text-xs font-semibold text-[#424242]">Move to
                             <select value={nextStage} onChange={(e) => setNextStage(e.target.value)} className="mt-1 h-8 rounded-[4px] border border-[#d1d1d1] bg-white px-2 text-sm font-normal">
                               <option value="">Choose a stage</option>
-                              {STAGE_ORDER.filter((s) => s !== "active" && s !== detail.status).map((s) => <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
-                              <option value="declined">Declined</option>
-                              <option value="withdrawn">Withdrawn</option>
+                              {STAGE_ORDER.filter((s) => s !== "active" && s !== detail.status && (isAdmin || (OPS_STAGES as readonly string[]).includes(s))).map((s) => <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
+                              {isAdmin && <option value="declined">Declined</option>}
+                              {isAdmin && <option value="withdrawn">Withdrawn</option>}
                             </select>
                           </label>
                           <label className="flex min-w-[240px] flex-1 flex-col text-xs font-semibold text-[#424242]">Note for the timeline (optional)
@@ -336,11 +341,12 @@ export default function PartnersPanel() {
                                 Partner assessment: {tstate.final.attempts} of {tstate.final.allowed} attempts used.
                                 {tstate.final.availableFrom ? ` Next attempt opens ${fmt(tstate.final.availableFrom)}.` : tstate.final.canBegin ? " Next attempt available now." : ""}
                               </span>
+                              {isAdmin && (
                               <button type="button" disabled={busy}
                                 onClick={() => { const n = window.prompt("Reason for granting an extra attempt (recorded on the timeline):", ""); if (n !== null) act({ action: "grantAttempt", note: n }, "Extra attempt granted; available now.") }}
                                 className="inline-flex h-7 items-center rounded-[4px] border border-[#d1d1d1] bg-white px-2.5 font-semibold text-[#242424] hover:bg-[#f5f5f5] disabled:opacity-50">
                                 Grant an extra attempt now
-                              </button>
+                              </button>)}
                             </div>
                           )}
                         </Section>
@@ -387,13 +393,13 @@ export default function PartnersPanel() {
                             )}
                             <div className="mt-3 flex flex-wrap gap-2">
                               <a className={btn} href={`/api/partner-agreement/pdf?id=${detail._id}`}>{ag?.mdSignedAt ? "Signed agreement (PDF)" : "Preview agreement (PDF)"}</a>
-                              {!ag?.partnerSignedAt && (
+                              {isAdmin && !ag?.partnerSignedAt && (
                                 <button type="button" className={ag ? btn : primary} disabled={busy || !detail.assessmentPassedAt || !amode?.allowed}
                                   onClick={() => act({ action: "sendAgreement" }, `Agreement emailed to ${detail.applicant.email}.`)}>
                                   {ag ? "Resend agreement" : "Send agreement to sign"}
                                 </button>
                               )}
-                              {ag?.partnerSignedAt && !ag.mdSignedAt && (
+                              {isAdmin && ag?.partnerSignedAt && !ag.mdSignedAt && (
                                 <button type="button" className={primary} disabled={busy}
                                   onClick={() => { if (window.confirm(`Countersign ${detail.applicant.name}'s agreement?\n\nThis executes it, issues their partner number and certificate, makes them an Active partner, and emails them both documents.`)) act({ action: "countersign" }, "Countersigned. Partner number and certificate issued and emailed.") }}>
                                   Countersign and issue certificate
@@ -404,7 +410,7 @@ export default function PartnersPanel() {
                                   <a className={btn} href={`/api/partner-certificate/pdf?id=${detail._id}`}>Certificate (PDF)</a>
                                   <a className={btn} href={`/verify/${encodeURIComponent(c.number)}`} target="_blank" rel="noopener noreferrer"><ExternalLink className="size-4" /> Verification page</a>
                                   {!c.revokedAt && <button type="button" className={btn} disabled={busy} onClick={() => act({ action: "resendDocuments" }, "Documents re-sent.")}>Resend documents</button>}
-                                  {!c.revokedAt && (
+                                  {isAdmin && !c.revokedAt && (
                                     <button type="button" className={`${btn} border-red-300 text-[#c50f1f] hover:bg-red-50`} disabled={busy}
                                       onClick={() => { const n = window.prompt("Reason for revoking this certificate (kept on the record, never shown publicly):", ""); if (n) act({ action: "revokeCertificate", note: n }, "Certificate revoked. The verification page now shows it as revoked.") }}>
                                       Revoke certificate
@@ -465,7 +471,9 @@ export default function PartnersPanel() {
                                   )}
                                 </div>
                                 <div className="flex shrink-0 items-center gap-1.5">
-                                  {a.decision === "pending" || !a.decision ? (
+                                  {!isAdmin ? (
+                                    <span className="text-xs text-[#616161]">{a.decision === "registered" ? "Registered" : a.decision === "refused" ? "Refused" : "Awaiting the administrator"}</span>
+                                  ) : a.decision === "pending" || !a.decision ? (
                                     <>
                                       <button type="button" disabled={busy} onClick={() => decide(a, "registered")}
                                         className="inline-flex h-7 items-center gap-1 rounded-[4px] border border-green-300 bg-white px-2.5 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-50">
@@ -544,7 +552,7 @@ export default function PartnersPanel() {
                         </Section>
                       </div>
 
-                      <Section title="Delete record">
+                      {isAdmin && <Section title="Delete record">
                         <p className="mb-2 text-xs text-[#616161]">For test records only. Permanently removes this application and its deal registrations, and frees its partner and certificate numbers. Unpaid commission lines go with it; refused once any commission has been paid to the partner. Withdraw a real partner instead.</p>
                         <button type="button" disabled={busy}
                           className="inline-flex h-8 items-center rounded-[4px] border border-red-300 bg-white px-3 text-sm font-semibold text-[#c50f1f] hover:bg-red-50 disabled:opacity-50"
@@ -559,7 +567,7 @@ export default function PartnersPanel() {
                               setRows((p) => p.filter((x) => x._id !== detail._id)); setOpen(null); setDetail(null)
                             } catch { setMsg({ ok: false, text: "Network error." }) } finally { setBusy(false) }
                           }}>Delete record</button>
-                      </Section>
+                      </Section>}
 
                       <Section title="Timeline">
                         <ol className="space-y-1.5">

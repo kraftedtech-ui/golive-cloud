@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
-import { requireAdmin } from '@/lib/apiAuth'
+import { requireAdmin, requireRole, forbiddenAction } from '@/lib/apiAuth'
 import CommissionSchedule from '@/models/CommissionSchedule'
 import { cleanRows, currentSchedule, diffRows, publishProblems } from '@/lib/commissionSchedule'
 import { buildRows, computeMargins, getSettings, guardrails, AUTO_KEYS, ODOO_MARGINS } from '@/lib/commissionRules'
@@ -34,7 +34,7 @@ async function state() {
 
 /** Admin: current version, the draft (if any) with its changes and problems, and every published version. */
 export async function GET() {
-  const auth = await requireAdmin()
+  const auth = await requireRole(['admin', 'operations'])
   if (auth instanceof NextResponse) return auth
   await connectDB()
   return NextResponse.json(await state())

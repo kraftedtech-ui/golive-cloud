@@ -42,3 +42,21 @@ export async function requireAdmin(): Promise<SessionUser | NextResponse> {
   }
   return result
 }
+
+/**
+ * Requires one of the given roles, e.g. requireRole(['admin', 'operations']).
+ * Returns the SessionUser, or a 401/403 response to return immediately.
+ */
+export async function requireRole(roles: readonly string[]): Promise<SessionUser | NextResponse> {
+  const result = await requireSession()
+  if (result instanceof NextResponse) return result
+  if (!result.role || !roles.includes(result.role)) {
+    return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
+  }
+  return result
+}
+
+/** A 403 for an action the caller's role may not take, naming who can. */
+export function forbiddenAction(what: string): NextResponse {
+  return NextResponse.json({ success: false, error: `Only an administrator can ${what}.` }, { status: 403 })
+}

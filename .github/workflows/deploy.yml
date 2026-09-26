@@ -378,6 +378,8 @@ jobs:
           # GoLive Naija billing (WHMCS) -> partner commission, and portal invoice picker.
           git show origin/main:models/WhmcsInvoiceEvent.ts > models/WhmcsInvoiceEvent.ts
           git show origin/main:lib/whmcsIntegration.ts > lib/whmcsIntegration.ts
+          # Portal roles: operations and support (SOP section 9).
+          git show origin/main:lib/roles.ts > lib/roles.ts
           mkdir -p app/api/integrations/whmcs/invoice-paid app/api/partner-commissions/invoices
           git show origin/main:app/api/integrations/whmcs/invoice-paid/route.ts > app/api/integrations/whmcs/invoice-paid/route.ts
           git show origin/main:app/api/partner-commissions/invoices/route.ts > app/api/partner-commissions/invoices/route.ts

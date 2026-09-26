@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     // Send welcome email with temporary credentials (after successful account creation)
     try {
-      const roleLabel = (role || 'sales') === 'admin' ? 'Admin' : (role || 'sales') === 'viewer' ? 'Viewer' : 'Sales'
+      const roleLabel = ({ admin: 'Admin', operations: 'Operations', sales: 'Sales', support: 'Support', viewer: 'Viewer' } as Record<string, string>)[role || 'sales'] || 'Sales'
       await resend.emails.send({
         from: 'GoLive Portal <hello@golivecompany.com>',
         to: email,

@@ -1,4 +1,5 @@
 "use client"
+import { useSession } from "next-auth/react"
 import { useEffect, useMemo, useState } from "react"
 import { RefreshCw, ChevronDown, ChevronUp, Check, X, Flag, CalendarPlus, Trophy, XCircle } from "lucide-react"
 import DealCommission from "./DealCommission"
@@ -29,6 +30,8 @@ const primary = "inline-flex h-8 items-center gap-1.5 rounded-[4px] bg-[#0f8fb0]
 const input = "h-8 rounded-[4px] border border-[#d1d1d1] bg-white px-2 text-sm"
 
 export default function DealsPanel() {
+  const { data: session } = useSession()
+  const isAdmin = (session?.user as { role?: string } | undefined)?.role === "admin"
   const [deals, setDeals] = useState<Deal[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("open")
@@ -125,7 +128,7 @@ export default function DealsPanel() {
                     </div>
                   </div>
 
-                  {d.status === "pending" && (
+                  {isAdmin && d.status === "pending" && (
                     <div className="flex flex-wrap gap-2">
                       <button type="button" className={primary} disabled={busy} onClick={() => act(d._id, { action: "approve" }, "Approved. The partner has been emailed.")}><Check className="size-4" /> Approve</button>
                       <button type="button" className={btn} disabled={busy} onClick={() => { const n = window.prompt("Reason (the partner sees this):", d.conflict ? KIND[d.conflict.kind] : ""); if (n) act(d._id, { action: "refuse", note: n }, "Refused. The partner has been emailed.") }}><X className="size-4" /> Refuse</button>
@@ -146,7 +149,7 @@ export default function DealsPanel() {
                     </div>
                   )}
 
-                  {["active", "lapsed"].includes(d.status) && (
+                  {isAdmin && ["active", "lapsed"].includes(d.status) && (
                     <div className="rounded-lg border border-[#e0e0e0] bg-white p-3">
                       <p className="mb-2 flex items-center gap-1.5 font-semibold"><CalendarPlus className="size-4" /> Extend in writing{d.status === "lapsed" ? " (revives the registration)" : ""}</p>
                       <div className="flex flex-wrap items-end gap-2">

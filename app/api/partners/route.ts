@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server'
 import { connectDB } from '@/lib/mongodb'
-import { requireAdmin } from '@/lib/apiAuth'
+import { requireAdmin, requireRole, forbiddenAction } from '@/lib/apiAuth'
 import PartnerApplication from '@/models/PartnerApplication'
 
 export const dynamic = 'force-dynamic'
 
 /** Admin: every partner application, newest first, with the fields the list needs. */
 export async function GET() {
-  const auth = await requireAdmin()
+  const auth = await requireRole(['admin', 'operations'])
   if (auth instanceof NextResponse) return auth
   await connectDB()
   const apps = await PartnerApplication.find({})

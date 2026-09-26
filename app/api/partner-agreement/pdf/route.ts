@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import mongoose from 'mongoose'
 import { connectDB } from '@/lib/mongodb'
-import { requireAdmin } from '@/lib/apiAuth'
+import { requireAdmin, requireRole, forbiddenAction } from '@/lib/apiAuth'
 import PartnerApplication from '@/models/PartnerApplication'
 import { verifyPartnerToken } from '@/lib/partnerToken'
 import { buildAgreementDoc } from '@/lib/partnerAgreement'
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   const sign = req.nextUrl.searchParams.get('sign')
   let app
   if (id) {
-    const auth = await requireAdmin()
+    const auth = await requireRole(['admin', 'operations'])
     if (auth instanceof NextResponse) return auth
     if (!mongoose.isValidObjectId(id)) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     await connectDB()
