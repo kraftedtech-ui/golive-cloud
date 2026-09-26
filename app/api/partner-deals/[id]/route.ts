@@ -63,8 +63,17 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       if (d.status !== 'active') return NextResponse.json({ error: d.status === 'lapsed' ? 'This registration has lapsed. Extend it in writing first if you agree to revive it.' : 'Milestones can only be recorded on a live registration.' }, { status: 409 })
       const kind = String(body.kind || '') as MilestoneKind
       if (!MILESTONE_KINDS.includes(kind)) return NextResponse.json({ error: 'Unknown milestone.' }, { status: 400 })
-      const at = body.at ? new Date(String(body.at)) : now
-      if (isNaN(at.getTime()) || at > now || at < new Date(d.approvedAt!)) return NextResponse.json({ error: 'The milestone date must be between approval and today.' }, { status: 400 })
+      // Compare calendar days in Lagos time. The date box sends a bare date,
+      // which would otherwise read as midnight UTC and fall before a same-day
+      // approval. The stored time is clamped between approval and now.
+      const lagosDay = (x: Date) => x.toLocaleDateString('en-CA', { timeZone: 'Africa/Lagos' })
+      const raw = String(body.at || '')
+      const picked = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : lagosDay(now)
+      const approved = new Date(d.approvedAt!)
+      if (picked < lagosDay(approved) || picked > lagosDay(now)) return NextResponse.json({ error: `The milestone date must be between ${lagosDay(approved)} (approval) and ${lagosDay(now)} (today, Lagos time).` }, { status: 400 })
+      let at = new Date(`${picked}T12:00:00+01:00`)
+      if (at < approved) at = approved
+      if (at > now) at = now
       d.milestones.push({ kind, at, by, note, recordedAt: now })
       const before = d.validUntil
       const v = computeValidity(new Date(d.approvedAt!), d.milestones, d.hardLimit)

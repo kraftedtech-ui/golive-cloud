@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { currentPartner } from '@/lib/partnerSession'
 import DealRegistration from '@/models/DealRegistration'
+import PartnerCommission from '@/models/PartnerCommission'
 import CommissionSchedule from '@/models/CommissionSchedule'
 import { currentSchedule, changeLines } from '@/lib/commissionSchedule'
 import { refreshLapse, ensureApplicationDeals, STATUS_LABEL, MILESTONE_LABEL, INITIAL_DAYS, MILESTONE_DAYS, LIMIT_DAYS } from '@/lib/dealRegistration'
@@ -15,10 +16,11 @@ export async function GET() {
   if (!app) return NextResponse.json({ error: 'Please sign in.' }, { status: 401 })
   await ensureApplicationDeals(app)
 
-  const [current, history, deals] = await Promise.all([
+  const [current, history, deals, commissions] = await Promise.all([
     currentSchedule(),
     CommissionSchedule.find({ status: 'published' }).sort({ version: -1 }).lean(),
     DealRegistration.find({ partnerApplication: app._id }).sort({ submittedAt: -1 }),
+    PartnerCommission.find({ partnerApplication: app._id }).sort({ receivedAt: -1 }).lean(),
   ])
   for (const d of deals) if (refreshLapse(d)) await d.save()
 
@@ -47,6 +49,12 @@ export async function GET() {
     })),
     lines: current ? [...new Set(current.rows.filter((r) => !/no commission|available once/i.test(rate(r))).map((r) => r.line))] : [],
     rules: { initialDays: INITIAL_DAYS, milestoneDays: MILESTONE_DAYS, limitDays: LIMIT_DAYS, milestones: MILESTONE_LABEL },
+    statement: commissions.map((c) => ({
+      ref: c.ref, dealRef: c.dealRef, organisation: c.organisation, kind: c.kind, invoiceReference: c.invoiceReference,
+      receivedAt: c.receivedAt, amount: c.amount, scheduleVersion: c.scheduleVersion, line: c.line, basis: c.basis,
+      band: c.band, effectivePct: c.effectivePct, marginLimited: c.marginLimited, gross: c.gross, wht: c.wht, net: c.net,
+      status: c.status, dueAt: c.dueAt, paidAt: c.paidAt, paymentReference: c.paymentReference, clawbackUntil: c.clawbackUntil, clawbackReason: c.clawbackReason,
+    })),
     deals: deals.map((d) => ({
       id: String(d._id), ref: d.ref, organisation: d.organisation, lineOfBusiness: d.lineOfBusiness, requirement: d.requirement,
       estimatedValue: d.estimatedValue, expectedClose: d.expectedClose, status: d.status, statusLabel: STATUS_LABEL[d.status],

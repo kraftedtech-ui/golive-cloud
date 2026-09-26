@@ -17,6 +17,11 @@ type Data = {
   lines: string[]
   rules: { initialDays: number; milestoneDays: number; limitDays: number; milestones: Record<string, string> }
   deals: Deal[]
+  statement: {
+    ref: string; dealRef: string; organisation: string; kind: string; invoiceReference?: string; receivedAt: string; amount: number
+    scheduleVersion: number; line: string; basis: string; band?: string; effectivePct: number; marginLimited: boolean
+    gross: number; wht: number; net: number; status: string; dueAt: string; paidAt?: string; paymentReference?: string; clawbackUntil: string; clawbackReason?: string
+  }[]
 }
 
 const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '')
@@ -27,7 +32,7 @@ const EMPTY = { organisation: '', sector: '', contactName: '', contactRole: '', 
 export default function PartnerDashboard() {
   const [d, setD] = useState<Data | null>(null)
   const [err, setErr] = useState('')
-  const [tab, setTab] = useState<'overview' | 'deals' | 'commission'>('overview')
+  const [tab, setTab] = useState<'overview' | 'deals' | 'statement' | 'commission'>('overview')
   const [form, setForm] = useState(EMPTY)
   const [showForm, setShowForm] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -111,9 +116,9 @@ export default function PartnerDashboard() {
       })()}
 
       <div className="gp-seg" role="tablist" aria-label="Dashboard sections" style={{ marginBottom: 16 }}>
-        {(['overview', 'deals', 'commission'] as const).map((t) => (
+        {(['overview', 'deals', 'statement', 'commission'] as const).map((t) => (
           <button key={t} type="button" role="tab" aria-pressed={tab === t} aria-selected={tab === t} onClick={() => setTab(t)}>
-            {t === 'overview' ? 'Overview' : t === 'deals' ? `Deals (${d.deals.length})` : 'Commission'}
+            {t === 'overview' ? 'Overview' : t === 'deals' ? `Deals (${d.deals.length})` : t === 'statement' ? 'Statement' : 'Rates'}
           </button>
         ))}
       </div>
@@ -211,6 +216,45 @@ export default function PartnerDashboard() {
           </section>
         </>
       )}
+
+      {tab === 'statement' && (() => {
+        const n2 = (x: number) => `\u20a6${x.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        const sum = (st: string) => d.statement.filter((x) => x.status === st).reduce((a, x) => a + x.net, 0)
+        return (
+          <section className="gp-pane" style={{ marginTop: 0 }}>
+            <h2 style={{ fontSize: 18 }}>Commission statement</h2>
+            <div className="gp-grid2" style={{ gridTemplateColumns: 'repeat(3, 1fr)', margin: '8px 0 14px' }}>
+              <div className="gp-fact"><b>{n2(sum('accrued'))}</b><span>Due to you (after withholding tax)</span></div>
+              <div className="gp-fact"><b>{n2(sum('paid'))}</b><span>Paid to you</span></div>
+              <div className="gp-fact"><b>{n2(sum('clawed_back'))}</b><span>Clawed back</span></div>
+            </div>
+            {d.statement.length === 0 ? <p className="gp-muted">No commission yet. Commission is recorded when GoLive receives payment on a deal you registered.</p> : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 760 }}>
+                  <thead><tr style={{ textAlign: 'left', color: 'var(--fg3)', fontSize: 12 }}>
+                    <th style={{ padding: '6px 8px 6px 0' }}>Deal</th><th style={{ padding: 6 }}>Payment received</th><th style={{ padding: 6 }}>Rate</th>
+                    <th style={{ padding: 6 }}>Commission</th><th style={{ padding: 6 }}>Withholding tax</th><th style={{ padding: 6 }}>Net</th><th style={{ padding: '6px 0 6px 6px' }}>Status</th>
+                  </tr></thead>
+                  <tbody>{d.statement.map((x) => (
+                    <tr key={x.ref} style={{ borderTop: '1px solid var(--stroke3)', verticalAlign: 'top' }}>
+                      <td style={{ padding: '8px 8px 8px 0' }}><b>{x.organisation}</b><div className="gp-muted" style={{ fontSize: 12 }}>{x.ref} · {x.kind === 'renewal' ? 'renewal' : 'first year'}</div></td>
+                      <td style={{ padding: 6 }}>{n2(x.amount)}<div className="gp-muted" style={{ fontSize: 12 }}>{fmt(x.receivedAt)}</div></td>
+                      <td style={{ padding: 6 }}>{Number((x.effectivePct * 100).toFixed(3))}%<div className="gp-muted" style={{ fontSize: 12 }}>v{x.scheduleVersion}{x.marginLimited ? ', clause 5.2' : ''}</div></td>
+                      <td style={{ padding: 6 }}>{n2(x.gross)}</td>
+                      <td style={{ padding: 6 }}>{n2(x.wht)}</td>
+                      <td style={{ padding: 6, fontWeight: 700 }}>{n2(x.net)}</td>
+                      <td style={{ padding: '6px 0 6px 6px' }}>
+                        {x.status === 'accrued' ? <>Due by {fmt(x.dueAt)}</> : x.status === 'paid' ? <>Paid {fmt(x.paidAt)}<div className="gp-muted" style={{ fontSize: 12 }}>{x.paymentReference}</div></> : <>Clawed back<div className="gp-muted" style={{ fontSize: 12 }}>{x.clawbackReason}</div></>}
+                      </td>
+                    </tr>
+                  ))}</tbody>
+                </table>
+              </div>
+            )}
+            <p className="gp-muted" style={{ marginTop: 12 }}>Commission is calculated on amounts GoLive receives, excluding VAT, and is recoverable if the client cancels, is refunded or defaults within 90 days of payment (clause 5.3).</p>
+          </section>
+        )
+      })()}
 
       {tab === 'commission' && (
         <>

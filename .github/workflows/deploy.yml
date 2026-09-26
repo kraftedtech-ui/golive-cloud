@@ -367,6 +367,14 @@ jobs:
           git show origin/main:components/partners/PartnerLogin.tsx > components/partners/PartnerLogin.tsx
           git show origin/main:components/partners/PartnerDashboard.tsx > components/partners/PartnerDashboard.tsx
           git show origin/main:components/dashboard/DealsPanel.tsx > components/dashboard/DealsPanel.tsx
+          # Partner Network, stage 4b: payments received and commission ledger.
+          git show origin/main:lib/commissionMath.ts > lib/commissionMath.ts
+          git show origin/main:models/PartnerCommission.ts > models/PartnerCommission.ts
+          git show origin/main:lib/partnerCommissionLedger.ts > lib/partnerCommissionLedger.ts
+          mkdir -p "app/api/partner-commissions/[id]"
+          git show origin/main:app/api/partner-commissions/route.ts > app/api/partner-commissions/route.ts
+          git show "origin/main:app/api/partner-commissions/[id]/route.ts" > "app/api/partner-commissions/[id]/route.ts"
+          git show origin/main:components/dashboard/DealCommission.tsx > components/dashboard/DealCommission.tsx
           # Branded document template for every document signed in the portal
           # (partner agreements, offer letters): renderer and cover artwork.
           git show origin/main:lib/brandedDocument.ts > lib/brandedDocument.ts

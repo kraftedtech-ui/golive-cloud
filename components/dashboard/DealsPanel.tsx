@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useMemo, useState } from "react"
 import { RefreshCw, ChevronDown, ChevronUp, Check, X, Flag, CalendarPlus, Trophy, XCircle } from "lucide-react"
+import DealCommission from "./DealCommission"
 
 type Deal = {
   _id: string; ref: string; partnerNumber: string; partnerName: string; partnerEmail: string; category: string; source: string
@@ -22,7 +23,7 @@ const MS: Record<string, string> = { meeting: "Meeting attended by GoLive", quot
 const KIND: Record<string, string> = { customer: "Existing customer", lead: "In sales pipeline", partner: "Another partner" }
 const fmt = (d?: string) => (d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "\u2014")
 const fmtDT = (d?: string) => (d ? new Date(d).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Lagos" }) + " WAT" : "\u2014")
-const today = () => new Date().toISOString().slice(0, 10)
+const today = () => new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Lagos" })
 const btn = "inline-flex h-8 items-center gap-1.5 rounded-[4px] border border-[#d1d1d1] bg-white px-3 text-sm font-semibold text-[#242424] hover:bg-[#f5f5f5] disabled:opacity-50"
 const primary = "inline-flex h-8 items-center gap-1.5 rounded-[4px] bg-[#0f8fb0] px-3 text-sm font-semibold text-white hover:bg-[#0b7e9b] disabled:opacity-50"
 const input = "h-8 rounded-[4px] border border-[#d1d1d1] bg-white px-2 text-sm"
@@ -70,7 +71,7 @@ export default function DealsPanel() {
           <h2 className="text-xl font-semibold text-[#242424]">Deal registrations</h2>
           <p className="mt-1 max-w-[80ch] text-sm text-[#616161]">
             Prospects registered by partners. Approval holds a prospect for 90 days and locks the commission schedule version in force.
-            Only milestones you record extend it (to 60 days after the milestone), up to 180 days from approval unless you extend it in writing.
+            Only milestones you record extend it (to 60 days after the milestone), up to 180 days from approval, unless you extend it in writing.
           </p>
         </div>
         <button type="button" className={btn} onClick={load}><RefreshCw className={`size-4 ${loading ? "animate-spin" : ""}`} /> Refresh</button>
@@ -160,6 +161,8 @@ export default function DealsPanel() {
                       </div>
                     </div>
                   )}
+
+                  {d.status === "won" && <DealCommission dealId={d._id} lineOfBusiness={d.lineOfBusiness} validAtClose={d.validAtClose} />}
 
                   <div className="rounded-lg border border-[#e0e0e0] bg-white p-3">
                     <p className="mb-1 font-semibold">Timeline</p>
