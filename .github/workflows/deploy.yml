@@ -375,6 +375,12 @@ jobs:
           git show origin/main:app/api/partner-commissions/route.ts > app/api/partner-commissions/route.ts
           git show "origin/main:app/api/partner-commissions/[id]/route.ts" > "app/api/partner-commissions/[id]/route.ts"
           git show origin/main:components/dashboard/DealCommission.tsx > components/dashboard/DealCommission.tsx
+          # GoLive Naija billing (WHMCS) -> partner commission, and portal invoice picker.
+          git show origin/main:models/WhmcsInvoiceEvent.ts > models/WhmcsInvoiceEvent.ts
+          git show origin/main:lib/whmcsIntegration.ts > lib/whmcsIntegration.ts
+          mkdir -p app/api/integrations/whmcs/invoice-paid app/api/partner-commissions/invoices
+          git show origin/main:app/api/integrations/whmcs/invoice-paid/route.ts > app/api/integrations/whmcs/invoice-paid/route.ts
+          git show origin/main:app/api/partner-commissions/invoices/route.ts > app/api/partner-commissions/invoices/route.ts
           # Branded document template for every document signed in the portal
           # (partner agreements, offer letters): renderer and cover artwork.
           git show origin/main:lib/brandedDocument.ts > lib/brandedDocument.ts

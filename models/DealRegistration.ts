@@ -51,6 +51,12 @@ export interface IDealRegistration extends Document {
   closedAt?: Date
   /** True when the registration was valid at close, so first-year commission applies. */
   validAtClose?: boolean
+  /** GoLive Naija billing (WHMCS) client whose paid invoices record commission on this deal automatically. */
+  whmcsClientId?: number
+  /** Schedule line those invoices fall under; defaults to web hosting. */
+  whmcsLine?: string
+  whmcsLinkedAt?: Date
+  whmcsLinkedBy?: string
   timeline: { at: Date; by: string; action: string; note?: string }[]
   createdAt: Date
   updatedAt: Date
@@ -88,6 +94,10 @@ const DealRegistrationSchema = new Schema<IDealRegistration>(
     milestones: [{ kind: { type: String, enum: MILESTONE_KINDS }, at: Date, by: String, note: String, recordedAt: Date, _id: false }],
     closedAt: Date,
     validAtClose: Boolean,
+    whmcsClientId: { type: Number, index: true, sparse: true },
+    whmcsLine: String,
+    whmcsLinkedAt: Date,
+    whmcsLinkedBy: String,
     timeline: [{ at: Date, by: String, action: String, note: String, _id: false }],
   },
   { timestamps: true }

@@ -9,7 +9,7 @@ type Deal = {
   lineOfBusiness?: string; requirement?: string; estimatedValue?: number; expectedClose?: string
   status: string; conflict?: { kind: string; match: string; owner?: string } | null
   submittedAt: string; approvedAt?: string; approvedBy?: string; decisionNote?: string; scheduleVersion?: number
-  validUntil?: string; hardLimit?: string; closedAt?: string; validAtClose?: boolean
+  validUntil?: string; hardLimit?: string; closedAt?: string; validAtClose?: boolean; whmcsClientId?: number; whmcsLine?: string
   milestones: { kind: string; at: string; by: string; note?: string }[]
   timeline: { at: string; by: string; action: string; note?: string }[]
 }
@@ -162,7 +162,7 @@ export default function DealsPanel() {
                     </div>
                   )}
 
-                  {d.status === "won" && <DealCommission dealId={d._id} lineOfBusiness={d.lineOfBusiness} validAtClose={d.validAtClose} />}
+                  {d.status === "won" && <DealCommission dealId={d._id} lineOfBusiness={d.lineOfBusiness} validAtClose={d.validAtClose} whmcsClientId={d.whmcsClientId} whmcsLine={d.whmcsLine} onChanged={load} />}
 
                   <div className="rounded-lg border border-[#e0e0e0] bg-white p-3">
                     <p className="mb-1 font-semibold">Timeline</p>

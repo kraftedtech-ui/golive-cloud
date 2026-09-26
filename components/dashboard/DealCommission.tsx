@@ -23,19 +23,39 @@ const STATUS: Record<string, string> = { accrued: "Accrued", paid: "Paid", clawe
  * Payments and commission for one won deal. Every figure comes from the
  * server (lib/partnerCommissionLedger), so the preview is exactly what gets recorded.
  */
-export default function DealCommission({ dealId, lineOfBusiness, validAtClose }: { dealId: string; lineOfBusiness?: string; validAtClose?: boolean }) {
+export default function DealCommission({ dealId, lineOfBusiness, validAtClose, whmcsClientId, whmcsLine, onChanged }: { dealId: string; lineOfBusiness?: string; validAtClose?: boolean; whmcsClientId?: number; whmcsLine?: string; onChanged?: () => void }) {
   const [entries, setEntries] = useState<Entry[]>([])
   const [opts, setOpts] = useState<{ firstYear: { version: number; rows: Row[] } | null; renewal: { version: number; rows: Row[] } | null; category: string } | null>(null)
   const [f, setF] = useState({ kind: validAtClose ? "first_year" : "renewal", rowIndex: -1, receivedAt: today(), amount: "", contractValue: "", invoiceReference: "", actualMargin: "", usualMargin: "", wht: "5", note: "" })
   const [ev, setEv] = useState<Eval | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [invoices, setInvoices] = useState<{ invoiceNumber: string; buyerName: string; acceptedAt: string; currency: string; netTotal: number; amountNGN: number | null; margin: number | null; matches: boolean; used: boolean }[]>([])
+  const [wh, setWh] = useState({ clientId: whmcsClientId ? String(whmcsClientId) : "", line: whmcsLine || "Web hosting, domains and websites" })
 
   async function load() {
     const r = await fetch(`/api/partner-commissions?deal=${dealId}`); const d = await r.json()
     setEntries(d.entries || []); setOpts({ firstYear: d.firstYear, renewal: d.renewal, category: d.category })
   }
-  useEffect(() => { load() }, [dealId])
+  useEffect(() => { load(); fetch(`/api/partner-commissions/invoices?deal=${dealId}`).then((r) => r.json()).then((d) => setInvoices(d.invoices || [])).catch(() => {}) }, [dealId])
+
+  function fillFromInvoice(num: string) {
+    const inv = invoices.find((x) => x.invoiceNumber === num)
+    if (!inv) return
+    setF((p) => ({ ...p, invoiceReference: inv.invoiceNumber, amount: inv.amountNGN !== null ? String(inv.amountNGN) : p.amount, contractValue: inv.amountNGN !== null ? String(inv.amountNGN) : p.contractValue,
+      actualMargin: inv.margin !== null ? String(Math.round(inv.margin * 1000) / 10) : p.actualMargin, receivedAt: p.receivedAt }))
+    setEv(null)
+  }
+  async function linkWhmcs(remove = false) {
+    setBusy(true); setMsg(null)
+    try {
+      const r = await fetch(`/api/partner-deals/${dealId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "linkWhmcs", clientId: remove ? null : Number(wh.clientId), line: wh.line }) })
+      const d = await r.json()
+      if (!r.ok) { setMsg({ ok: false, text: d.error }); return }
+      setMsg({ ok: true, text: remove ? "Link removed." : `Linked to GoLive Naija client ${wh.clientId}. Paid invoices for this client now record commission automatically.` })
+      onChanged?.()
+    } finally { setBusy(false) }
+  }
 
   const rows = (f.kind === "first_year" ? opts?.firstYear?.rows : opts?.renewal?.rows) || []
   // Pre-select the row matching the deal's line of business and the payment kind.
@@ -87,6 +107,34 @@ export default function DealCommission({ dealId, lineOfBusiness, validAtClose }:
   return (
     <div className="rounded-lg border border-[#e0e0e0] bg-white p-3">
       <p className="mb-2 flex items-center gap-1.5 font-semibold"><Banknote className="size-4" /> Payments received and commission</p>
+      <div className="mb-3 rounded-[4px] border border-[#e0e0e0] p-2.5">
+        <p className="mb-1.5 text-xs font-semibold text-[#424242]">GoLive Naija billing (automatic)</p>
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="text-xs text-[#424242]">WHMCS client ID<input className={`${input} mt-1 w-36`} inputMode="numeric" placeholder="e.g. 1234" value={wh.clientId} onChange={(e) => setWh({ ...wh, clientId: e.target.value.replace(/\D/g, "") })} /></label>
+          <label className="min-w-[240px] flex-1 text-xs text-[#424242]">Schedule line for its invoices
+            <select className={`${input} mt-1`} value={wh.line} onChange={(e) => setWh({ ...wh, line: e.target.value })}>
+              {[...new Set((opts?.renewal?.rows || []).map((r) => r.line))].map((l) => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </label>
+          <button type="button" className={btn} disabled={busy || !wh.clientId} onClick={() => linkWhmcs(false)}>{whmcsClientId ? "Update link" : "Link client"}</button>
+          {whmcsClientId ? <button type="button" className={btn} disabled={busy} onClick={() => linkWhmcs(true)}>Remove link</button> : null}
+        </div>
+        <p className="mt-1 text-xs text-[#616161]">{whmcsClientId ? `Linked to client ${whmcsClientId}: each paid invoice records commission automatically (domain items excluded).` : "The client ID is the number after userid= in the client's profile address in the WHMCS admin area."}</p>
+      </div>
+
+      {invoices.length > 0 && (
+        <label className="mb-2 block text-xs font-semibold text-[#424242]">Fill from a portal invoice
+          <select className={`${input} mt-1`} defaultValue="" onChange={(e) => fillFromInvoice(e.target.value)}>
+            <option value="">Choose an accepted invoice (matching buyers first)</option>
+            {invoices.map((i) => (
+              <option key={i.invoiceNumber} value={i.invoiceNumber} disabled={i.used}>
+                {i.invoiceNumber}: {i.buyerName}{i.amountNGN !== null ? `, \u20a6${i.amountNGN.toLocaleString("en-NG")} ex VAT` : `, ${i.currency} ${i.netTotal}`}{i.margin !== null ? `, margin ${Math.round(i.margin * 1000) / 10}%` : ""}{i.used ? " (already recorded)" : ""}{i.matches ? "" : " (different buyer)"}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
         <label className="text-xs font-semibold text-[#424242]">Payment for
           <select className={`${input} mt-1`} value={f.kind} onChange={(e) => set("kind", e.target.value)}>

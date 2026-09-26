@@ -17,6 +17,7 @@ type Ctx = { params: Promise<{ id: string }> }
  *   milestone { kind, at, note? }   GoLive-confirmed only; extends to 60 days after it
  *   extend { until, note }    a later hard limit agreed in writing
  *   won { note? } / lost { note? } / release { note }
+ *   linkWhmcs { clientId, line? }   GoLive Naija billing client; clientId null removes the link
  */
 export async function PATCH(req: NextRequest, { params }: Ctx) {
   const auth = await requireAdmin()
@@ -102,6 +103,23 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       d.status = body.action; d.closedAt = now
       d.validAtClose = body.action === 'won' ? valid : undefined
       d.timeline.push({ at: now, by, action: body.action === 'won' ? `Won${valid ? '' : ' after the registration lapsed: no first-year commission (clause 5.5)'}` : 'Lost', note })
+      await d.save()
+      break
+    }
+    case 'linkWhmcs': {
+      const cid = Number(body.clientId)
+      if (body.clientId === null || body.clientId === '' ) {
+        d.whmcsClientId = undefined; d.whmcsLine = undefined; d.whmcsLinkedAt = undefined; d.whmcsLinkedBy = undefined
+        d.timeline.push({ at: now, by, action: 'GoLive Naija billing link removed' })
+        await d.save(); break
+      }
+      if (!Number.isInteger(cid) || cid <= 0) return NextResponse.json({ error: 'Enter the WHMCS client ID (the number in the client profile address, userid=...).' }, { status: 400 })
+      const taken = await DealRegistration.findOne({ whmcsClientId: cid, _id: { $ne: d._id } }).select('ref partnerName')
+      if (taken) return NextResponse.json({ error: `WHMCS client ${cid} is already linked to ${taken.ref} (${taken.partnerName}).` }, { status: 409 })
+      d.whmcsClientId = cid
+      d.whmcsLine = String(body.line || '').trim() || undefined
+      d.whmcsLinkedAt = now; d.whmcsLinkedBy = by
+      d.timeline.push({ at: now, by, action: `Linked to GoLive Naija billing client ${cid}${d.whmcsLine ? ` (${d.whmcsLine})` : ''}`, note: 'Paid invoices for this client now record commission automatically' })
       await d.save()
       break
     }
