@@ -24,6 +24,7 @@ export interface OfferView {
   candidateIp?: string | null
   mdSignedAt?: Date | string | null
   mdSignedName?: string | null
+  mdIp?: string | null
   employeeNumber?: string | null
 }
 
@@ -54,7 +55,7 @@ export function buildOfferDoc(o: OfferView): BrandedDoc {
     preparedFor: o.name,
     coverTags: ['Employment', 'Role charter', 'Governance'],
     coverFooterLeft: `${o.jobCode}  \u2022  Private and confidential`,
-    particulars: { title: 'Offer Particulars', note: 'Review the terms below before accepting this offer', rows },
+    particulars: { title: 'Offer Particulars', note: o.mdSignedAt ? 'Details of this offer' : 'Review the terms below before accepting this offer', rows },
     intro: `<p>Date: <strong>${fmtDate(o.sentAt || new Date())}</strong> &nbsp;&middot;&nbsp; Private &amp; Confidential</p>
 <p><strong>${esc(o.name)}</strong><br>${esc(o.email)}</p>
 <p>Dear ${esc(first)},</p>
@@ -110,7 +111,7 @@ export function buildOfferDoc(o: OfferView): BrandedDoc {
         {
           heading: `For ${co}`,
           name: `${o.mdSignedName || MD_NAME}  |  ${MD_TITLE}`,
-          signed: o.mdSignedAt ? { name: o.mdSignedName || MD_NAME, at: fmtDateTime(o.mdSignedAt), extra: o.employeeNumber ? `Employee No. ${o.employeeNumber}` : undefined } : null,
+          signed: o.mdSignedAt ? { name: o.mdSignedName || MD_NAME, at: fmtDateTime(o.mdSignedAt), ip: o.mdIp } : null,
           pending: 'To be countersigned by the Company upon acceptance',
         },
       ],

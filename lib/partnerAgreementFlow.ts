@@ -40,6 +40,7 @@ export function agreementView(app: IPartnerApplication): AgreementView {
     partnerIp: app.agreement?.partnerIp,
     mdSignedAt: app.agreement?.mdSignedAt,
     mdSignedName: app.agreement?.mdSignedName,
+    mdIp: app.agreement?.mdIp,
     partnerNumber: app.partnerNumber,
     assessmentPassedAt: app.assessmentPassedAt,
     integrityPassedAt: integ?.submittedAt,
@@ -118,13 +119,14 @@ export function sendPartnerSignedNotice(app: IPartnerApplication): Promise<Send>
 }
 
 /** MD countersignature: mint numbers, issue the certificate, activate. Caller saves, then emails. */
-export async function countersign(app: IPartnerApplication, mdName: string, by: string, now = new Date()): Promise<{ ok: boolean; status?: number; error?: string }> {
+export async function countersign(app: IPartnerApplication, mdName: string, by: string, now = new Date(), ip?: string): Promise<{ ok: boolean; status?: number; error?: string }> {
   if (!app.agreement?.partnerSignedAt) return { ok: false, status: 409, error: 'The partner has not signed yet.' }
   if (app.agreement.mdSignedAt) return { ok: false, status: 409, error: 'This agreement is already fully executed.' }
   const test = !!app.agreement.test
   if (!app.partnerNumber) app.partnerNumber = await nextPartnerNumber(test)
   app.agreement.mdSignedAt = now
   app.agreement.mdSignedName = mdName || MD_NAME
+  app.agreement.mdIp = ip
   app.markModified('agreement')
 
   const expiresAt = new Date(now)

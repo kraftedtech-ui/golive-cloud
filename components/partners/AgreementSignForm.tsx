@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import SignaturePreview from '@/components/SignaturePreview'
 
 /** Typed-name signature for the partner agreement, with an explicit statement of what signing means. */
 export default function AgreementSignForm({ token, partnerName, signedAt, executed }: {
@@ -50,6 +51,7 @@ export default function AgreementSignForm({ token, partnerName, signedAt, execut
           <small>Your typed name, the date and time, and your connection details are recorded as your electronic signature.</small>
         </label>
       </div>
+      <SignaturePreview name={name} />
       {err && <div className="gp-alert gp-err" role="alert">{err}</div>}
       <div className="gp-nav">
         <span className="gp-muted">Questions first? Reply to the email that brought you here.</span>

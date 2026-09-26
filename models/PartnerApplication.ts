@@ -135,6 +135,7 @@ export interface IPartnerApplication extends Document {
     partnerUserAgent?: string
     mdSignedAt?: Date
     mdSignedName?: string
+    mdIp?: string
   }
   certificate?: {
     number: string
@@ -146,6 +147,8 @@ export interface IPartnerApplication extends Document {
     revokedBy?: string
     revokeReason?: string
   }
+  /** Highest commission schedule version the partner has acknowledged in their dashboard. */
+  scheduleAck?: { version: number; at: Date }
   /** GL-PTR-NNN, minted at countersignature of the partner agreement. */
   partnerNumber?: string
   notes?: string
@@ -260,6 +263,7 @@ const PartnerApplicationSchema = new Schema<IPartnerApplication>(
       partnerUserAgent: String,
       mdSignedAt: Date,
       mdSignedName: String,
+      mdIp: String,
     },
     certificate: {
       number: { type: String, index: true },
@@ -271,6 +275,7 @@ const PartnerApplicationSchema = new Schema<IPartnerApplication>(
       revokedBy: String,
       revokeReason: String,
     },
+    scheduleAck: { version: Number, at: Date },
     partnerNumber: { type: String, sparse: true, unique: true },
     notes: String,
     timeline: [{ at: Date, by: String, action: String, note: String, _id: false }],

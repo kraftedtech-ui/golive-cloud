@@ -16,9 +16,9 @@ export const TRAINING_LINK_DAYS = 30
 
 /**
  * Kinds: ptrain (training and assessment), pagree (sign the agreement),
- * pdoc (download the executed agreement and certificate).
+ * pdoc (download the executed agreement and certificate), psess (partner dashboard sign-in).
  */
-export type PartnerTokenKind = 'ptrain' | 'pagree' | 'pdoc'
+export type PartnerTokenKind = 'ptrain' | 'pagree' | 'pdoc' | 'psess'
 
 export function signPartnerToken(kind: PartnerTokenKind, ref: string, expires: Date): string {
   const payload = `${kind}|${ref}|${expires.getTime()}`

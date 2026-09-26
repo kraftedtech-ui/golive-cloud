@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import SignaturePreview from '@/components/SignaturePreview'
 
 export default function OfferSignForm({
   token,
@@ -91,6 +92,7 @@ export default function OfferSignForm({
         placeholder={candidateName}
         style={{ width: '100%', maxWidth: 420, padding: '10px 12px', border: '1px solid #cbd5d8', borderRadius: 8, fontSize: 15, fontFamily: 'inherit' }}
       />
+      <SignaturePreview name={typedName} />
 
       <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 13, color: '#2d3436', margin: '14px 0' }}>
         <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} style={{ marginTop: 3 }} />

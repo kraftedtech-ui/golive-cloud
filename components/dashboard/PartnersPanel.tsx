@@ -544,6 +544,23 @@ export default function PartnersPanel() {
                         </Section>
                       </div>
 
+                      <Section title="Delete record">
+                        <p className="mb-2 text-xs text-[#616161]">For test records only. Permanently removes this application and its deal registrations, and frees its partner and certificate numbers. Refused if any deal has been won; withdraw a real partner instead.</p>
+                        <button type="button" disabled={busy}
+                          className="inline-flex h-8 items-center rounded-[4px] border border-red-300 bg-white px-3 text-sm font-semibold text-[#c50f1f] hover:bg-red-50 disabled:opacity-50"
+                          onClick={async () => {
+                            const typed = window.prompt(`This cannot be undone. Type ${detail.ref} to delete ${detail.applicant.name}'s record:`, "")
+                            if (!typed) return
+                            setBusy(true); setMsg(null)
+                            try {
+                              const r = await fetch(`/api/partners/${detail._id}?confirm=${encodeURIComponent(typed)}`, { method: "DELETE" })
+                              const d = await r.json()
+                              if (!r.ok) { setMsg({ ok: false, text: d.error || "Not deleted." }); return }
+                              setRows((p) => p.filter((x) => x._id !== detail._id)); setOpen(null); setDetail(null)
+                            } catch { setMsg({ ok: false, text: "Network error." }) } finally { setBusy(false) }
+                          }}>Delete record</button>
+                      </Section>
+
                       <Section title="Timeline">
                         <ol className="space-y-1.5">
                           {[...detail.timeline].reverse().map((t, i) => (

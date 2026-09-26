@@ -66,6 +66,7 @@ const sections: NavSection[] = [
     heading: "Partner Network",
     items: [
       { label: "Partner applications", icon: Handshake, key: "partners", adminOnly: true, href: "/portal/partners" },
+      { label: "Deal registrations", icon: ClipboardCheck, key: "partner_deals", adminOnly: true, href: "/portal/partners/deals" },
       { label: "Commission schedule", icon: Percent, key: "partner_commission", adminOnly: true, href: "/portal/partners/commission" },
     ],
   },

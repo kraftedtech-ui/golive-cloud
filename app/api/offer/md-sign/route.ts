@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
 
   app.offer.mdSignedAt = new Date()
   app.offer.mdSignedName = (session.user as { name?: string })?.name || MD_NAME
+  app.offer.mdIp = (req.headers.get('cf-connecting-ip') || (req.headers.get('x-forwarded-for') || '').split(',')[0] || req.headers.get('x-real-ip') || '').trim() || undefined
   app.markModified('offer')
   await app.save()
 

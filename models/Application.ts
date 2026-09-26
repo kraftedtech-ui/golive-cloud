@@ -58,6 +58,7 @@ export interface IApplication extends Document {
     candidateIp?: string
     mdSignedAt?: Date
     mdSignedName?: string
+    mdIp?: string
   }
   employeeNumber?: string
   onboarding?: {
@@ -131,6 +132,7 @@ const ApplicationSchema = new Schema<IApplication>({
     candidateIp: String,
     mdSignedAt: Date,
     mdSignedName: String,
+    mdIp: String,
   },
   employeeNumber: { type: String },
   onboarding: {

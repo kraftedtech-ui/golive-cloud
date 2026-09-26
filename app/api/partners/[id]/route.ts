@@ -9,6 +9,7 @@ import { closeExpired, trainingState, sendTrainingInvite } from '@/lib/partnerTr
 import { sendAgreement, countersign, sendExecutedEmail } from '@/lib/partnerAgreementFlow'
 import { agreementMode } from '@/lib/partnerAgreement'
 import { currentSchedule } from '@/lib/commissionSchedule'
+import { ensureApplicationDeals } from '@/lib/dealRegistration'
 import { MD_NAME } from '@/lib/offerConfig'
 
 export const dynamic = 'force-dynamic'
@@ -104,9 +105,12 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
       break
     }
     case 'countersign': {
-      const r = await countersign(app, auth.name || MD_NAME, by, now)
+      const mdIp = (req.headers.get('cf-connecting-ip') || (req.headers.get('x-forwarded-for') || '').split(',')[0] || req.headers.get('x-real-ip') || '').trim() || undefined
+      const r = await countersign(app, auth.name || MD_NAME, by, now, mdIp)
       if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status || 409 })
       await app.save()
+      const created = await ensureApplicationDeals(app, by)
+      if (created) app.timeline.push({ at: new Date(), by: 'system', action: `${created} account${created === 1 ? '' : 's'} registered during the application became live deal registrations` })
       const mail = await sendExecutedEmail(app)
       app.timeline.push({ at: new Date(), by: 'system', action: mail.ok ? `Certificate and signed agreement emailed to ${app.applicant.email}` : 'Certificate email FAILED', note: mail.ok ? undefined : mail.error })
       break
@@ -184,4 +188,29 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   await app.save()
   const cur = await currentSchedule()
   return NextResponse.json({ application: app.toObject(), training: trainingState(app), agreementMode: agreementMode(app.applicant.email, !!cur), currentScheduleVersion: cur?.version ?? null })
+}
+
+/**
+ * Admin: permanently delete an application and its deal registrations. For
+ * test records only: the reference must be typed to confirm, and it is
+ * refused if any registration has been won (commission may be owed).
+ * Its partner and certificate numbers become free again for reuse.
+ */
+export async function DELETE(req: NextRequest, { params }: Ctx) {
+  const auth = await requireAdmin()
+  if (auth instanceof NextResponse) return auth
+  const { id } = await params
+  const app = await load(id)
+  if (!app) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const confirm = req.nextUrl.searchParams.get('confirm') || ''
+  if (confirm.trim().toUpperCase() !== app.ref.toUpperCase()) {
+    return NextResponse.json({ error: `Type the reference ${app.ref} exactly to confirm deletion.` }, { status: 400 })
+  }
+  const { default: DealRegistration } = await import('@/models/DealRegistration')
+  const won = await DealRegistration.countDocuments({ partnerApplication: app._id, status: 'won' })
+  if (won) return NextResponse.json({ error: `This partner has ${won} won deal${won === 1 ? '' : 's'}; commission may be owed, so the record cannot be deleted. Withdraw it instead.` }, { status: 409 })
+  const deals = await DealRegistration.deleteMany({ partnerApplication: app._id })
+  await app.deleteOne()
+  console.warn(`[partners] ${auth.email || auth.name} deleted ${app.ref} (${app.applicant.name}, ${app.partnerNumber || 'no partner number'}, ${app.certificate?.number || 'no certificate'}) and ${deals.deletedCount} deal registration(s)`)
+  return NextResponse.json({ ok: true, deletedDeals: deals.deletedCount })
 }

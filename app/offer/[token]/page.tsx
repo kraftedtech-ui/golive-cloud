@@ -68,6 +68,7 @@ export default async function OfferPage({ params }: { params: Promise<{ token: s
     candidateIp: app.offer.candidateIp,
     mdSignedAt: app.offer.mdSignedAt,
     mdSignedName: app.offer.mdSignedName,
+    mdIp: app.offer.mdIp,
     employeeNumber: app.employeeNumber,
   })
 

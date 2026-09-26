@@ -40,6 +40,9 @@ export const FOOTER_LINE = `${COMPANY.replace(/\.$/, '').toUpperCase()}  |  ${CO
 export const esc = (s: unknown) =>
   String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
+/** Great Vibes (SIL OFL), the same face the onboarding pack signs in. */
+export const SIGNATURE_FONT_FILE = 'GreatVibes-Regular.ttf'
+
 export type SignParty = {
   /** Band heading, e.g. "Partner" or "For The GoLive Digital Solutions Company Ltd". */
   heading: string
@@ -83,7 +86,8 @@ export type BrandedDoc = {
 
 /* ------------------------------------------------------------------ styles */
 
-const BODY_CSS = `
+const bodyCss = (fontSrc: string) => `
+@font-face { font-family: 'GL Signature'; src: url('${fontSrc}') format('truetype'); font-display: block; }
 .bd { font-family: Arial, 'Liberation Sans', 'Helvetica Neue', sans-serif; color: ${BRAND.ink}; font-size: 10pt; line-height: 1.38; }
 .bd * { box-sizing: border-box; }
 .bd p { margin: 0 0 6pt; }
@@ -119,6 +123,9 @@ const BODY_CSS = `
 .bd .party .line { flex: 1; } .bd .party .line span.u { display: inline-block; border-bottom: .8pt solid ${BRAND.ink}; min-width: 70%; height: 11pt; vertical-align: bottom; margin-left: 4pt; }
 .bd .party .date { width: 24%; } .bd .party .date span.u { display: inline-block; border-bottom: .8pt solid ${BRAND.ink}; width: 100%; height: 11pt; }
 .bd .party .done { color: ${BRAND.signedInk}; font-weight: 700; }
+.bd .party .script { display: block; font-family: 'GL Signature', 'Brush Script MT', cursive; font-size: 22pt; line-height: 1.15; color: #0b3d45; border-bottom: .8pt solid ${BRAND.ink}; padding: 0 2pt 1pt; margin-bottom: 3pt;
+  font-variant-ligatures: none; font-feature-settings: "liga" 0, "dlig" 0, "calt" 0, "clig" 0; }
+.bd .party .meta { font-size: 8pt; color: ${BRAND.signedInk}; font-weight: 700; }
 .bd .party .st { padding: 6pt 8pt; font-size: 9pt; font-weight: 700; }
 .bd .party .st.pending { background: ${BRAND.pending}; color: ${BRAND.amber}; }
 .bd .party .st.signed { background: ${BRAND.signed}; color: ${BRAND.signedInk}; }
@@ -160,7 +167,7 @@ function band(title: string, note?: string): string {
 
 function partyHtml(p: SignParty): string {
   const signedLine = p.signed
-    ? `<div class="sig"><div class="line done">\u2713 Digitally signed by ${esc(p.signed.name)}${p.signed.ip ? ` &middot; IP ${esc(p.signed.ip)}` : ''}${p.signed.extra ? ` &middot; ${esc(p.signed.extra)}` : ''}</div><div class="date done">${esc(p.signed.at)}</div></div>`
+    ? `<div class="sig"><div class="line"><span class="script">${esc(p.signed.name)}</span><span class="meta">\u2713 Digitally signed by ${esc(p.signed.name)}${p.signed.ip ? ` &middot; IP ${esc(p.signed.ip)}` : ''}${p.signed.extra ? ` &middot; ${esc(p.signed.extra)}` : ''}</span></div><div class="date done">${esc(p.signed.at)}</div></div>`
     : `<div class="sig"><div class="line">Signature<span class="u"></span></div><div class="date"><span class="u"></span></div></div>`
   return `<div class="party">
   <div class="ph">${esc(p.heading)}</div>
@@ -171,11 +178,11 @@ function partyHtml(p: SignParty): string {
 }
 
 /** The document body: particulars, sections, execution. Same HTML on screen and in the PDF. */
-export function brandedBodyHtml(d: BrandedDoc): string {
+export function brandedBodyHtml(d: BrandedDoc, fontSrc = `/fonts/${SIGNATURE_FONT_FILE}`): string {
   const rows = d.particulars.rows.map(([k, v]) => `<tr><td class="k">${esc(k)}</td><td class="v">${esc(v)}</td></tr>`).join('')
   const sections = d.sections.map((s) => `<section class="page">${band(s.title, s.note)}${s.html}</section>`).join('')
   const x = d.execution
-  return `<style>${BODY_CSS}</style>
+  return `<style>${bodyCss(fontSrc)}</style>
 <div class="bd">
   <section class="page first">
     ${d.warning ? `<div class="warn">${esc(d.warning)}</div>` : ''}
@@ -220,11 +227,12 @@ export function brandedWebHtml(d: BrandedDoc): string {
 /* --------------------------------------------------------------------- PDF */
 
 const cache: Record<string, string> = {}
-function dataUri(file: string): string {
-  if (cache[file]) return cache[file]
-  const buf = fs.readFileSync(path.join(process.cwd(), 'public', 'brand', file))
-  cache[file] = `data:image/jpeg;base64,${buf.toString('base64')}`
-  return cache[file]
+function dataUri(file: string, dir = 'brand', mime = 'image/jpeg'): string {
+  const key = `${dir}/${file}`
+  if (cache[key]) return cache[key]
+  const buf = fs.readFileSync(path.join(process.cwd(), 'public', dir, file))
+  cache[key] = `data:${mime};base64,${buf.toString('base64')}`
+  return cache[key]
 }
 
 const page = (inner: string) => `<!doctype html><html><head><meta charset="utf-8"><style>
@@ -262,7 +270,8 @@ export async function renderBrandedPdf(d: BrandedDoc): Promise<Buffer> {
     const cover = await full(coverHtml(d, dataUri('doc-cover.jpg')))
     const back = await full(backCoverHtml(d, dataUri('doc-back.jpg')))
 
-    await tab.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>* { -webkit-print-color-adjust: exact; print-color-adjust: exact; } body { margin: 0; }</style></head><body>${brandedBodyHtml(d)}</body></html>`, { waitUntil: 'load' })
+    await tab.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>* { -webkit-print-color-adjust: exact; print-color-adjust: exact; } body { margin: 0; }</style></head><body>${brandedBodyHtml(d, dataUri(SIGNATURE_FONT_FILE, 'fonts', 'font/ttf'))}</body></html>`, { waitUntil: 'load' })
+    await tab.evaluate(() => document.fonts.ready)
     await tab.emulateMediaType('print')
     const body = await tab.pdf({
       format: 'Letter', printBackground: true, displayHeaderFooter: true,

@@ -60,6 +60,13 @@ export function linkedInAddUrl(c: { title: string; number: string; issuedAt: Dat
   return `https://www.linkedin.com/profile/add?${q.toString()}`
 }
 
+let fontCache: string | null = null
+function signatureFont(): string | null {
+  if (fontCache !== null) return fontCache || null
+  try { fontCache = `data:font/ttf;base64,${fs.readFileSync(path.join(process.cwd(), 'public', 'fonts', 'GreatVibes-Regular.ttf')).toString('base64')}` } catch { fontCache = '' }
+  return fontCache || null
+}
+
 let logoCache: string | null = null
 function logoDataUri(): string | null {
   if (logoCache !== null) return logoCache || null
@@ -81,7 +88,9 @@ export async function buildCertificateHtml(c: {
   const qr = await QRCode.toDataURL(url, { margin: 0, width: 360, errorCorrectionLevel: 'M', color: { dark: '#0b3d45', light: '#ffffff' } })
   const logo = logoDataUri()
   const stamp = c.revoked ? 'REVOKED' : c.test ? 'TEST: NOT VALID' : ''
+  const font = signatureFont()
   return `<!doctype html><html><head><meta charset="utf-8"><style>
+  ${font ? `@font-face { font-family: 'GL Signature'; src: url('${font}') format('truetype'); }` : ''}
   @page { size: A4 landscape; margin: 0; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 297mm; height: 210mm; }
@@ -102,7 +111,7 @@ export async function buildCertificateHtml(c: {
   .body b { color: #12262c; }
   .bottom { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 10mm; }
   .sig { font-size: 9pt; color: #5b6b72; line-height: 1.5; }
-  .sig .typed { font-family: 'Liberation Serif', 'DejaVu Serif', Georgia, serif; font-style: italic; font-size: 17pt; color: #12262c; border-bottom: 0.3mm solid #9aa9ae; padding-bottom: 1mm; margin-bottom: 1.5mm; min-width: 70mm; display: inline-block; }
+  .sig .typed { font-family: 'GL Signature', 'Liberation Serif', Georgia, serif; font-size: 25pt; font-variant-ligatures: none; font-feature-settings: "liga" 0, "dlig" 0, "calt" 0, "clig" 0; color: #12262c; border-bottom: 0.3mm solid #9aa9ae; padding-bottom: 1mm; margin-bottom: 1.5mm; min-width: 70mm; display: inline-block; }
   .dates { font-size: 9pt; color: #5b6b72; line-height: 1.7; }
   .dates b { color: #12262c; }
   .verify { display: flex; align-items: flex-end; gap: 4mm; text-align: right; }
@@ -140,6 +149,7 @@ export async function renderCertificatePdf(html: string): Promise<Buffer> {
     browser = await puppeteer.launch({ args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu'] })
     const page = await browser.newPage()
     await page.setContent(html, { waitUntil: 'load' })
+    await page.evaluate(() => document.fonts.ready)
     await page.emulateMediaType('print')
     const pdf = await page.pdf({ format: 'A4', landscape: true, printBackground: true, margin: { top: 0, right: 0, bottom: 0, left: 0 }, preferCSSPageSize: true })
     return Buffer.from(pdf)

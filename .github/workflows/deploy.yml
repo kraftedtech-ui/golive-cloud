@@ -348,6 +348,25 @@ jobs:
           mkdir -p app/api/partner-commission/settings app/api/partner-commission/recalculate
           git show origin/main:app/api/partner-commission/settings/route.ts > app/api/partner-commission/settings/route.ts
           git show origin/main:app/api/partner-commission/recalculate/route.ts > app/api/partner-commission/recalculate/route.ts
+          # Partner Network, stage 4a: partner sign-in and dashboard, deal
+          # registration and approval, handwriting signatures.
+          git show origin/main:models/DealRegistration.ts > models/DealRegistration.ts
+          git show origin/main:lib/dealRegistration.ts > lib/dealRegistration.ts
+          git show origin/main:lib/partnerSession.ts > lib/partnerSession.ts
+          git show origin/main:components/SignaturePreview.tsx > components/SignaturePreview.tsx
+          mkdir -p app/api/partner-portal/session app/api/partner-portal/me app/api/partner-portal/deals app/api/partner-portal/acknowledge "app/api/partner-deals/[id]" app/partner/login app/portal/partners/deals
+          git show origin/main:app/api/partner-portal/session/route.ts > app/api/partner-portal/session/route.ts
+          git show origin/main:app/api/partner-portal/me/route.ts > app/api/partner-portal/me/route.ts
+          git show origin/main:app/api/partner-portal/deals/route.ts > app/api/partner-portal/deals/route.ts
+          git show origin/main:app/api/partner-portal/acknowledge/route.ts > app/api/partner-portal/acknowledge/route.ts
+          git show origin/main:app/api/partner-deals/route.ts > app/api/partner-deals/route.ts
+          git show "origin/main:app/api/partner-deals/[id]/route.ts" > "app/api/partner-deals/[id]/route.ts"
+          git show origin/main:app/partner/page.tsx > app/partner/page.tsx
+          git show origin/main:app/partner/login/page.tsx > app/partner/login/page.tsx
+          git show origin/main:app/portal/partners/deals/page.tsx > app/portal/partners/deals/page.tsx
+          git show origin/main:components/partners/PartnerLogin.tsx > components/partners/PartnerLogin.tsx
+          git show origin/main:components/partners/PartnerDashboard.tsx > components/partners/PartnerDashboard.tsx
+          git show origin/main:components/dashboard/DealsPanel.tsx > components/dashboard/DealsPanel.tsx
           # Branded document template for every document signed in the portal
           # (partner agreements, offer letters): renderer and cover artwork.
           git show origin/main:lib/brandedDocument.ts > lib/brandedDocument.ts

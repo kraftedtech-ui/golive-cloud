@@ -11,7 +11,7 @@ export function PartnerHeader() {
         </a>
         <span className="gp-sep" aria-hidden="true" />
         <span className="gp-section">Partner Network</span>
-        <a className="gp-contact" href={`mailto:${PARTNER_EMAIL}`}>{PARTNER_EMAIL}</a>
+        <a className="gp-contact" href="/partner">Partner sign-in</a>
       </div>
     </header>
   )

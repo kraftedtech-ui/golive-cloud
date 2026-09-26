@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     jobCode: app.offer.jobCode, salary: app.offer.salary, startDate: app.offer.startDate,
     deadline: app.offer.deadline, sentAt: app.offer.sentAt,
     candidateSignedAt: app.offer.candidateSignedAt, candidateSignedName: app.offer.candidateSignedName,
-    candidateIp: app.offer.candidateIp, mdSignedAt: app.offer.mdSignedAt, mdSignedName: app.offer.mdSignedName,
+    candidateIp: app.offer.candidateIp, mdSignedAt: app.offer.mdSignedAt, mdSignedName: app.offer.mdSignedName, mdIp: app.offer.mdIp,
     employeeNumber: app.employeeNumber,
   })
 

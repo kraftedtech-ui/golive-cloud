@@ -51,6 +51,7 @@ export interface AgreementView {
   partnerIp?: string | null
   mdSignedAt?: Date | string | null
   mdSignedName?: string | null
+  mdIp?: string | null
   partnerNumber?: string | null
   assessmentPassedAt?: Date | string | null
   integrityPassedAt?: Date | string | null
@@ -92,7 +93,7 @@ export function buildAgreementDoc(a: AgreementView): BrandedDoc {
     coverTags: ['Partner network', 'Sales governance', 'Commission'],
     coverFooterLeft: `${a.version}  \u2022  ${a.mdSignedAt ? 'Executed' : 'Draft for execution'}`,
     warning: a.test ? 'TEST AGREEMENT: NOT BINDING. Issued to test the signing process only.' : undefined,
-    particulars: { title: 'Agreement Particulars', note: 'Review the details below before signing this agreement', rows: particulars },
+    particulars: { title: 'Agreement Particulars', note: a.mdSignedAt ? 'Details of this agreement' : 'Review the details below before signing this agreement', rows: particulars },
     intro: `<p>This Agreement is made on ${d8(a.sentAt || new Date())} between ${esc(COMPANY)} (${COMPANY_RC}), of Lagos, Nigeria (the &ldquo;Company&rdquo;), and ${party}, email ${esc(a.partner.email)} (the &ldquo;Partner&rdquo;).</p>`,
     firstHtml: [
       heading('1', 'Background'),
@@ -183,7 +184,7 @@ export function buildAgreementDoc(a: AgreementView): BrandedDoc {
         {
           heading: `For ${co}`,
           name: `${a.mdSignedName || MD_NAME}  |  ${MD_TITLE}`,
-          signed: a.mdSignedAt ? { name: a.mdSignedName || MD_NAME, at: fmtDateTime(a.mdSignedAt), extra: a.partnerNumber ? `Partner No. ${a.partnerNumber}` : undefined } : null,
+          signed: a.mdSignedAt ? { name: a.mdSignedName || MD_NAME, at: fmtDateTime(a.mdSignedAt), ip: a.mdIp } : null,
           pending: a.partnerSignedAt ? 'Awaiting countersignature' : 'To be countersigned after the Partner signs',
         },
       ],
