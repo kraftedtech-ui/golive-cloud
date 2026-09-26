@@ -21,6 +21,7 @@ const PAGE_LABELS: Record<string, { section: string; title: string }> = {
   partners:          { section: "Partner Network", title: "Partner applications" },
   partner_commission: { section: "Partner Network", title: "Commission schedule" },
   partner_deals:     { section: "Partner Network", title: "Deal registrations" },
+  help:              { section: "Help", title: "Help and how-to" },
   customers:         { section: "Administration", title: "Customer accounts" },
   "payment-risk":    { section: "Administration", title: "Payment and suspension risk" },
   pricing:           { section: "Administration", title: "Pricing catalogue" },

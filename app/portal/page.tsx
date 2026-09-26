@@ -2110,7 +2110,9 @@ function TeamManagement({ users, loading, onUpdate }: { users: User[]; loading: 
 
   const ROLE_LABELS: Record<string, { label: string; desc: string; color: string }> = {
     admin:  { label: 'Admin',  desc: 'Full access — team management, all data', color: 'bg-purple-50 text-purple-700' },
+    operations: { label: 'Operations', desc: 'Sales access plus partner management — no signing or approving', color: 'bg-teal-50 text-teal-700' },
     sales:  { label: 'Sales',  desc: 'Leads, pipeline, proposals, transfers', color: 'bg-blue-50 text-blue-700' },
+    support: { label: 'Support', desc: 'Deployments, transfers, customer accounts (read), knowledge base', color: 'bg-amber-50 text-amber-700' },
     viewer: { label: 'Viewer', desc: 'Read-only — cannot edit any records', color: 'bg-gray-50 text-gray-600' },
   }
 

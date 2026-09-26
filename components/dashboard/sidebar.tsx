@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react"
 import {
   Home, Cloud, ArrowLeftRight, KanbanSquare, DollarSign, ClipboardList, FileText, Tags,
   ListChecks, Bell, BookOpen, ClipboardCheck, UserRound, BriefcaseBusiness, Users,
-  AlertTriangle, ShieldCheck, GraduationCap, Award, ExternalLink, Handshake, Percent,
+  AlertTriangle, ShieldCheck, GraduationCap, Award, ExternalLink, Handshake, Percent, LifeBuoy,
   ChevronDown, type LucideIcon,
 } from "lucide-react"
 import { SUPPORT_HIDDEN_MENU } from "@/lib/roles"
@@ -29,7 +29,7 @@ type NavItem = { label: string; icon: LucideIcon; key: string; adminOnly?: boole
 type NavSection = { heading: string | null; items: NavItem[] }
 
 const sections: NavSection[] = [
-  { heading: null, items: [{ label: "Home", icon: Home, key: "dashboard" }] },
+  { heading: null, items: [{ label: "Home", icon: Home, key: "dashboard" }, { label: "Help and how-to", icon: LifeBuoy, key: "help", href: "/portal/help" }] },
   {
     heading: "Sales",
     items: [

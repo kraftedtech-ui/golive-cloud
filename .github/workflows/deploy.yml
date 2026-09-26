@@ -380,6 +380,30 @@ jobs:
           git show origin/main:lib/whmcsIntegration.ts > lib/whmcsIntegration.ts
           # Portal roles: operations and support (SOP section 9).
           git show origin/main:lib/roles.ts > lib/roles.ts
+          # Help area: role SOPs and how-to guides with screenshots.
+          git show origin/main:lib/helpGuides.ts > lib/helpGuides.ts
+          git show origin/main:components/dashboard/HelpCenter.tsx > components/dashboard/HelpCenter.tsx
+          mkdir -p app/portal/help public/help
+          git show origin/main:app/portal/help/page.tsx > app/portal/help/page.tsx
+          git cat-file blob origin/main:public/help/announcements.jpg > public/help/announcements.jpg
+          git cat-file blob origin/main:public/help/commissions.jpg > public/help/commissions.jpg
+          git cat-file blob origin/main:public/help/customers.jpg > public/help/customers.jpg
+          git cat-file blob origin/main:public/help/deal-registration.jpg > public/help/deal-registration.jpg
+          git cat-file blob origin/main:public/help/deployment.jpg > public/help/deployment.jpg
+          git cat-file blob origin/main:public/help/discovery.jpg > public/help/discovery.jpg
+          git cat-file blob origin/main:public/help/knowledge.jpg > public/help/knowledge.jpg
+          git cat-file blob origin/main:public/help/menu-operations.jpg > public/help/menu-operations.jpg
+          git cat-file blob origin/main:public/help/menu-sales.jpg > public/help/menu-sales.jpg
+          git cat-file blob origin/main:public/help/menu-support.jpg > public/help/menu-support.jpg
+          git cat-file blob origin/main:public/help/new-lead.jpg > public/help/new-lead.jpg
+          git cat-file blob origin/main:public/help/partner-application.jpg > public/help/partner-application.jpg
+          git cat-file blob origin/main:public/help/payment-risk.jpg > public/help/payment-risk.jpg
+          git cat-file blob origin/main:public/help/pipeline.jpg > public/help/pipeline.jpg
+          git cat-file blob origin/main:public/help/proposals.jpg > public/help/proposals.jpg
+          git cat-file blob origin/main:public/help/signin.jpg > public/help/signin.jpg
+          git cat-file blob origin/main:public/help/team.jpg > public/help/team.jpg
+          git cat-file blob origin/main:public/help/tour.jpg > public/help/tour.jpg
+          git cat-file blob origin/main:public/help/transfers.jpg > public/help/transfers.jpg
           mkdir -p app/api/integrations/whmcs/invoice-paid app/api/partner-commissions/invoices
           git show origin/main:app/api/integrations/whmcs/invoice-paid/route.ts > app/api/integrations/whmcs/invoice-paid/route.ts
           git show origin/main:app/api/partner-commissions/invoices/route.ts > app/api/partner-commissions/invoices/route.ts
